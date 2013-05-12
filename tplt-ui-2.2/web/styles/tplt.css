@@ -1,0 +1,338 @@
+.x-form-cb-label {
+    position: relative;
+    margin-left: 4px;
+    top: 2px;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+.tplt-top-border {
+    border-top: 1px solid #99bbe8;
+}
+
+.tplt-left-border {
+    border-left: 1px solid #99bbe8;
+}
+
+.tplt-bottom-border {
+    border-bottom: 1px solid #99bbe8;
+}
+
+.od-dataview-dd-ghost {
+    white-space: nowrap;
+}
+
+.od-dataview-dd-spacer {
+    border: 1px dotted #99bbe8;
+    margin: 2px;
+}
+
+.xds-data-view .thumb-wrap {
+    float: left;
+    margin: 2px 0 2px 2px;
+    border: 1px solid #aaaaaa;
+}
+
+.xds-data-view .thumb img {
+    height: 40px;
+    width: 40px;
+}
+
+.xds-data-view .thumb-wrap span {
+    white-space: nowrap;
+    width: 120px;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    font: 11px Arial, Helvetica, sans-serif;
+}
+
+.xds-data-view .thumb {
+    background: #dddddd;
+}
+
+.xds-data-view .x-view-over {
+    border: 1px solid #666666;
+}
+
+.xds-data-view .x-view-selected {
+    background: #eff5fb url(../images/selected.gif) no-repeat right bottom;
+    border: 1px solid #99bbe8;
+}
+
+.mini {
+    background: #dfe8f6;
+    border: 1px solid #88a1c0;
+    border-right: 0 none;
+}
+
+.mini .x-panel-header, #props .x-panel-header, #toolbox .x-panel-header {
+    background: #b8cfe9 url(../images/designer/panel-hd.gif) repeat-x 0 0;
+    border: 1px solid #dfe8f6;
+    border-right-width: 0;
+    border-bottom-color: #a8bfd9;
+    padding: 2px;
+}
+
+.mini .x-panel-header-text, #props .x-panel-header-text, #toolbox .x-panel-header-text {
+    font-weight: normal;
+    font-size: 12px;
+    font-family: 'segoe ui', arial, helvetica, tahoma, sans-serif;
+    /*	text-shadow: 2px 2px 2px #fff; */
+}
+
+.mini .x-tree-node-el, #toolbox .x-tree-node-el {
+    padding: 1px;
+}
+
+.mini .x-tree-selected, #toolbox .x-tree-selected {
+
+}
+
+.no-icon {
+    display: none !important;
+}
+
+.icon-org {
+    background-image: url(../images/icons/building.gif) !important;
+}
+
+.icon-storage {
+    background-image: url(../images/icons/package.gif) !important;
+}
+
+.x-action-col-cell img {
+    height: 16px;
+    width: 16px;
+    margin-right: 2px;
+}
+
+.x-treegrid-root-table {
+    border-right: 1px solid;
+}
+
+.x-treegrid-root-node {
+    overflow: auto;
+}
+
+.x-treegrid-hd-hidden {
+    visibility: hidden;
+    border: 0;
+    width: 0;
+}
+
+.x-treegrid-col {
+    border-bottom: 1px solid;
+    height: 20px;
+    overflow: hidden;
+    vertical-align: top;
+    -o-text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.x-treegrid-text {
+    padding-left: 4px;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+}
+
+.x-treegrid-resizer {
+    border-left: 1px solid;
+    border-right: 1px solid;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.x-treegrid-header-inner {
+    overflow: hidden;
+}
+
+.x-treegrid-root-table,
+.x-treegrid-col {
+    border-color: #ededed;
+}
+
+.x-treegrid-resizer {
+    border-left-color: #555;
+    border-right-color: #555;
+}
+
+.nav-ct {
+    background: #eee;
+    border: 1px solid;
+    border-right: none;
+    border-left: none;
+    padding: 4px;
+}
+
+.nav-ct a span {
+    font-weight: bold;
+    color: #333;
+}
+
+.nav-ct .x-tree-node-icon {
+    width: 0 !important;
+    background: transparent;
+}
+
+#nav .x-tree-node-indent img:first-child {
+    width: 0 !important;
+    background: transparent;
+}
+
+#nav .nav-ct {
+    border-color: #fafafa #dbdbdb #dbdbdb #fafafa;
+}
+
+#nav .x-tree-node-leaf {
+    padding: 2px;
+}
+
+.tplt-shortcut {
+    padding: 24px;
+}
+
+.tplt-shortcut-wrap {
+    float: left;
+    width: 260px;
+    border-bottom: 1px dotted #ccc;
+    margin-right: 24px;
+    margin-bottom: 10px;
+    cursor: hand;
+}
+
+.tplt-shortcut-over {
+    background-color: #eee;
+}
+
+.tplt-shortcut-wrap .thumb {
+    width: 40px;
+    height: 40px;
+    float: left;
+    padding: 2px;
+    margin: 0 8px 2px 0;
+}
+
+.tplt-shortcut-wrap .title {
+    line-height: 26px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.tplt-shortcut-wrap .remark {
+    margin-top: 2px;
+}
+
+.shortcut- {
+    background-image: url(../images/shortcut/puzzle.png) !important;
+}
+
+.shortcut-icon-plugin {
+    background-image: url(../images/shortcut/puzzle.png) !important;
+}
+
+.shortcut-icon-report-user {
+    background-image: url(../images/shortcut/business_users.png) !important;
+}
+
+/*表单必填项显示为红色*/
+.x-form-required {
+    border: 1px solid #ffb4b4;
+}
+
+/*表单只读项显示为下划线*/
+.x-form-readonly {
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    background-image: none;
+}
+
+.x-table-layout-cell {
+    vertical-align: top;
+}
+
+/*边框样式*/
+.tplt-border-bottom {
+    border-bottom: 1px solid #99bbe8;
+}
+
+.tplt-border-top {
+    border-top: 1px solid #99bbe8;
+}
+
+.tplt-border-left {
+    border-left: 1px solid #99bbe8;
+}
+
+.tplt-border-right {
+    border-right: 1px solid #99bbe8;
+}
+
+/*checkboxColumn 表头样式*/
+.tplt-checkcol-hd {
+    float: left;
+    padding-right: 2px;
+}
+
+.tplt-checkcol-hd-box {
+    float: left;
+    width: 16px;
+    height: 15px;
+    background: url(../scripts/ext-3.0+/resources/images/default/grid/row-check-sprite.gif) 2px 0;
+}
+
+.check-all .tplt-checkcol-hd-box {
+    background-position: 27px 0;
+}
+
+.data-view1 {
+
+}
+
+.data-view1 .item {
+    float: left;
+    border: 1px solid #ccc;
+    margin: 8px;
+    padding: 8px;
+    width: 360px;
+    height: 126px;
+    box-shadow: 1px 1px 3px #ddd;
+}
+
+.data-view1 .item.x-view-over{
+    border-color: #aaa;
+    box-shadow: 2px 2px 4px #ccc;
+}
+
+.data-view1 .item.selected{
+    border-color: #aaa;
+    box-shadow: 2px 2px 4px #ccc;
+}
+
+.data-view1 .item .thumb {
+    width: 120px;
+    height: 120px;
+    float: left;
+    padding: 2px;
+    border: 1px dotted #ccc;
+    margin-right: 8px;
+    background-color: #eee;
+}
+
+.data-view1 .item ul li {
+    margin-left: 136px;
+    padding: 1px;
+    font-size: 12px;
+}
+
+.data-view1 .item ul li.title {
+    border-bottom: 1px dotted #ccc;
+    margin: 4px 0 8px 136px;
+    font-size: 18px;
+    padding: 2px;
+}
+
