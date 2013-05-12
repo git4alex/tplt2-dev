@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<bean id="module" class="org.delta.core.metadata.EntityMetadata">
+		<property name="pkCode" value="moduleId"/>
+		<property name="name" value="模块"/>
+		<property name="tableName" value="SYS_MODULE"/>
+		<property name="fieldList">
+			<list>
+				<bean class="org.delta.core.metadata.FieldMetadata">
+					<property name="name" value="id"/>
+					<property name="code" value="id"/>
+					<property name="columnName" value="ID"/>
+					<property name="dataType" value="integer"/>
+					<property name="primaryKey" value="false"/>
+					<property name="mandatory" value="true"/>
+				</bean>
+				<bean class="org.delta.core.metadata.FieldMetadata">
+					<property name="name" value="名称"/>
+					<property name="code" value="name"/>
+					<property name="columnName" value="NAME"/>
+					<property name="dataType" value="string"/>
+					<property name="length" value="64"/>
+					<property name="primaryKey" value="false"/>
+					<property name="mandatory" value="true"/>
+				</bean>
+				<bean class="org.delta.core.metadata.FieldMetadata">
+					<property name="name" value="config"/>
+					<property name="code" value="config"/>
+					<property name="columnName" value="CONFIG"/>
+					<property name="dataType" value="string"/>
+					<property name="length" value="400000"/>
+					<property name="primaryKey" value="false"/>
+					<property name="mandatory" value="true"/>
+				</bean>
+				<bean class="org.delta.core.metadata.FieldMetadata">
+					<property name="name" value="模块ID"/>
+					<property name="code" value="moduleId"/>
+					<property name="columnName" value="MODULE_ID"/>
+					<property name="dataType" value="string"/>
+					<property name="length" value="128"/>
+					<property name="primaryKey" value="true"/>
+					<property name="mandatory" value="true"/>
+				</bean>
+				<bean class="org.delta.core.metadata.FieldMetadata">
+					<property name="name" value="category"/>
+					<property name="code" value="category"/>
+					<property name="columnName" value="CATEGORY"/>
+					<property name="dataType" value="string"/>
+					<property name="length" value="128"/>
+					<property name="primaryKey" value="false"/>
+					<property name="mandatory" value="false"/>
+				</bean>
+                <bean class="org.delta.core.metadata.FieldMetadata">
+                    <property name="name" value="xdsConfig"/>
+                    <property name="code" value="xdsConfig"/>
+                    <property name="columnName" value="XDS_CONFIG"/>
+                    <property name="dataType" value="string"/>
+                    <property name="length" value="4000"/>
+                    <property name="primaryKey" value="false"/>
+                    <property name="mandatory" value="true"/>
+                </bean>
+                <bean class="org.delta.core.metadata.FieldMetadata">
+                    <property name="name" value="图标"/>
+                    <property name="code" value="iconCls"/>
+                    <property name="columnName" value="ICON_CLS"/>
+                    <property name="dataType" value="string"/>
+                    <property name="length" value="128"/>
+                    <property name="primaryKey" value="false"/>
+                    <property name="mandatory" value="false"/>
+                </bean>
+			</list>
+		</property>
+	</bean>
+</beans>

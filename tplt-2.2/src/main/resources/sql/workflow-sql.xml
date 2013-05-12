@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    工作流管理
+-->
+<sqls namespace="workflow">
+
+    <sql name="queryOrgRoleUsers" title="通过机构和角色获取下面的用户列表">
+        <![CDATA[
+            SELECT
+                U.*
+            FROM SYS_USER U
+                JOIN SYS_USER_ROLE UR   ON  UR.USER_ID = U.ID
+                JOIN SYS_ROLE R         ON  UR.ROLE_ID = R.ID
+            WHERE   U.ORG_ID    = '${orgId}'
+                AND R.ROLE_CODE = '${roleCode}'
+		]]>
+    </sql>
+
+
+</sqls>
