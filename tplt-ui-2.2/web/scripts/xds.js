@@ -2470,21 +2470,17 @@ xds.Canvas.DropZone = Ext.extend(Ext.dd.DropZone, {
         this.lastInsertClass = "xds-no-status";
     },
     getTargetFromEvent: function (a) {
-//        return a.getTarget(".xds-child-target", 2) || a.getTarget(".el-film", 2) || this.cvs;
         return this.cvs.findTarget(a) || this.cvs;
     },
     isValidDropPoint: function (g, d, e) {
         var ct = g ? g.component : null;
         var c = d.node.component || d.node.instance;
         return ct ? ct.isValidParent(c) && c.isValidChild(ct) : c.isValidChild(ct);
-        //return xds.types.BaseType.isValidDrop(ct, c);
     },
     onNodeOver: function (n, s, e, d) {
-//        var g = this.cvs.getTargetNode(n);
         return this.isValidDropPoint(n, d, e) ? "xds-dd-new" : this.dropNotAllowed;
     },
     onNodeDrop: function (dropTarget, dragSource, evt, data) {
-//        var tgtCom = dropTarget == this.cvs ? null : this.cvs.getTargetNode(dropTarget);
         var node = data.node;
         if (this.isValidDropPoint(dropTarget, data, evt)) {
             this.cvs.lastDropPoint = evt.getPoint();

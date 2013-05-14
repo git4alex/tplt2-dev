@@ -15,6 +15,10 @@ od.flow.getConPath = function (bb1, bb2) {
     var er = {x: bb2.x + bb2.width + 1, y: bb2.y + bb2.height / 2};
     var ec = {x: bb2.x + bb2.width / 2, y: bb2.y + bb2.height / 2};
 
+    if (bb1 == bb2) {
+        return ['M', sr.x, sr.y, 'L', sr.x + 10, sl.y, sr.x + 10, st.y - 10, sl.x - 20, st.y - 10, sl.x - 20, sl.y, sl.x, sl.y];
+    }
+
     var r = 0;
     var dx = ec.x - sc.x,
         dy = ec.y - sc.y;
@@ -46,7 +50,10 @@ od.flow.getConPath = function (bb1, bb2) {
         p2 = {x: pe.x, y: p1.y};
     }
 
-    return ['M', ps.x.toFixed(0), ps.y.toFixed(0), 'L', p1.x.toFixed(0), p1.y.toFixed(0), p2.x.toFixed(0), p2.y.toFixed(0), pe.x.toFixed(0), pe.y.toFixed(0)];
+    return ['M', ps.x.toFixed(0), ps.y.toFixed(0),
+        'L', p1.x.toFixed(0), p1.y.toFixed(0),
+        p2.x.toFixed(0), p2.y.toFixed(0),
+        pe.x.toFixed(0), pe.y.toFixed(0)];
 };
 
 od.flow.FlowLayout = Ext.extend(Ext.layout.ContainerLayout, {
@@ -198,7 +205,7 @@ od.flow.SubProcess = Ext.extend(Ext.Container, {
                 p.setStart();
                 this.drawShape(p);
                 this.drawText(p);
-                this.shape = p.setFinish().attr({cursor:'default'});
+                this.shape = p.setFinish().attr({cursor: 'default'});
                 this.el = Ext.get(this.positionShape.node);
                 this.paper = p;
             }
@@ -237,6 +244,48 @@ od.flow.SubProcess = Ext.extend(Ext.Container, {
     },
     getSize: function () {
         return {width: this.width, height: this.height};
+    },
+    setPosition: function (x, y, ic) {
+        var dx = x - this.positionShape.attr('x'), dy = y - this.positionShape.attr('y');
+        this.shape.transform('t' + dx + ',' + dy);
+        if (this.items && ic != false) {
+            this.items.each(function (c) {
+                if (!c.isConnection) {
+                    if (c.boxReady) {
+                        c.setPosition(x + c.x - this.x, y + c.y - this.y);
+                    } else {
+                        c.x += (x - this.x);
+                        c.y += (y - this.y);
+                    }
+
+                }
+            }, this);
+        }
+        od.flow.SubProcess.superclass.setPosition.call(this, x, y);
+    },
+    setSize: function (w, h) {
+        if (w) {
+            this.width = w;
+        }
+        if (h) {
+            this.height = h;
+        }
+        this.positionShape.attr({width: this.width, height: this.height});
+    },
+    getWidth: function () {
+        return this.width;
+    },
+    getHeight: function () {
+        return this.height;
+    },
+    toggleHilight: function (a) {
+        if (this.positionShape) {
+            if (a) {
+                this.positionShape.attr({fill: 'eee'});
+            } else {
+                this.positionShape.attr({fill: 'fff'});
+            }
+        }
     }
 });
 Ext.reg('flowsubprocess', od.flow.SubProcess);
@@ -272,6 +321,28 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
     isResizable: function () {
         return true;
     },
+    setX: function (n, x) {
+        var ox = this.getConfigValue('x');
+        this.node.eachChild(function (c) {
+            var cc = c.component;
+            if (!cc.isConnection) {
+                var cox = cc.getConfigValue('x');
+                cc.setConfig('x', cox + x - ox);
+            }
+        });
+        this.setConfig('x', x);
+    },
+    setY: function (n, y) {
+        var oy = this.getConfigValue('y');
+        this.node.eachChild(function (c) {
+            var cc = c.component;
+            if (!cc.isConnection) {
+                var coy = cc.getConfigValue('y');
+                cc.setConfig('y', coy + y - oy);
+            }
+        });
+        this.setConfig('y', y);
+    },
     xdConfigs: [
         {
             name: 'id',
@@ -292,11 +363,24 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
             name: 'height',
             group: 'SubProcess',
             ctype: 'number'
+        },
+        {
+            name: 'x',
+            group: 'Layout',
+            ctype: 'number',
+            setFn: 'setX'
+        },
+        {
+            name: 'y',
+            group: 'Layout',
+            ctype: 'number',
+            setFn: 'setY'
         }
     ]
 });
 
 xds.flow.SubProcess = Ext.extend(od.flow.SubProcess, {
+    isContainer: true,
     createFilm: function () {
 
     },
@@ -307,49 +391,7 @@ xds.flow.SubProcess = Ext.extend(od.flow.SubProcess, {
             this.shape.forEach(function (i) {
                 i.vn = v;
             });
-//            if (this.viewerNode.isSelected()) {
-//                this.toggleHilight(true);
-//            }
         }
-    },
-//    toggleHilight: function (a) {
-//        if (this.shape) {
-//            if (a) {
-//                this.shape[0].attr({'stroke-width': 2});
-//                this.shape.attr({cursor: 'move'});
-//                this.shape.toFront();
-//            } else {
-//                this.shape[0].attr({'stroke-width': 1});
-//                this.shape.attr({cursor: 'default'});
-//            }
-//        }
-//    },
-    setPosition: function (x, y) {
-        var dx = x - this.positionShape.attr('x'), dy = y - this.positionShape.attr('y');
-        this.shape.transform('t' + dx + ',' + dy);
-        if (this.items) {
-            this.items.each(function (c) {
-                if (c.isConnection != true && c.boxReady) {
-                    c.setPosition(x + c.x - this.x, y + c.y - this.y);
-                }
-            }, this);
-        }
-        od.flow.SubProcess.superclass.setPosition.call(this, x, y);
-    },
-    setSize: function (w, h) {
-        if (w) {
-            this.width = w;
-        }
-        if (h) {
-            this.height = h;
-        }
-        this.positionShape.attr({width: this.width, height: this.height});
-    },
-    getWidth:function(){
-        return this.width;
-    },
-    getHeight:function(){
-        return this.height;
     }
 });
 
@@ -371,6 +413,7 @@ xds.types.flow.EventSubProcess = Ext.extend(xds.types.flow.SubProcess, {
     naming: "EventSubProcess"
 });
 xds.flow.EventSubProcess = Ext.extend(od.flow.EventSubProcess, {
+    isContainer: true,
     createFilm: function () {
 
     },
@@ -382,33 +425,6 @@ xds.flow.EventSubProcess = Ext.extend(od.flow.EventSubProcess, {
                 i.vn = v;
             });
         }
-    },
-    setPosition: function (x, y) {
-        var dx = x - this.positionShape.attr('x'), dy = y - this.positionShape.attr('y');
-        this.shape.transform('t' + dx + ',' + dy);
-        if (this.items) {
-            this.items.each(function (c) {
-                if (c.isConnection != true && c.boxReady) {
-                    c.setPosition(x + c.x - this.x, y + c.y - this.y);
-                }
-            }, this);
-        }
-        od.flow.EventSubProcess.superclass.setPosition.call(this, x, y);
-    },
-    setSize: function (w, h) {
-        if (w) {
-            this.width = w;
-        }
-        if (h) {
-            this.height = h;
-        }
-        this.positionShape.attr({width: this.width, height: this.height});
-    },
-    getWidth:function(){
-        return this.width;
-    },
-    getHeight:function(){
-        return this.height;
     }
 });
 
@@ -465,12 +481,15 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     toggleHilight: function (a) {
         if (this.shape) {
             if (a) {
-                this.positionShape.attr({'stroke-width': 2});
+                this.positionShape.attr({fill: 'eee'});
                 this.shape.toFront();
             } else {
-                this.positionShape.attr({'stroke-width': 1});
+                this.positionShape.attr({fill: this.getColor()});
             }
         }
+    },
+    getColor: function () {
+        return 'white';
     },
     getInputs: function () {
         if (!this.inputs) {
@@ -568,6 +587,7 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
 });
 
 od.flow.Start = Ext.extend(od.flow.Shape, {
+    width: 32, height: 32,
     drawShape: function (p) {
         this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
     }
@@ -703,7 +723,7 @@ Ext.reg('xdflowexception', xds.flow.ExEvent);
 od.flow.MsgEvent = Ext.extend(od.flow.Start, {
     drawShape: function (p) {
         this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
-        p.rect(this.x - 10, this.y - 7, 20, 14);
+        p.rect(this.x - 10, this.y - 7, 20, 14).attr({fill: 'white'});
         p.path(['M', this.x, this.y, 'L', this.x - 10, this.y - 7, this.x + 10, this.y - 7, 'Z']);
     }
 });
@@ -739,6 +759,9 @@ od.flow.UserTask = Ext.extend(od.flow.Shape, {
         p.image(this.iconUrl, this.x + 5, this.y + 5, 16, 16);
         this.drawSequential(p);
     },
+    getColor: function () {
+        return '315-#fff-#ffffbb';
+    },
     drawText: function (p) {
         if (this.name) {
             var x = this.x + this.width / 2, y = this.y + this.height / 2;
@@ -756,6 +779,24 @@ od.flow.UserTask = Ext.extend(od.flow.Shape, {
             p.rect(x, y + this.height / 2 - 12, .1, 10, 0);
             p.rect(x + 3, y + this.height / 2 - 12, .1, 10, 0);
         }
+    },
+    getSize: function () {
+        return {width: this.width, height: this.height};
+    },
+    setSize: function (w, h) {
+        if (w) {
+            this.width = w;
+        }
+        if (h) {
+            this.height = h;
+        }
+        this.positionShape.attr({width: this.width, height: this.height});
+    },
+    getWidth: function () {
+        return this.width;
+    },
+    getHeight: function () {
+        return this.height;
     }
 });
 
@@ -764,8 +805,8 @@ Ext.reg('flowusertask', od.flow.UserTask);
 xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
     isTask: true,
     category: "任务(Task)",
-    minWidth: 20,
-    minHeight: 20,
+    minWidth: 100,
+    minHeight: 60,
     isContainer: true,
     isResizable: function () {
         return true;
@@ -1230,17 +1271,17 @@ od.flow.Connection = Ext.extend(Ext.Component, {
             this.endNode.getInputs().add(this);
         }
         if (!Ext.isEmpty(this.startNode) && !Ext.isEmpty(this.endNode)) {
-            if(!this.startNode.rendered){
-                this.startNode.on('render',this.doRender,this);
-            }else if(!this.endNode.rendered){
-                this.endNode.on('render',this.doRender,this);
-            }else{
+            if (!this.startNode.rendered) {
+                this.startNode.on('render', this.doRender, this);
+            } else if (!this.endNode.rendered) {
+                this.endNode.on('render', this.doRender, this);
+            } else {
                 this.doRender();
             }
         }
         //od.flow.Connection.superclass.onRender.call(this, ct, pos);
     },
-    doRender:function(){
+    doRender: function () {
         var p = this.ownerCt.paper;
         var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
         var path = od.flow.getConPath(sb, eb);
@@ -1361,8 +1402,8 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
             }
         }
     },
-    onRender: function (ct, pos) {
-        xds.flow.Connection.superclass.onRender.call(this, ct, pos);
+    doRender: function (ct, pos) {
+        xds.flow.Connection.superclass.doRender.call(this, ct, pos);
         if (this.startNode) {
             this.startNode.on('move', this.updatePath, this);
         }
@@ -1374,10 +1415,12 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
         }
     },
     updatePath: function () {
-        var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
-        var path = od.flow.getConPath(sb, eb).join(',');
-        this.shape.attr({path: path});
-        this.updateText();
+        if (this.shape) {
+            var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
+            var path = od.flow.getConPath(sb, eb).join(',');
+            this.shape.attr({path: path});
+            this.updateText();
+        }
     },
     updateText: function () {
         if (this.text) {
@@ -1555,6 +1598,7 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
 });
 
 od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
+    selecteds: [],
     isAbsolute: function (a) {
         return a.component.cid != 'flowcontainer' && !a.component.isConnection;
     },
@@ -1579,27 +1623,47 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
                     delete c.endHandler;
                     ret = true;
                 }
-            }else if(this.node == xds.inspector.root.firstChild){
+            } else if (this.node == xds.inspector.root.firstChild) {
                 this.dragMode = 'Select';
                 this.waiting = true;
                 ret = true;
             }
         }
+        if (this.dragMode != 'Absolute') {
+            this.clearSelections();
+        }
         return ret;
     },
-    onStart:function(e){
-        if(this.dragMode == 'Select'){
-            if(!this.selectProxy){
-                this.selectProxy = this.el.createChild({cls:'x-view-selector'});
+    onStart: function (e) {
+        if (this.dragMode == 'Select') {
+            if (!this.selectProxy) {
+                this.selectProxy = this.el.createChild({cls: 'x-view-selector'});
+            } else {
+                this.el.appendChild(this.selectProxy);
             }
             this.selectProxy.setDisplayed('block');
             this.selectConstrain = this.el.getRegion();
-            this.dragRegion = new Ext.lib.Region(0,0,0,0);
-        }else{
-            od.flow.Canvas.DragTracker.superclass.onStart.call(this,e);
+            this.dragRegion = new Ext.lib.Region(0, 0, 0, 0);
+        } else {
+            if (this.dragMode == 'Absolute') {
+                if (this.cmp.isContainer) {
+                    if (Ext.isEmpty(this.selecteds)) {
+                        var n = this.cmp.node;
+                        if (n.hasChildNodes()) {
+                            this.selecteds.push(n);
+                            n.eachChild(function (cn) {
+                                if (!cn.component.isConnection) {
+                                    this.selecteds.push(cn);
+                                }
+                            }, this);
+                        }
+                    }
+                }
+            }
+            od.flow.Canvas.DragTracker.superclass.onStart.call(this, e);
         }
     },
-    onDragSelect:function(e,c,a){
+    onDragSelect: function (e, c, a) {
         var startXY = this.startXY;
         var xy = this.getXY();
 
@@ -1610,16 +1674,45 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
 
         this.dragRegion.left = x;
         this.dragRegion.top = y;
-        this.dragRegion.right = x+w;
-        this.dragRegion.bottom = y+h;
+        this.dragRegion.right = x + w;
+        this.dragRegion.bottom = y + h;
 
         this.dragRegion.constrainTo(this.selectConstrain);
         this.selectProxy.setRegion(this.dragRegion);
     },
-    onEndSelect:function(){
-        if(this.selectProxy){
+    onEndSelect: function () {
+        var r = this.selectProxy.getRegion();
+        if (this.selectProxy) {
             this.selectProxy.setDisplayed(false);
         }
+        var lt = this.el.translatePoints(r.left, r.top), rb = this.el.translatePoints(r.right, r.bottom);
+        var sbb = {x: lt.left, y: lt.top, x2: rb.left, y2: rb.top, width: rb.left - lt.left, height: rb.top - lt.top};
+        if (xds.flow.container.items) {
+            this.addSelected(sbb, xds.flow.container.items);
+        }
+    },
+    isBBInside: function (c, t) {
+        return c.x <= t.x && c.y <= t.y && c.x2 >= t.x2 && c.y2 >= t.y2;
+    },
+    addSelected: function (sbb, items) {
+        items.each(function (item) {
+            if (item.positionShape) {
+                var ibb = item.positionShape.getBBox();
+                if (this.isBBInside(sbb, ibb)) {
+                    this.selecteds.push(item.viewerNode);
+                    item.toggleHilight(true);
+                }
+                if (item.items) {
+                    this.addSelected(sbb, item.items);
+                }
+            }
+        }, this);
+    },
+    clearSelections: function () {
+        Ext.each(this.selecteds, function (item) {
+            item.component.getExtComponent().toggleHilight(false);
+        });
+        this.selecteds = [];
     },
     onDragConnection: function (e, c, a) {
         var s = this.cmp.getExtComponent().positionShape;
@@ -1628,7 +1721,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var pt = cp.el.translatePoints(e.xy[0], e.xy[1]);
         var eb = {x: pt.left, y: pt.top, x2: pt.left, y2: pt.top, width: 0, height: 0};
         var tc = xds.canvas.findTarget(e);
-        if (tc && tc.component.connectable) {
+        if (tc && tc.component.connectable && tc != this.cmp.node.parentNode) {
             this.conTarget = tc.component;
             eb = this.conTarget.getExtComponent().positionShape.getBBox();
         } else {
@@ -1668,7 +1761,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var pt = cp.el.translatePoints(b.xy[0], b.xy[1]);
         var sb = {x: pt.left, y: pt.top, x2: pt.left, y2: pt.top, width: 0, height: 0};
         var tc = xds.canvas.findTarget(b);
-        if (tc && tc.component.connectable) {
+        if (tc && tc.component.connectable && tc != this.cmp.node.parentNode) {
             this.conTarget = tc.component;
             sb = this.conTarget.getExtComponent().positionShape.getBBox();
         } else {
@@ -1694,7 +1787,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var pt = cp.el.translatePoints(b.xy[0], b.xy[1]);
         var eb = {x: pt.left, y: pt.top, x2: pt.left, y2: pt.top, width: 0, height: 0};
         var tc = xds.canvas.findTarget(b);
-        if (tc && tc.component.connectable) {
+        if (tc && tc.component.connectable && tc != this.cmp.node.parentNode) {
             this.conTarget = tc.component;
             eb = this.conTarget.getExtComponent().positionShape.getBBox();
         } else {
@@ -1755,54 +1848,86 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
 //        }
 //        a.setPosition(this.snap(this.startX - c[0]), this.snap(this.startY - c[1]));
 //        console.log(c[0],c[1],dx,dy,this.startX,this.startY);
-        a.setPosition(this.startX - c[0] - dx, this.startY - c[1] - dy);
-    },
-    onEndAbsolute: function (b, c, a) {
-        if (this.cmp.isContainer) {
-            var n = this.cmp.node;
-            n.eachChild(function (cn) {
-                var cc = cn.component;
-                if (cc.isConnection != true) {
-                    var x = cc.getConfigValue('x') - c[0], y = cc.getConfigValue('y') - c[1];
-                    cc.setConfig('x', x);
-                    cc.setConfig('y', y);
-                }
-            });
+        if (!Ext.isEmpty(this.selecteds)) {
+            Ext.each(this.selecteds, function (sn) {
+                var s = sn.component.getExtComponent();
+                s.setPosition(s.x - c[0] - dx, s.y - c[1] - dy, false);
+            }, this);
         } else {
-            var p = xds.flow.container.paper;
-            var pt = xds.flow.container.el.translatePoints(b.xy[0], b.xy[1]);
-            var sps = p.getElementsByPoint(pt.left, pt.top);
-            if (sps.length > 0) {
-                sps.forEach(function (s) {
-                    if (s.vn == this.cmp.node.parentNode) {
+            a.setPosition(a.x - c[0] - dx, a.y - c[1] - dy, false);
+        }
 
-                    } else if (s.vn.component.isValidParent(this.cmp)) {
-                        xds.fireEvent("componentevent", {
-                            type: "move",
-                            parentId: s.vn.id,
-                            component: this.cmp
-                        });
-                        return false;
+        this.startXY = e.getXY();
+    },
+    onEndAbsolute: function (e, c, a) {
+        xds.canvas.beginUpdate();
+        if (!Ext.isEmpty(this.selecteds)) {
+            Ext.each(this.selecteds, function (item) {
+                var sc = item.component;
+                this.updatePosConfig(sc, e, sc == this.cmp);
+            }, this);
+        } else {
+            this.updatePosConfig(this.cmp, e, true);
+        }
+
+        xds.canvas.endUpdate(true);
+        xds.fireEvent("componentchanged");
+
+        var ec = this.cmp.getExtComponent();
+        if (ec.ownerCt) {
+            if (ec.ownerCt.paper) {
+                ec.ownerCt.paper.vl.hide();
+                ec.ownerCt.paper.hl.hide();
+            }
+        }
+        this.clearSelections();
+    },
+    updatePosConfig: function (c, e, up) {
+        var ec = c.getExtComponent();
+        c.setConfig("x", ec.x);
+        c.setConfig("y", ec.y);
+        if (up) {
+            xds.props.setValue("x", ec.x);
+            xds.props.setValue("y", ec.y);
+        }
+        this.updateParent(e, c);
+    },
+    updateParent: function (e, c) {
+        if (!c.isContainer) {
+            var p = xds.flow.container;
+            var pn = p.viewerNode;
+            var ec = c.getExtComponent();
+            if (p.items) {
+                var cb = {x: ec.x, y: ec.y, x2: ec.x + ec.width, y2: ec.y + ec.height}, f = false;
+                p.items.each(function (i) {
+                    if (i.isContainer) {
+                        var pb = {x: i.x, y: i.y, x2: i.x + i.width, y2: i.y + i.height};
+                        if (this.isBBInside(pb, cb)) {
+                            if (i.viewerNode != c.node.parentNode) {
+                                i.viewerNode.appendChild(c.node);
+                                if(ec.outputs){
+                                    ec.outputs.each(function(oc){
+                                        i.viewerNode.appendChild(oc.viewerNode);
+                                    });
+                                }
+                                c.node.select();
+                            }
+                            f = true;
+                            return false;
+                        }
                     }
                     return true;
                 }, this);
-            } else {
-                if (this.cmp.node.parentNode != xds.inspector.root.firstChild) {
-                    xds.fireEvent("componentevent", {
-                        type: "move",
-                        parentId: xds.inspector.root.firstChild.id,
-                        component: this.cmp
+            }
+
+            if (c.node.parentNode != pn && !f) {
+                pn.appendChild(c.node);
+                if(ec.outputs){
+                    ec.outputs.each(function(oc){
+                        pn.appendChild(oc.viewerNode);
                     });
                 }
-            }
-        }
-
-        od.flow.Canvas.DragTracker.superclass.onEndAbsolute.call(this, b, c, a);
-        var e = this.cmp.getExtComponent();
-        if (e.ownerCt) {
-            if (e.ownerCt.paper) {
-                e.ownerCt.paper.vl.hide();
-                e.ownerCt.paper.hl.hide();
+                c.node.select();
             }
         }
     }
