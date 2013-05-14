@@ -78,11 +78,11 @@ od.flow.Container = Ext.extend(Ext.Container, {
     layout: 'flow',
     onRender: function (ct) {
         var p = this.paper = Raphael(ct.dom);
-        p.vl = p.path(['M', 0, 0, 'L', 0, p.height].join(',')).attr({'stroke': '#aaa', 'stroke-dasharray': '-'});
-        p.vl.hide();
+        p.vl = p.path(['M', 0, 0, 'L', 0, p.height].join(','))
+            .attr({'stroke-width': .5, 'stroke': '#aaa', 'stroke-dasharray': '--'}).hide();
 
-        p.hl = p.path(['M', 0, 0, 'L', p.width, 0].join(',')).attr({'stroke': '#aaa', 'stroke-dasharray': '-'});
-        p.hl.hide();
+        p.hl = p.path(['M', 0, 0, 'L', p.width, 0].join(','))
+            .attr({'stroke-width': .5, 'stroke': '#aaa', 'stroke-dasharray': '--'}).hide();
 
         this.el = Ext.get(this.paper.canvas);
         od.flow.Container.superclass.onRender.call(this, ct);
@@ -189,6 +189,231 @@ xds.flow.Container = Ext.extend(od.flow.Container, {
 
 Ext.reg('xdflowcontainer', xds.flow.Container);
 
+od.flow.SubProcess = Ext.extend(Ext.Container, {
+    layout: 'flow',
+    onRender: function (ct) {
+        if (!this.el) {
+            var p = this.ownerCt.paper;
+            if (p) {
+                p.setStart();
+                this.drawShape(p);
+                this.drawText(p);
+                this.shape = p.setFinish().attr({cursor:'default'});
+                this.el = Ext.get(this.positionShape.node);
+                this.paper = p;
+            }
+        }
+    },
+    drawText: function (p) {
+        if (this.name) {
+            p.text(this.x + 12, this.y + 12, this.name)
+                .attr({'text-anchor': 'start', 'font-size': 12, 'font-family': 'sans-serif'});
+        }
+    },
+    drawShape: function (p) {
+        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 6).attr({fill: 'white'});
+    },
+    onLayout: function () {
+        od.flow.SubProcess.superclass.onLayout.call(this);
+        this.positionShape.toBack();
+    },
+    getLayoutTarget: function () {
+        return this.ownerCt.el;
+    },
+    getInputs: function () {
+        if (!this.inputs) {
+            this.inputs = new Ext.util.MixedCollection();
+        }
+        return this.inputs;
+    },
+    getOutputs: function () {
+        if (!this.outputs) {
+            this.outputs = new Ext.util.MixedCollection();
+        }
+        return this.outputs;
+    },
+    getCenterOffset: function () {
+        return {x: this.width / 2, y: this.height / 2};
+    },
+    getSize: function () {
+        return {width: this.width, height: this.height};
+    }
+});
+Ext.reg('flowsubprocess', od.flow.SubProcess);
+
+xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
+    cid: 'flowsubprocess',
+    iconCls: 'icon-flow-subprocess',
+    category: "容器(Container)",
+    defaultName: "&lt;SubProcess&gt;",
+    text: "子流程",
+    dtype: "xdflowsubprocess",
+    xtype: 'flowsubprocess',
+    naming: "SubProcess",
+    isContainer: true,
+    bindable: false,
+    connectable: true,
+    minWidth: 160,
+    minHeight: 100,
+    initConfig: function () {
+        this.config.layout = 'flow';
+        this.config.width = 400;
+        this.config.height = 250;
+        this.userConfig = this.userConfig || {};
+        if (this.userConfig.id) {
+        } else {
+            this.userConfig.id = this.nextId();
+            this.userConfig.name = this.userConfig.id;
+        }
+    },
+    isValidParent: function (c) {
+        return c.cid != 'flowsubprocess';
+    },
+    isResizable: function () {
+        return true;
+    },
+    xdConfigs: [
+        {
+            name: 'id',
+            group: 'SubProcess',
+            ctype: 'string'
+        },
+        {
+            name: 'name',
+            group: 'SubProcess',
+            ctype: 'string'
+        },
+        {
+            name: 'width',
+            group: 'SubProcess',
+            ctype: 'number'
+        },
+        {
+            name: 'height',
+            group: 'SubProcess',
+            ctype: 'number'
+        }
+    ]
+});
+
+xds.flow.SubProcess = Ext.extend(od.flow.SubProcess, {
+    createFilm: function () {
+
+    },
+    afterRender: function () {
+        xds.flow.SubProcess.superclass.afterRender.call(this);
+        var v = this.viewerNode;
+        if (v && this.shape) {
+            this.shape.forEach(function (i) {
+                i.vn = v;
+            });
+//            if (this.viewerNode.isSelected()) {
+//                this.toggleHilight(true);
+//            }
+        }
+    },
+//    toggleHilight: function (a) {
+//        if (this.shape) {
+//            if (a) {
+//                this.shape[0].attr({'stroke-width': 2});
+//                this.shape.attr({cursor: 'move'});
+//                this.shape.toFront();
+//            } else {
+//                this.shape[0].attr({'stroke-width': 1});
+//                this.shape.attr({cursor: 'default'});
+//            }
+//        }
+//    },
+    setPosition: function (x, y) {
+        var dx = x - this.positionShape.attr('x'), dy = y - this.positionShape.attr('y');
+        this.shape.transform('t' + dx + ',' + dy);
+        if (this.items) {
+            this.items.each(function (c) {
+                if (c.isConnection != true && c.boxReady) {
+                    c.setPosition(x + c.x - this.x, y + c.y - this.y);
+                }
+            }, this);
+        }
+        od.flow.SubProcess.superclass.setPosition.call(this, x, y);
+    },
+    setSize: function (w, h) {
+        if (w) {
+            this.width = w;
+        }
+        if (h) {
+            this.height = h;
+        }
+        this.positionShape.attr({width: this.width, height: this.height});
+    },
+    getWidth:function(){
+        return this.width;
+    },
+    getHeight:function(){
+        return this.height;
+    }
+});
+
+Ext.reg('xdflowsubprocess', xds.flow.SubProcess);
+
+od.flow.EventSubProcess = Ext.extend(od.flow.SubProcess, {
+    drawShape: function (p) {
+        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 6).attr({fill: 'white', 'stroke-dasharray': '-'});
+    }
+});
+Ext.reg('flowevtsubprocess', od.flow.EventSubProcess);
+xds.types.flow.EventSubProcess = Ext.extend(xds.types.flow.SubProcess, {
+    cid: 'flowevtsubprocess',
+    iconCls: 'icon-flow-evtsubprocess',
+    defaultName: "&lt;EventSubProcess&gt;",
+    text: "事件子流程",
+    dtype: "xdflowevtsubprocess",
+    xtype: 'flowevtsubprocess',
+    naming: "EventSubProcess"
+});
+xds.flow.EventSubProcess = Ext.extend(od.flow.EventSubProcess, {
+    createFilm: function () {
+
+    },
+    afterRender: function () {
+        xds.flow.EventSubProcess.superclass.afterRender.call(this);
+        var v = this.viewerNode;
+        if (v && this.shape) {
+            this.shape.forEach(function (i) {
+                i.vn = v;
+            });
+        }
+    },
+    setPosition: function (x, y) {
+        var dx = x - this.positionShape.attr('x'), dy = y - this.positionShape.attr('y');
+        this.shape.transform('t' + dx + ',' + dy);
+        if (this.items) {
+            this.items.each(function (c) {
+                if (c.isConnection != true && c.boxReady) {
+                    c.setPosition(x + c.x - this.x, y + c.y - this.y);
+                }
+            }, this);
+        }
+        od.flow.EventSubProcess.superclass.setPosition.call(this, x, y);
+    },
+    setSize: function (w, h) {
+        if (w) {
+            this.width = w;
+        }
+        if (h) {
+            this.height = h;
+        }
+        this.positionShape.attr({width: this.width, height: this.height});
+    },
+    getWidth:function(){
+        return this.width;
+    },
+    getHeight:function(){
+        return this.height;
+    }
+});
+
+Ext.reg('xdflowevtsubprocess', xds.flow.EventSubProcess);
+
 od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     onRender: function (ct, pos) {
         if (!this.el) {
@@ -197,9 +422,8 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
                 p.setStart();
                 this.drawShape(p);
                 this.drawText(p);
-                this.shape = p.setFinish();
-                this.el = Ext.get(this.shape[0].node);
-                this.shape.attr({'font-size': 12, 'font-family': 'sans-serif', cursor: 'default'});
+                this.shape = p.setFinish().attr({cursor: 'default'});
+                this.el = Ext.get(this.positionShape.node);
             }
         }
         od.flow.Shape.superclass.onRender.call(this, ct, pos);
@@ -207,7 +431,7 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     drawShape: Ext.emptyFn,
     drawText: function (p) {
         if (this.name) {
-            p.text(this.x, this.y + 28, this.name);
+            p.text(this.x, this.y + 28, this.name).attr({'font-size': 12, 'font-family': 'sans-serif'});
         }
     },
     onResize: function (aw, ah) {
@@ -241,12 +465,10 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     toggleHilight: function (a) {
         if (this.shape) {
             if (a) {
-                this.shape[0].attr({'stroke-width': 2});
-                this.shape.attr({cursor: 'move'});
+                this.positionShape.attr({'stroke-width': 2});
                 this.shape.toFront();
             } else {
-                this.shape[0].attr({'stroke-width': 1});
-                this.shape.attr({cursor: 'default'});
+                this.positionShape.attr({'stroke-width': 1});
             }
         }
     },
@@ -261,7 +483,35 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
             this.outputs = new Ext.util.MixedCollection();
         }
         return this.outputs;
+    },
+    getCenterOffset: function () {
+        var ps = this.positionShape;
+        var rx = ps.type == 'rect' ? this.width / 2 : 0, ry = ps.type == 'rect' ? this.height / 2 : 0;
+        return {x: rx, y: ry};
+    },
+    setPosition: function (x, y) {
+        var ps = this.positionShape;
+        var ax = ps.type == 'rect' ? 'x' : 'cx', ay = ps.type == 'rect' ? 'y' : 'cy';
+        var dx = x - this.positionShape.attr(ax);
+        var dy = y - this.positionShape.attr(ay);
+        this.offsetShape(dx, dy);
+        od.flow.Shape.superclass.setPosition.call(this, x, y);
+    },
+    offsetShape: function (dx, dy) {
+        this.shape.transform('t' + dx + ',' + dy);
     }
+//    getShapePosition:function(){
+//        var sp =this.positionShape;
+//        if(sp){
+//            if(sp.type=='rect'){
+//                return {x:sp.attr('x'),y:sp.attr('y')};
+//            }else if(sp.type == 'circle'){
+//                return {x:sp.attr('cx'),y:sp.attr('cy')};
+//            }
+//        }
+//        var b=this.getBox();
+//        return {x: b.x,y: b.y};
+//    }
 });
 
 xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
@@ -270,10 +520,6 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
     isResizable: function () {
         return false;
     },
-//    getDefaultInternals:function(a){
-//        var ret =  xds.types.flow.ShapeBase.superclass.getDefaultInternals.call(this,a);
-//        return ret;
-//    },
     initConfig: function (o) {
         this.userConfig = this.userConfig || {};
         if (this.userConfig.id) {
@@ -288,21 +534,6 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
             cmp.toggleHilight(b);
         }
     },
-//    onFilmClick: function () {
-//        var cmp = this.getExtComponent();
-//        cmp.shape.toFront();
-//    },
-//    syncFilm: function () {
-//        var a = this.getExtComponent();
-//        if (a) {
-//            if (a.film) {
-//                var rect = a.el.dom.getBoundingClientRect();
-//                var d = new Ext.lib.Region(rect.top - 2, rect.right + 2, rect.bottom + 2, rect.left - 2);
-//                a.film.setRegion(d);
-//                a.film.lastRegion = d;
-//            }
-//        }
-//    },
     setId: function (n, v) {
         var oldId = this.getConfigValue('id') || this.id;
         this.setConfig('id', v);
@@ -338,12 +569,7 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
 
 od.flow.Start = Ext.extend(od.flow.Shape, {
     drawShape: function (p) {
-        p.circle(this.x, this.y, 20).attr({fill: 'white'});
-    },
-    onPosition: function (x, y) {
-        od.flow.Start.superclass.onPosition.call(this, x, y);
-        var ox = this.shape[0].attr('cx'), oy = this.shape[0].attr('cy');
-        this.shape.transform('t' + (this.x - ox) + ',' + (this.y - oy));
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
     }
 });
 
@@ -382,9 +608,9 @@ Ext.reg('xdflowstart', xds.flow.Start);
 
 od.flow.TimerEvent = Ext.extend(od.flow.Start, {
     drawShape: function (p) {
-        p.circle(this.x, this.y, 20).attr({fill: 'white'});
-        p.path(['M', this.x - 5, this.y, 'L', this.x + 12, this.y].join(',')).attr({'stroke-width': 4});
-        p.path(['M', this.x, this.y + 6, 'L', this.x, this.y - 15].join(',')).attr({'stroke-width': 2});
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
+        p.path(['M', this.x - 5, this.y, 'L', this.x + 10, this.y].join(',')).attr({'stroke-width': 4});
+        p.path(['M', this.x, this.y + 6, 'L', this.x, this.y - 13].join(',')).attr({'stroke-width': 2});
     }
 });
 
@@ -420,8 +646,8 @@ Ext.reg('xdflowtimer', xds.flow.TimerEvent);
 
 od.flow.End = Ext.extend(od.flow.Start, {
     drawShape: function (p) {
-        p.circle(this.x, this.y, 20).attr({fill: 'white'});
-        p.circle(this.x, this.y, 10).attr({fill: 'black'});
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
+        p.circle(this.x, this.y, 8).attr({fill: 'black'});
     }
 });
 
@@ -445,7 +671,7 @@ Ext.reg('xdflowend', xds.flow.End);
 
 od.flow.ExEvent = Ext.extend(od.flow.Start, {
     drawShape: function (p) {
-        p.circle(this.x, this.y, 20).attr({fill: 'white'});
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
         p.path(['M', this.x + 4, this.y - 10,
             'L', this.x - 4, this.y, this.x + 4, this.y, this.x - 4, this.y + 10]).attr({'stroke-width': 4});
     }
@@ -476,7 +702,7 @@ Ext.reg('xdflowexception', xds.flow.ExEvent);
 
 od.flow.MsgEvent = Ext.extend(od.flow.Start, {
     drawShape: function (p) {
-        p.circle(this.x, this.y, 20).attr({fill: 'white'});
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
         p.rect(this.x - 10, this.y - 7, 20, 14);
         p.path(['M', this.x, this.y, 'L', this.x - 10, this.y - 7, this.x + 10, this.y - 7, 'Z']);
     }
@@ -509,30 +735,27 @@ od.flow.UserTask = Ext.extend(od.flow.Shape, {
     iconUrl: '/tplt/images/workflow-xds/icon-user.png',
     drawShape: function (p) {
         var x = this.x - this.width / 2, y = this.y - this.height / 2;
-        p.rect(x, y, this.width, this.height, 7).attr({fill: '315-#fff-#ffffbb'});
-        p.image(this.iconUrl, x, y, 16, 16).attr({transform: 't5,5'});
+        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 7).attr({fill: '315-#fff-#ffffbb'});
+        p.image(this.iconUrl, this.x + 5, this.y + 5, 16, 16);
         this.drawSequential(p);
     },
     drawText: function (p) {
         if (this.name) {
-            p.text(this.x, this.y, this.name).attr({transform: 't' + this.width / 2 + ',' + this.height / 2});
+            var x = this.x + this.width / 2, y = this.y + this.height / 2;
+            p.text(x, y, this.name).attr({'font-size': 12, 'font-family': 'sans-serif'});
         }
     },
     drawSequential: function (p) {
+        var x = this.x + this.width / 2, y = this.y + this.height / 2;
         if (this.sequential) {
-            p.rect(this.x, this.y, 12, .1, 0).transform('t' + (this.width / 2 - 6) + ',' + (this.height - 10));
-            p.rect(this.x, this.y, 12, .1, 0).transform('t' + (this.width / 2 - 6) + ',' + (this.height - 7));
-            p.rect(this.x, this.y, 12, .1, 0).transform('t' + (this.width / 2 - 6) + ',' + (this.height - 4));
+            p.rect(x - 6, y + this.height / 2 - 10, 12, .1, 0);
+            p.rect(x - 6, y + this.height / 2 - 7, 12, .1, 0);
+            p.rect(x - 6, y + this.height / 2 - 4, 12, .1, 0);
         } else if (this.sequential === false) {
-            p.rect(this.x, this.y, .1, 10, 0).transform('t' + (this.width / 2 - 3) + ',' + (this.height - 12));
-            p.rect(this.x, this.y, .1, 10, 0).transform('t' + (this.width / 2) + ',' + (this.height - 12));
-            p.rect(this.x, this.y, .1, 10, 0).transform('t' + (this.width / 2 + 3) + ',' + (this.height - 12));
+            p.rect(x - 3, y + this.height / 2 - 12, .1, 10, 0);
+            p.rect(x, y + this.height / 2 - 12, .1, 10, 0);
+            p.rect(x + 3, y + this.height / 2 - 12, .1, 10, 0);
         }
-    },
-    onPosition: function (x, y) {
-        od.flow.UserTask.superclass.onPosition.call(this, x, y);
-        var l = x - this.width / 2, t = y - this.height / 2;
-        this.shape.attr({x: l, y: t});
     }
 });
 
@@ -543,11 +766,11 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
     category: "任务(Task)",
     minWidth: 20,
     minHeight: 20,
-    isContainer:true,
+    isContainer: true,
     isResizable: function () {
         return true;
     },
-    isValidParent:function() {
+    isValidParent: function () {
         return false;
     },
     initConfig: function (o) {
@@ -819,16 +1042,16 @@ xds.flow.ManualTask = Ext.extend(od.flow.ManualTask, {
 Ext.reg('xdflowmanualtask', xds.flow.ManualTask);
 
 od.flow.Gateway = Ext.extend(od.flow.Shape, {
+    width: 32,
+    height: 32,
     drawShape: function (p) {
-        p.rect(this.x, this.y, 40, 40, 4).attr({fill: 'white'});
+        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
     },
     drawText: function () {
 
     },
-    onPosition: function (x, y) {
-        var ox = this.shape[0].attrs.x, oy = this.shape[0].attrs.y;
-        this.shape.transform(['T', x - ox - 20, y - oy - 20, 'r45']);
-        od.flow.Gateway.superclass.onPosition.call(this, x, y);
+    offsetShape: function (dx, dy) {
+        this.shape.transform(['t' + dx + ',' + dy + 'r45']);
     }
 });
 
@@ -851,11 +1074,11 @@ Ext.reg('xdflowgateway', xds.flow.Gateway);
 
 od.flow.GatewayAnd = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        p.rect(this.x, this.y, 40, 40, 4).attr({fill: 'white'});
-        p.path(['M', this.x + 10, this.y + 10,
-            'L', this.x + 30, this.y + 30,
-            'M', this.x + 30, this.y + 10,
-            'L', this.x + 10, this.y + 30].join(',')).attr({'stroke-width': 4});
+        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
+        p.path(['M', this.x + 8, this.y + 8,
+            'L', this.x + 24, this.y + 24,
+            'M', this.x + 24, this.y + 8,
+            'L', this.x + 8, this.y + 24].join(',')).attr({'stroke-width': 4});
     }
 });
 
@@ -877,8 +1100,8 @@ Ext.reg('xdflowgatewayand', xds.flow.GatewayAnd);
 
 od.flow.GatewayOr = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        p.rect(this.x, this.y, 40, 40, 4).attr({fill: 'white'});
-        p.circle(this.x + 20, this.y + 20, 13).attr({'stroke-width': 4});
+        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
+        p.circle(this.x + 16, this.y + 16, 10).attr({'stroke-width': 4});
     }
 });
 
@@ -900,11 +1123,11 @@ Ext.reg('xdflowgatewayor', xds.flow.GatewayOr);
 
 od.flow.GatewayXor = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        p.rect(this.x, this.y, 40, 40, 4).attr({fill: 'white'});
-        p.path(['M', this.x + 6, this.y + 20,
-            'L', this.x + 34, this.y + 20,
-            'M', this.x + 20, this.y + 6,
-            'L', this.x + 20, this.y + 34].join(',')).attr({'stroke-width': 4});
+        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
+        p.path(['M', this.x + 5, this.y + 16,
+            'L', this.x + 27, this.y + 16,
+            'M', this.x + 16, this.y + 5,
+            'L', this.x + 16, this.y + 27].join(',')).attr({'stroke-width': 4});
     }
 });
 
@@ -935,7 +1158,7 @@ xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
     dtype: 'flowlistener',
     naming: "Listener",
     isVisual: false,
-    isListener:true,
+    isListener: true,
     hiddenInToolbox: true,
     initConfig: function (o) {
         this.userConfig = this.userConfig || {};
@@ -967,7 +1190,7 @@ xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
 xds.types.flow.ExecListener = Ext.extend(xds.types.flow.ListenerBase, {
     iconCls: 'icon-flow-exec-listener',
     cid: 'flowexeclistener',
-    xtype:'flowexeclistener',
+    xtype: 'flowexeclistener',
     xdConfigs: [
         {
             name: 'event',
@@ -982,7 +1205,7 @@ xds.types.flow.ExecListener = Ext.extend(xds.types.flow.ListenerBase, {
 xds.types.flow.TaskListener = Ext.extend(xds.types.flow.ListenerBase, {
     iconCls: 'icon-flow-task-listener',
     cid: 'flowtasklistener',
-    xtype:'flowtasklistener',
+    xtype: 'flowtasklistener',
     xdConfigs: [
         {
             name: 'event',
@@ -998,7 +1221,6 @@ xds.types.flow.TaskListener = Ext.extend(xds.types.flow.ListenerBase, {
 od.flow.Connection = Ext.extend(Ext.Component, {
     isConnection: true,
     onRender: function (ct, pos) {
-        od.flow.Connection.superclass.onRender.call(this, ct, pos);
         this.startNode = this.getStartNode();
         if (this.startNode) {
             this.startNode.getOutputs().add(this);
@@ -1008,16 +1230,26 @@ od.flow.Connection = Ext.extend(Ext.Component, {
             this.endNode.getInputs().add(this);
         }
         if (!Ext.isEmpty(this.startNode) && !Ext.isEmpty(this.endNode)) {
-            var p = this.ownerCt.paper;
-            var sb = this.startNode.shape[0].getBBox(), eb = this.endNode.shape[0].getBBox();
-            var path = od.flow.getConPath(sb, eb);
-            this.shape = p.path(path).attr(this.getDefAttr());
-            if (this.viewerNode) {
-                this.shape.vn = this.viewerNode;
+            if(!this.startNode.rendered){
+                this.startNode.on('render',this.doRender,this);
+            }else if(!this.endNode.rendered){
+                this.endNode.on('render',this.doRender,this);
+            }else{
+                this.doRender();
             }
-            this.el = Ext.get(this.shape.node);
-            this.drawText();
         }
+        //od.flow.Connection.superclass.onRender.call(this, ct, pos);
+    },
+    doRender:function(){
+        var p = this.ownerCt.paper;
+        var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
+        var path = od.flow.getConPath(sb, eb);
+        this.shape = p.path(path).attr(this.getDefAttr());
+        if (this.viewerNode) {
+            this.shape.vn = this.viewerNode;
+        }
+        this.el = Ext.get(this.shape.node);
+        this.drawText();
     },
     drawText: function () {
         if (this.name) {
@@ -1025,7 +1257,8 @@ od.flow.Connection = Ext.extend(Ext.Component, {
             var tp = this.shape.attr('path');
             var pt = Raphael.getPointAtLength(tp, Raphael.getTotalLength(tp) / 2);
             var dx = pt.alpha == 90 ? 10 : 0, dy = pt.alpha == 180 ? 10 : 0;
-            this.text = p.text(pt.x - dx, pt.y - dy, this.name).attr({cursor: 'default', 'font-size': 12, 'font-family': 'sans-serif', transform: 'r' + (pt.alpha + 180)});
+            this.text = p.text(pt.x - dx, pt.y - dy, this.name);
+            this.text.attr({'font-size': 12, 'font-family': 'sans-serif', transform: 'r' + (pt.alpha + 180)});
             this.text.vn = this.viewerNode;
         }
     },
@@ -1094,16 +1327,11 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
 
     },
     getNodeByIdProperty: function (i) {
-        var ret;
-        this.ownerCt.items.each(function (item) {
-            var itemCfg = item.viewerNode.component;
-            if ((itemCfg.getConfigValue('id') || itemCfg.id) == i) {
-                ret = item;
-                return false;
-            }
-        });
-
-        return ret;
+        var node = xds.inspector.getNodeById(i);
+        if (node) {
+            return Ext.getCmp(node.component.cmpId);
+        }
+        return null;
     },
     getStartNode: function () {
         return this.getNodeByIdProperty(this.startId);
@@ -1135,14 +1363,18 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
     },
     onRender: function (ct, pos) {
         xds.flow.Connection.superclass.onRender.call(this, ct, pos);
-        this.startNode.on('move', this.updatePath, this);
-        this.endNode.on('move', this.updatePath, this);
+        if (this.startNode) {
+            this.startNode.on('move', this.updatePath, this);
+        }
+        if (this.endNode) {
+            this.endNode.on('move', this.updatePath, this);
+        }
         if (this.viewerNode.isSelected()) {
             this.toggleHilight(true);
         }
     },
     updatePath: function () {
-        var sb = this.startNode.shape[0].getBBox(), eb = this.endNode.shape[0].getBBox();
+        var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
         var path = od.flow.getConPath(sb, eb).join(',');
         this.shape.attr({path: path});
         this.updateText();
@@ -1192,10 +1424,10 @@ od.flow.Project = Ext.extend(xds.Project, {
             {cid: 'flowcontainer'}
         ]};
     },
-    save:function(){
+    save: function () {
         var c = xds.inspector.root.firstChild.component;
-        var data={};
-        var i = c.getInternals(true,true),j=c.getJsonConfig(true,true);
+        var data = {};
+        var i = c.getInternals(true, true), j = c.getJsonConfig(true, true);
         data.id = j.id;
         data.name = j.name;
         data.src = Ext.encode(i);
@@ -1207,10 +1439,10 @@ od.flow.Project = Ext.extend(xds.Project, {
             jsonData: data,
             success: function (response, conn) {
                 var result = Ext.decode(response.responseText);
-                if(result.success){
+                if (result.success) {
                     xds.project.setDirty(false);
-                }else{
-                    Ext.Msg.alert('提示',result.msg);
+                } else {
+                    Ext.Msg.alert('提示', result.msg);
                 }
             }
         });
@@ -1234,6 +1466,41 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
             }
         }
         return ret;
+    },
+    getTgtRegion: function (ec) {
+        if (ec && ec.positionShape) {
+            var bb = ec.positionShape.getBBox();
+            return {top: bb.y, bottom: bb.y2, left: bb.x, right: bb.x2};
+        }
+        return null;
+    },
+    onBodyMove: function (e, k) {
+        var tgtNode = this.findTarget(e);
+        if (tgtNode && tgtNode.component && (!tgtNode.component.isRef)) {
+            var cmp = tgtNode.component;
+            var ec = cmp.getExtComponent();
+            var lr = this.getTgtRegion(ec), d = 7;
+            if (lr) {
+                if (cmp.isResizable("Corner", e) && (Math.abs(e.browserEvent.offsetY - lr.bottom) < d) && (Math.abs(e.browserEvent.offsetX - lr.right) < d)) {
+                    this.dragTracker.setDragMode("Corner");
+                    ec.positionShape.attr({cursor: 'se-resize'});
+                    return;
+                }
+                if ((Math.abs(e.browserEvent.offsetY - lr.bottom) < d) && cmp.isResizable("Bottom", e)) {
+                    this.dragTracker.setDragMode("Bottom");
+                    ec.positionShape.attr({cursor: 's-resize'});
+                    return;
+                }
+
+                if ((Math.abs(e.browserEvent.offsetX - lr.right) < d) && cmp.isResizable("Right", e)) {
+                    this.dragTracker.setDragMode("Right");
+                    ec.positionShape.attr({cursor: 'e-resize'});
+                    return;
+                }
+                ec.positionShape.attr({cursor: 'default'});
+            }
+        }
+        this.dragTracker.setDragMode("Absolute");
     },
     getContextMenuItems: function (t, c) {
         var ret = od.flow.Canvas.superclass.getContextMenuItems.call(this, t, c);
@@ -1289,7 +1556,7 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
 
 od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     isAbsolute: function (a) {
-        return a.component.connectable == true;
+        return a.component.cid != 'flowcontainer' && !a.component.isConnection;
     },
     onBeforeStart: function (e) {
         var ret = od.flow.Canvas.DragTracker.superclass.onBeforeStart.call(this, e);
@@ -1312,20 +1579,58 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
                     delete c.endHandler;
                     ret = true;
                 }
+            }else if(this.node == xds.inspector.root.firstChild){
+                this.dragMode = 'Select';
+                this.waiting = true;
+                ret = true;
             }
         }
         return ret;
     },
-    onDragConnection: function (b, c, a) {
-        var s = this.cmp.getExtComponent().shape[0];
+    onStart:function(e){
+        if(this.dragMode == 'Select'){
+            if(!this.selectProxy){
+                this.selectProxy = this.el.createChild({cls:'x-view-selector'});
+            }
+            this.selectProxy.setDisplayed('block');
+            this.selectConstrain = this.el.getRegion();
+            this.dragRegion = new Ext.lib.Region(0,0,0,0);
+        }else{
+            od.flow.Canvas.DragTracker.superclass.onStart.call(this,e);
+        }
+    },
+    onDragSelect:function(e,c,a){
+        var startXY = this.startXY;
+        var xy = this.getXY();
+
+        var x = Math.min(startXY[0], xy[0]);
+        var y = Math.min(startXY[1], xy[1]);
+        var w = Math.abs(startXY[0] - xy[0]);
+        var h = Math.abs(startXY[1] - xy[1]);
+
+        this.dragRegion.left = x;
+        this.dragRegion.top = y;
+        this.dragRegion.right = x+w;
+        this.dragRegion.bottom = y+h;
+
+        this.dragRegion.constrainTo(this.selectConstrain);
+        this.selectProxy.setRegion(this.dragRegion);
+    },
+    onEndSelect:function(){
+        if(this.selectProxy){
+            this.selectProxy.setDisplayed(false);
+        }
+    },
+    onDragConnection: function (e, c, a) {
+        var s = this.cmp.getExtComponent().positionShape;
         var cp = this.cmp.getExtComponent().ownerCt;
 
-        var pt = cp.el.translatePoints(b.xy[0], b.xy[1]);
+        var pt = cp.el.translatePoints(e.xy[0], e.xy[1]);
         var eb = {x: pt.left, y: pt.top, x2: pt.left, y2: pt.top, width: 0, height: 0};
-        var tc = xds.canvas.findTarget(b);
+        var tc = xds.canvas.findTarget(e);
         if (tc && tc.component.connectable) {
             this.conTarget = tc.component;
-            eb = this.conTarget.getExtComponent().shape[0].getBBox();
+            eb = this.conTarget.getExtComponent().positionShape.getBBox();
         } else {
             delete this.conTarget;
         }
@@ -1365,11 +1670,11 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var tc = xds.canvas.findTarget(b);
         if (tc && tc.component.connectable) {
             this.conTarget = tc.component;
-            sb = this.conTarget.getExtComponent().shape[0].getBBox();
+            sb = this.conTarget.getExtComponent().positionShape.getBBox();
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(sb, ec.endNode.shape[0].getBBox());
+        var path = od.flow.getConPath(sb, ec.endNode.positionShape.getBBox());
         ec.shape.attr({path: path});
     },
     onEndConStart: function (b, c, a) {
@@ -1391,11 +1696,11 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var tc = xds.canvas.findTarget(b);
         if (tc && tc.component.connectable) {
             this.conTarget = tc.component;
-            eb = this.conTarget.getExtComponent().shape[0].getBBox();
+            eb = this.conTarget.getExtComponent().positionShape.getBBox();
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(ec.startNode.shape[0].getBBox(), eb);
+        var path = od.flow.getConPath(ec.startNode.positionShape.getBBox(), eb);
         ec.shape.attr({path: path});
     },
     onEndConEnd: function (b, c, a) {
@@ -1412,43 +1717,86 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     onDragAbsolute: function (e, c, a) {
         var ec = this.cmp.getExtComponent();
         var ct = ec.ownerCt;
-        var x = this.startX - c[0], y = this.startY - c[1], dx = 0, dy = 0, vf = false, lf = false;
-        if (ct) {
-            var p = ct.paper;
-            if (p) {
-                p.hl.hide();
-                p.vl.hide();
-                for (var i = 0; i < ct.items.items.length; i++) {
-                    var item = ct.items.items[i];
-                    if (item !== ec && !item.isConnection && item.shape) {
-                        var bb = item.shape[0].getBBox();
-                        var cx = (bb.x + bb.width / 2);
-                        var cy = (bb.y + bb.height / 2);
-
-                        if (Math.abs(x - cx) < 20 && !lf) {
-                            p.hl.attr({path: ['M', cx, 0, 'L', cx, p.height].join(',')});
-                            p.hl.toBack().show();
-                            dx = x - cx;
-                            lf = true;
-                        }
-                        if (Math.abs(y - cy) < 20 && !vf) {
-                            p.vl.attr({path: ['M', 0, cy, 'L', p.width, cy].join(',')});
-                            p.vl.toBack().show();
-                            dy = y - cy;
-                            vf = true;
-                        }
-
-                        if (lf && vf) {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
+        var x = this.startX - c[0] + ec.getCenterOffset().x,
+            y = this.startY - c[1] + ec.getCenterOffset().y,
+            dx = 0, dy = 0,
+            vf = false, lf = false;
+//        if (ct) {
+//            var p = ct.paper;
+//            if (p) {
+//                p.hl.hide();
+//                p.vl.hide();
+//                for (var i = 0; i < ct.items.items.length; i++) {
+//                    var item = ct.items.items[i];
+//                    if (item !== ec && !item.isConnection && item.shape) {
+//                        var bb = item.positionShape.getBBox();
+//                        var cx = (bb.x + bb.width / 2);
+//                        var cy = (bb.y + bb.height / 2);
+//
+//                        if (Math.abs(x - cx) < 20 && !lf) {
+//                            p.hl.attr({path: ['M', cx, 0, 'L', cx, p.height].join(',')});
+//                            p.hl.toBack().show();
+//                            dx = x - cx;
+//                            lf = true;
+//                        }
+//                        if (Math.abs(y - cy) < 20 && !vf) {
+//                            p.vl.attr({path: ['M', 0, cy, 'L', p.width, cy].join(',')});
+//                            p.vl.toBack().show();
+//                            dy = y - cy;
+//                            vf = true;
+//                        }
+//
+//                        if (lf && vf) {
+//                            break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
 //        a.setPosition(this.snap(this.startX - c[0]), this.snap(this.startY - c[1]));
+//        console.log(c[0],c[1],dx,dy,this.startX,this.startY);
         a.setPosition(this.startX - c[0] - dx, this.startY - c[1] - dy);
     },
     onEndAbsolute: function (b, c, a) {
+        if (this.cmp.isContainer) {
+            var n = this.cmp.node;
+            n.eachChild(function (cn) {
+                var cc = cn.component;
+                if (cc.isConnection != true) {
+                    var x = cc.getConfigValue('x') - c[0], y = cc.getConfigValue('y') - c[1];
+                    cc.setConfig('x', x);
+                    cc.setConfig('y', y);
+                }
+            });
+        } else {
+            var p = xds.flow.container.paper;
+            var pt = xds.flow.container.el.translatePoints(b.xy[0], b.xy[1]);
+            var sps = p.getElementsByPoint(pt.left, pt.top);
+            if (sps.length > 0) {
+                sps.forEach(function (s) {
+                    if (s.vn == this.cmp.node.parentNode) {
+
+                    } else if (s.vn.component.isValidParent(this.cmp)) {
+                        xds.fireEvent("componentevent", {
+                            type: "move",
+                            parentId: s.vn.id,
+                            component: this.cmp
+                        });
+                        return false;
+                    }
+                    return true;
+                }, this);
+            } else {
+                if (this.cmp.node.parentNode != xds.inspector.root.firstChild) {
+                    xds.fireEvent("componentevent", {
+                        type: "move",
+                        parentId: xds.inspector.root.firstChild.id,
+                        component: this.cmp
+                    });
+                }
+            }
+        }
+
         od.flow.Canvas.DragTracker.superclass.onEndAbsolute.call(this, b, c, a);
         var e = this.cmp.getExtComponent();
         if (e.ownerCt) {
@@ -1534,9 +1882,11 @@ od.FlowDesignerModule = Ext.extend(od.XdsModule, {
         xds.Registry.register(xds.types.flow.GatewayAnd);
         xds.Registry.register(xds.types.flow.GatewayOr);
         xds.Registry.register(xds.types.flow.GatewayXor);
-
+        xds.Registry.register(xds.types.flow.SubProcess);
+        xds.Registry.register(xds.types.flow.EventSubProcess);
         xds.Registry.register(xds.types.flow.ExecListener);
         xds.Registry.register(xds.types.flow.TaskListener);
+
 
         od.FlowDesignerModule.superclass.init.call(this);
     }

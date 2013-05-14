@@ -11,7 +11,6 @@ import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntityManage
 import org.activiti.engine.impl.persistence.entity.ResourceEntity;
 import org.apache.log4j.Logger;
 
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,9 +38,7 @@ public class TpltDeployer extends BpmnDeployer {
             if (isTpltResource(resourceName)) {
                 ResourceEntity resource = resources.get(resourceName);
                 byte[] bytes = resource.getBytes();
-                ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-
-                TpltParse bpmnParse = new TpltParse();
+                TpltParse bpmnParse = new TpltParse(new String(bytes));
                 bpmnParse.execute();
 
                 for (ProcessDefinitionEntity processDefinition: bpmnParse.getProcessDefinitions()) {

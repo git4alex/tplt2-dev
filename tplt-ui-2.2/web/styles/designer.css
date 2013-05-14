@@ -1205,6 +1205,12 @@ body {
 .icon-flow-task-manual{
     background-image: url(../images/workflow-xds/icon-hand.png) !important;
 }
+.icon-flow-subprocess{
+    background-image: url(../images/workflow-xds/icon-subprocess.png) !important;
+}
+.icon-flow-evtsubprocess{
+    background-image: url(../images/workflow-xds/icon-subprocess-evt.png) !important;
+}
 .icon-flow-exec-listener{
     background-image: url(../images/workflow-xds/icon-exec-listener.png) !important;
 }

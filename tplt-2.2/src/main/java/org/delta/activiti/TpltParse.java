@@ -1,12 +1,9 @@
 package org.delta.activiti;
 
 import org.activiti.bpmn.constants.BpmnXMLConstants;
-import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.parse.Problem;
 import org.activiti.engine.ActivitiException;
-import org.activiti.engine.impl.bpmn.parser.BpmnParse;
-import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 
 import java.util.ArrayList;
@@ -19,21 +16,25 @@ import java.util.List;
  */
 public class TpltParse implements BpmnXMLConstants {
 
+    private String jsonDef;
     protected BpmnModel bpmnModel;
-
     protected List<ProcessDefinitionEntity> processDefinitions = new ArrayList<ProcessDefinitionEntity>();
+
+    public TpltParse(String jsonDef){
+        this.jsonDef = jsonDef;
+    }
 
     public TpltParse execute() {
         try {
             BpmnJSONConverter converter = new BpmnJSONConverter();
 
-            bpmnModel = converter.convertToBpmnModel(streamSource, true, enableSafeBpmnXml);
+            bpmnModel = converter.convertToBpmnModel(this.jsonDef);
 
-            createImports();
-            createItemDefinitions();
-            createMessages();
-            createOperations();
-            transformProcessDefinitions();
+//            createImports();
+//            createItemDefinitions();
+//            createMessages();
+//            createOperations();
+//            transformProcessDefinitions();
         } catch (Exception e) {
             if (e instanceof ActivitiException) {
                 throw (ActivitiException) e;

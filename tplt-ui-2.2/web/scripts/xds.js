@@ -3,7 +3,7 @@ xds.types = {};
 xds.addEvents("init", "newcomponent");
 xds.create = function (cfg) {
     var cls = xds.Registry.get(cfg.cid);
-    if(cls){
+    if (cls) {
         return new cls(cfg);
     }
     return null;
@@ -14,7 +14,7 @@ xds.copy = function (obj) {
         return ret;
     }
     for (var it in obj) {
-        if(obj.hasOwnProperty(it)){
+        if (obj.hasOwnProperty(it)) {
             var tp = typeof obj[it];
             var value = obj[it];
             if (tp === "object") {
@@ -42,7 +42,7 @@ xds.countKeys = function (collection) {
 xds.TransformGroups = {};
 xds.Registry = function () {
     var data = new Ext.util.MixedCollection(true, function (item) {
-        if(item){
+        if (item) {
             return item.prototype.cid;
         }
         return null;
@@ -51,18 +51,27 @@ xds.Registry = function () {
         constructor: function () {
             ConfigStore.superclass.constructor.call(this, {
                 id: "cid",
-                fields: [{
-                    name: "id",
-                    mapping: "cid"
-                },
-                    "xtype", "xcls", "typeDef", "text", "iconCls", "naming", "category", "isVisual"]
+                fields: [
+                    {
+                        name: "id",
+                        mapping: "cid"
+                    },
+                    "xtype",
+                    "xcls",
+                    "typeDef",
+                    "text",
+                    "iconCls",
+                    "naming",
+                    "category",
+                    "isVisual"
+                ]
             });
         }
     });
     var pts = null;
     return {
         register: function (xdTypeCls) {
-            if(!xdTypeCls){
+            if (!xdTypeCls) {
                 return;
             }
             data.add(xdTypeCls);
@@ -146,7 +155,7 @@ xds.Registry = function () {
 
 if (!Array.prototype.contains) {
     Array.prototype.contains = function (a) {
-        return this.indexOf(a) !== - 1;
+        return this.indexOf(a) !== -1;
     };
 }
 
@@ -214,8 +223,8 @@ if (!Array.prototype.contains) {
     });
 })();
 
-Ext.override(Ext.tree.TreeNode,{
-    setNodeId:function(c){
+Ext.override(Ext.tree.TreeNode, {
+    setNodeId: function (c) {
         var b = this;
         this.id = c;
         this.attributes.id = c;
@@ -260,7 +269,7 @@ Ext.grid.GridView.override({
             return null;
         }
         col = (col !== undefined ? col : 0);
-        var rowEl = this.getRow(row),cellEl;
+        var rowEl = this.getRow(row), cellEl;
         if (!(hscroll === false && col === 0)) {
             while (this.cm.isHidden(col)) {
                 col++;
@@ -282,7 +291,7 @@ Ext.grid.GridView.override({
         return e ? Ext.fly(e).getXY() : [b.scrollLeft + this.el.getX(), Ext.fly(d).getY()];
     },
     syncFocusEl: function (d, a, c) {
-        if(Ext.isEmpty(d)){
+        if (Ext.isEmpty(d)) {
             return;
         }
 
@@ -385,10 +394,15 @@ Ext.tree.TreeNode.override({
 //        return c;
 //    }
 //});
-xds.PropertyRecord = Ext.data.Record.create([{
-    name: "name",
-    type: "string"
-},"value", "group", "text"]);
+xds.PropertyRecord = Ext.data.Record.create([
+    {
+        name: "name",
+        type: "string"
+    },
+    "value",
+    "group",
+    "text"
+]);
 
 xds.PropGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     enableColumnMove: false,
@@ -420,17 +434,20 @@ xds.PropGrid = Ext.extend(Ext.grid.EditorGridPanel, {
         });
         this.tbar = new Ext.Toolbar({
             cls: "xds-toolbar",
-            items: [{
-                tooltip: "分组显示属性",
-                iconCls: "icon-grouped",
-                enableToggle: true,
-                pressed:true,
+            items: [
+                {
+                    tooltip: "分组显示属性",
+                    iconCls: "icon-grouped",
+                    enableToggle: true,
+                    pressed: true,
 //                toggleGroup: "prop-group",
-                toggleHandler: function (c, d) {
-                    this.setGrouped(d);
+                    toggleHandler: function (c, d) {
+                        this.setGrouped(d);
+                    },
+                    scope: this
                 },
-                scope: this
-            }," ", {
+                " ",
+                {
 //                tooltip: "按照字母排序",
 //                iconCls: "icon-sorted",
 //                enableToggle: true,
@@ -451,18 +468,20 @@ xds.PropGrid = Ext.extend(Ext.grid.EditorGridPanel, {
 //                },
 //                scope: this
 //            },"-", {
-                tooltip: "隐藏继承的属性",
-                pressed: false,
-                iconCls: "icon-hide-inherited",
-                enableToggle: true,
-                toggleHandler: function (c, d) {
-                    this.setHideInherited(d);
+                    tooltip: "隐藏继承的属性",
+                    pressed: false,
+                    iconCls: "icon-hide-inherited",
+                    enableToggle: true,
+                    toggleHandler: function (c, d) {
+                        this.setHideInherited(d);
+                    },
+                    scope: this
                 },
-                scope: this
-            }, {
-                xtype: "propertysearch",
-                store: this.store
-            }]
+                {
+                    xtype: "propertysearch",
+                    store: this.store
+                }
+            ]
         });
         xds.PropGrid.superclass.initComponent.call(this);
         this.selModel.on("beforecellselect", function (e, d, c) {
@@ -484,7 +503,7 @@ xds.PropGrid = Ext.extend(Ext.grid.EditorGridPanel, {
     setHideInherited: function (b) {
         this.propStore.filterGroup = b ? this.component.xcls : undefined;
 //        if (a !== false) {
-            this.propStore.refresh();
+        this.propStore.refresh();
 //        }
     },
 //    setShowCommon: function (b, a) {
@@ -608,14 +627,14 @@ Ext.extend(xds.PropGrid.Store, Ext.util.Observable, {
         return this.getConfig(this.store.getAt(a));
     },
     setComponent: function (comp) {
-        if(this.component){
+        if (this.component) {
             this.component.validate();
-            this.grid.un('beforepropertychange',this.component.beforePropertyChange,this.component);
-            this.grid.un('propertychange',this.component.propertyChange,this.component);
+            this.grid.un('beforepropertychange', this.component.beforePropertyChange, this.component);
+            this.grid.un('propertychange', this.component.propertyChange, this.component);
         }
         this.component = comp;
-        this.grid.on('beforepropertychange',this.component.beforePropertyChange,this.component)
-        this.grid.on('propertychange',this.component.propertyChange,this.component)
+        this.grid.on('beforepropertychange', this.component.beforePropertyChange, this.component)
+        this.grid.on('propertychange', this.component.propertyChange, this.component)
         this.store.removeAll();
         var f = [];
         var items = comp.configs.items;
@@ -744,29 +763,33 @@ xds.PropGrid.ColumnModel = Ext.extend(Ext.grid.ColumnModel, {
     dateFormat: "m/j/Y",
     constructor: function (b, a) {
         this.grid = b;
-        xds.PropGrid.ColumnModel.superclass.constructor.call(this, [{
-            header: this.nameText,
-            width: 50,
-            sortable: true,
-            dataIndex: "text",
-            id: "name",
-            menuDisabled: true
-        },{
-            header: this.valueText,
-            width: 50,
-            resizable: false,
-            dataIndex: "value",
-            id: "value",
-            menuDisabled: true
-        },{
-            header: "",
-            hidden: true,
-            width: 10,
-            resizable: false,
-            locked: true,
-            dataIndex: "group",
-            menuDisabled: true
-        }]);
+        xds.PropGrid.ColumnModel.superclass.constructor.call(this, [
+            {
+                header: this.nameText,
+                width: 50,
+                sortable: true,
+                dataIndex: "text",
+                id: "name",
+                menuDisabled: true
+            },
+            {
+                header: this.valueText,
+                width: 50,
+                resizable: false,
+                dataIndex: "value",
+                id: "value",
+                menuDisabled: true
+            },
+            {
+                header: "",
+                hidden: true,
+                width: 10,
+                resizable: false,
+                locked: true,
+                dataIndex: "group",
+                menuDisabled: true
+            }
+        ]);
         this.store = a;
         this.renderCellDelegate = this.renderCell.createDelegate(this);
         this.renderPropDelegate = this.renderProp.createDelegate(this);
@@ -790,10 +813,10 @@ xds.PropGrid.ColumnModel = Ext.extend(Ext.grid.ColumnModel, {
         var f = this.store.getConfigAt(rowIdx);
         var a = f.render(e, d, b, rowIdx);
 
-        if(f.editor == 'options'){
-            var edtor=this.store.getConfigAt(rowIdx).getEditor();
+        if (f.editor == 'options') {
+            var edtor = this.store.getConfigAt(rowIdx).getEditor();
             var rec = edtor.field.store.getById(a);
-            if(rec){
+            if (rec) {
                 a = rec.get('text');
             }
         }
@@ -832,22 +855,22 @@ Ext.ux.TileView = Ext.extend(Ext.DataView, {
     getMarkup: function () {
         return [
             '<div class="x-tile-ct">',
-                '<tpl for=".">',
-                    '<tpl if="this.openCategory(values, xindex, xcount)">',
-                        '<tpl if="xindex != 1">',
-                            '<div style="clear:left"></div></dl>',
-                        "</tpl>",
-                            '<h2><div unselectable="on" class="x-unselectable">{[this.getCategory(values)]}</div></h2>',
-                            "<dl>",
-                    '</tpl>',
-                        '<dd>',
-                            '<img title="{text:htmlEncode}" src="', Ext.BLANK_IMAGE_URL, '" class="{', this.itemIconCls,'}"/>',
-                            "<div><h4>{", this.itemName, "}</h4><p>{", this.itemDescription, "}</p></div>",
-                        "</dd>",
-                    '<tpl if="xindex == xcount">',
-                        '<div style="clear:left"></div></dl>',
-                    "</tpl>",
-                "</tpl>",
+            '<tpl for=".">',
+            '<tpl if="this.openCategory(values, xindex, xcount)">',
+            '<tpl if="xindex != 1">',
+            '<div style="clear:left"></div></dl>',
+            "</tpl>",
+            '<h2><div unselectable="on" class="x-unselectable">{[this.getCategory(values)]}</div></h2>',
+            "<dl>",
+            '</tpl>',
+            '<dd>',
+            '<img title="{text:htmlEncode}" src="', Ext.BLANK_IMAGE_URL, '" class="{', this.itemIconCls, '}"/>',
+            "<div><h4>{", this.itemName, "}</h4><p>{", this.itemDescription, "}</p></div>",
+            "</dd>",
+            '<tpl if="xindex == xcount">',
+            '<div style="clear:left"></div></dl>',
+            "</tpl>",
+            "</tpl>",
             "</div>"].join("");
     },
     openCategory: function (b) {
@@ -882,21 +905,21 @@ xds.Project = Ext.extend(Ext.util.Observable, {
         Ext.apply(this, data);
         xds.project = this;
     },
-    setDirty:function(d){
+    setDirty: function (d) {
         this.dirty = d;
         xds.actions.saveAction.setDisabled(!d);
     },
-    save: function (asData,cb,autoSave) {
+    save: function (asData, cb, autoSave) {
         var module = xds.inspector.root.module;
 
         var data = {};
         //data.id = module.dbId;
 
-        if(asData){
+        if (asData) {
             //delete data.id;
-            module.setConfig("id",asData.moduleId);
-            module.setConfig("name",asData.moduleName);
-            module.setConfig("category",asData.moduleCategory);
+            module.setConfig("id", asData.moduleId);
+            module.setConfig("name", asData.moduleName);
+            module.setConfig("category", asData.moduleCategory);
         }
 
         data.moduleId = module.getConfigValue("id");
@@ -904,60 +927,70 @@ xds.Project = Ext.extend(Ext.util.Observable, {
         data.category = module.getConfigValue("category");
         data.iconCls = module.getConfigValue("iconCls");
 
-        if(Ext.isEmpty(data.moduleId) || Ext.isEmpty(data.name)){
-            var win=new Ext.Window({
-                title:"Save",
-                modal:true,
+        if (Ext.isEmpty(data.moduleId) || Ext.isEmpty(data.name)) {
+            var win = new Ext.Window({
+                title: "Save",
+                modal: true,
                 iconCls: "icon-project-save",
-                width:380,
-                autoHeight:true,
-                autoDestroy:true,
-                items:[{
-                    ref:"form",
-                    xtype:"form",
-                    padding:"6px",
-                    border:false,
-                    defaults:{xtype:"textfield",anchor:"-20"},
-                    labelWidth:65,
-                    items:[{
-                        name:"moduleId",
-                        fieldLabel:"模块ID",
-                        value:data.moduleId,
-                        allowBlank:false
-                    },{
-                        name:"moduleName",
-                        fieldLabel:"模块名称",
-                        value:data.name,
-                        allowBlank:false
-                    },{
-                        name:"moduleCategory",
-                        value:data.category,
-                        fieldLabel:"模块分组"
-                    },{
-                        xtype:"textarea",
-                        name:"moduleDesc",
-                        fieldLabel:"模块说明"
-                    }]
-                }],
-                buttons:[{
-                    text:"保存",
-                    ref:"../btnSave",
-                    handler:function(btn){
-                        var form=btn.refOwner.form.getForm();
-                        if(form && form.isValid()){
-                            var asData=form.getFieldValues();
-                            xds.project.save(asData,function(){
-                                btn.refOwner.close();
-                            });
+                width: 380,
+                autoHeight: true,
+                autoDestroy: true,
+                items: [
+                    {
+                        ref: "form",
+                        xtype: "form",
+                        padding: "6px",
+                        border: false,
+                        defaults: {xtype: "textfield", anchor: "-20"},
+                        labelWidth: 65,
+                        items: [
+                            {
+                                name: "moduleId",
+                                fieldLabel: "模块ID",
+                                value: data.moduleId,
+                                allowBlank: false
+                            },
+                            {
+                                name: "moduleName",
+                                fieldLabel: "模块名称",
+                                value: data.name,
+                                allowBlank: false
+                            },
+                            {
+                                name: "moduleCategory",
+                                value: data.category,
+                                fieldLabel: "模块分组"
+                            },
+                            {
+                                xtype: "textarea",
+                                name: "moduleDesc",
+                                fieldLabel: "模块说明"
+                            }
+                        ]
+                    }
+                ],
+                buttons: [
+                    {
+                        text: "保存",
+                        ref: "../btnSave",
+                        handler: function (btn) {
+                            var form = btn.refOwner.form.getForm();
+                            if (form && form.isValid()) {
+                                var asData = form.getFieldValues();
+                                xds.project.save(asData, function () {
+                                    btn.refOwner.close();
+                                });
+                            }
+                        }
+                    },
+                    {
+                        text: "取消",
+                        ref: "../btnCancel",
+                        handler: function (btn) {
+                            btn.refOwner.close();
                         }
                     }
-                },{
-                    text:"取消",
-                    ref:"../btnCancel",
-                    handler:function(btn){
-                        btn.refOwner.close();
-                    }
-                }]
+                ]
             });
 
             Ext.select('.el-film').hide();
@@ -969,8 +1002,8 @@ xds.Project = Ext.extend(Ext.util.Observable, {
             return;
         }
 
-        data.xdsConfig = Ext.encode(module.getInternals(true,true));
-        data.config = Ext.encode(module.getJsonConfig(true,true));
+        data.xdsConfig = Ext.encode(module.getInternals(true, true));
+        data.config = Ext.encode(module.getJsonConfig(true, true));
 
         data.updateTime = 'default';
 
@@ -978,80 +1011,90 @@ xds.Project = Ext.extend(Ext.util.Observable, {
             url: '/module/' + data.moduleId,
             method: 'PUT',
             jsonData: data,
-            params:{autoSave:autoSave || false},
+            params: {autoSave: autoSave || false},
             success: function (response, conn) {
                 var result = Ext.decode(response.responseText);
-                if(result.success){
-                    if(cb){
+                if (result.success) {
+                    if (cb) {
                         cb();
                     }
                     xds.project.setDirty(false);
-                }else{
-                    Ext.Msg.alert('提示',result.msg);
+                } else {
+                    Ext.Msg.alert('提示', result.msg);
                 }
             },
             failure: function () {
-                Ext.Msg.alert('提示','保存失败');
+                Ext.Msg.alert('提示', '保存失败');
                 xds.project.setDirty(true);
             }
         });
     },
 
-    doAutoSave:function(){
-        this.save(null,null,true);
+    doAutoSave: function () {
+        this.save(null, null, true);
     },
 
     saveAs: function () {
-        var win=new Ext.Window({
-            title:"Save as",
-            modal:true,
+        var win = new Ext.Window({
+            title: "Save as",
+            modal: true,
             iconCls: "icon-project-save-as",
-            width:380,
-            autoHeight:true,
-            closable:false,
-            items:[{
-                ref:"form",
-                xtype:"form",
-                padding:"6px",
-                border:false,
-                defaults:{xtype:"textfield",anchor:"-20"},
-                labelWidth:65,
-                items:[{
-                    name:"moduleId",
-                    fieldLabel:"模块ID",
-                    allowBlank:false
-                },{
-                    name:"moduleName",
-                    fieldLabel:"模块名称",
-                    allowBlank:false
-                },{
-                    name:"moduleCategory",
-                    fieldLabel:"模块分组"
-                },{
-                    xtype:"textarea",
-                    name:"moduleDesc",
-                    fieldLabel:"模块说明"
-                }]
-            }],
-            buttons:[{
-                text:"保存",
-                ref:"../btnSave",
-                handler:function(btn){
-                    var form=btn.refOwner.form.getForm();
-                    if(form && form.isValid()){
-                        var asData=form.getFieldValues();
-                        xds.project.save(asData,function(){
-                            btn.refOwner.close();
-                        });
+            width: 380,
+            autoHeight: true,
+            closable: false,
+            items: [
+                {
+                    ref: "form",
+                    xtype: "form",
+                    padding: "6px",
+                    border: false,
+                    defaults: {xtype: "textfield", anchor: "-20"},
+                    labelWidth: 65,
+                    items: [
+                        {
+                            name: "moduleId",
+                            fieldLabel: "模块ID",
+                            allowBlank: false
+                        },
+                        {
+                            name: "moduleName",
+                            fieldLabel: "模块名称",
+                            allowBlank: false
+                        },
+                        {
+                            name: "moduleCategory",
+                            fieldLabel: "模块分组"
+                        },
+                        {
+                            xtype: "textarea",
+                            name: "moduleDesc",
+                            fieldLabel: "模块说明"
+                        }
+                    ]
+                }
+            ],
+            buttons: [
+                {
+                    text: "保存",
+                    ref: "../btnSave",
+                    handler: function (btn) {
+                        var form = btn.refOwner.form.getForm();
+                        if (form && form.isValid()) {
+                            var asData = form.getFieldValues();
+                            xds.project.save(asData, function () {
+                                btn.refOwner.close();
+                            });
+                        }
+                    }
+                },
+                {
+                    text: "取消",
+                    ref: "../btnCancel",
+                    handler: function (btn) {
+                        btn.refOwner.close();
                     }
                 }
-            },{
-                text:"取消",
-                ref:"../btnCancel",
-                handler:function(btn){
-                    btn.refOwner.close();
-                }
-            }]
+            ]
         });
 
         Ext.select('.el-film').hide();
@@ -1113,7 +1156,7 @@ xds.Project = Ext.extend(Ext.util.Observable, {
             var defaultNode;
             for (var i = 0, comp; comp = comps[i]; i++) {
                 var n = xds.inspector.restore(comp, root);
-                if(comp.userConfig && comp.userConfig.id == data.userConfig.defaultComponent){
+                if (comp.userConfig && comp.userConfig.id == data.userConfig.defaultComponent) {
                     defaultNode = n;
                 }
             }
@@ -1125,7 +1168,7 @@ xds.Project = Ext.extend(Ext.util.Observable, {
                 defaultNode.select();
                 xds.fireEvent("componentchanged");
             }
-        }else{
+        } else {
             root.setText(this.moduleName);
             root.endUpdate();
             xds.actions.saveAsAction.disable();
@@ -1151,10 +1194,10 @@ xds.Project = Ext.extend(Ext.util.Observable, {
 });
 Ext.ux.WinEditor = Ext.extend(Ext.grid.GridEditor, {
     ignoreNoChange: false,
-    zIndex:8888,
+    zIndex: 8888,
     initComponent: function () {
         Ext.grid.GridEditor.superclass.initComponent.call(this);
-        this.field.on('change',this.onValueUpdated,this);
+        this.field.on('change', this.onValueUpdated, this);
         this.field.on('valueupdated', this.onValueUpdated, this);
         this.field.on('cancel', this.onEditCancel, this);
     },
@@ -1177,7 +1220,7 @@ Ext.ux.WinField = Ext.extend(Ext.form.TriggerField, {
     },
     setValue: function (value) {
         var strValue = value;
-        if (Ext.isArray(value)){
+        if (Ext.isArray(value)) {
             strValue = value.join(',');
         } else if (typeof value == 'object') {
             this.objValue = value;
@@ -1197,27 +1240,27 @@ Ext.ux.WinField = Ext.extend(Ext.form.TriggerField, {
     }
 });
 
-xds.ColorPalette = Ext.extend(Ext.ColorPalette,{
-    initComponent : function(){
+xds.ColorPalette = Ext.extend(Ext.ColorPalette, {
+    initComponent: function () {
         xds.ColorPalette.superclass.initComponent.call(this);
         this.addEvents(
             'over'
         );
     },
-    afterRender : function(){
+    afterRender: function () {
         xds.ColorPalette.superclass.afterRender.call(this);
 
         this.mon(this.el, {
             "mouseover": this.onMouseOver,
-            scope:this
+            scope: this
         });
     },
-    onMouseOver:function(e,t){
+    onMouseOver: function (e, t) {
         e.preventDefault();
-        if(!this.disabled){
+        if (!this.disabled) {
             var ms = t.className.match(/(?:^|\s)color-(.{6})(?:\s|$)/);
-            if(ms){
-                this.fireEvent('over',this,ms[1]);
+            if (ms) {
+                this.fireEvent('over', this, ms[1]);
             }
         }
     }
@@ -1236,11 +1279,11 @@ xds.Config = function (a) {
                 mode: "local",
                 listClass: "x-combo-list-small",
                 store: new Ext.data.ArrayStore({
-                    idIndex:0,
-                    fields: ["code","text"]
+                    idIndex: 0,
+                    fields: ["code", "text"]
                 }),
                 displayField: "text",
-                valueField:"code"
+                valueField: "code"
             })),
             date: new Ext.grid.GridEditor(new Ext.form.DateField({
                 selectOnFocus: true
@@ -1258,48 +1301,50 @@ xds.Config = function (a) {
                 selectOnFocus: true,
                 style: "text-align:left;"
             })),
-            color:new Ext.ux.WinEditor(new Ext.ux.WinField({
+            color: new Ext.ux.WinEditor(new Ext.ux.WinField({
                 triggerClass: "x-form-search-trigger",
                 editable: false,
                 onTriggerClick: function () {
                     var value = this.getValue();
 
                     var plt = new xds.ColorPalette({
-                        ref:'plt',
-                        itemCls:'xds-color-palette',
-                        colors:['000000','000033','000066','000099','0000CC','0000FF','003300','003333','003366','003399','0033CC','0033FF','006600','006633','006666','006699','0066CC','0066FF','009900','009933','009966','009999','0099CC','0099FF','00CC00','00CC33','00CC66','00CC99','00CCCC','00CCFF','00FF00','00FF33','00FF66','00FF99','00FFCC','00FFFF','330000','330033','330066','330099','3300CC','3300FF','333300','333333','333366','333399','3333CC','3333FF','336600','336633','336666','336699','3366CC','3366FF','339900','339933','339966','339999','3399CC','3399FF','33CC00','33CC33','33CC66','33CC99','33CCCC','33CCFF','33FF00','33FF33','33FF66','33FF99','33FFCC','33FFFF','660000','660033','660066','660099','6600CC','6600FF','663300','663333','663366','663399','6633CC','6633FF','666600','666633','666666','666699','6666CC','6666FF','669900','669933','669966','669999','6699CC','6699FF','66CC00','66CC33','66CC66','66CC99','66CCCC','66CCFF','66FF00','66FF33','66FF66','66FF99','66FFCC','66FFFF','990000','990033','990066','990099','9900CC','9900FF','993300','993333','993366','993399','9933CC','9933FF','996600','996633','996666','996699','9966CC','9966FF','999900','999933','999966','999999','9999CC','9999FF','99CC00','99CC33','99CC66','99CC99','99CCCC','99CCFF','99FF00','99FF33','99FF66','99FF99','99FFCC','99FFFF','CC0000','CC0033','CC0066','CC0099','CC00CC','CC00FF','CC3300','CC3333','CC3366','CC3399','CC33CC','CC33FF','CC6600','CC6633','CC6666','CC6699','CC66CC','CC66FF','CC9900','CC9933','CC9966','CC9999','CC99CC','CC99FF','CCCC00','CCCC33','CCCC66','CCCC99','CCCCCC','CCCCFF','CCFF00','CCFF33','CCFF66','CCFF99','CCFFCC','CCFFFF','FF0000','FF0033','FF0066','FF0099','FF00CC','FF00FF','FF3300','FF3333','FF3366','FF3399','FF33CC','FF33FF','FF6600','FF6633','FF6666','FF6699','FF66CC','FF66FF','FF9900','FF9933','FF9966','FF9999','FF99CC','FF99FF','FFCC00','FFCC33','FFCC66','FFCC99','FFCCCC','FFCCFF','FFFF00','FFFF33','FFFF66','FFFF99','FFFFCC','FFFFFF']
+                        ref: 'plt',
+                        itemCls: 'xds-color-palette',
+                        colors: ['000000', '000033', '000066', '000099', '0000CC', '0000FF', '003300', '003333', '003366', '003399', '0033CC', '0033FF', '006600', '006633', '006666', '006699', '0066CC', '0066FF', '009900', '009933', '009966', '009999', '0099CC', '0099FF', '00CC00', '00CC33', '00CC66', '00CC99', '00CCCC', '00CCFF', '00FF00', '00FF33', '00FF66', '00FF99', '00FFCC', '00FFFF', '330000', '330033', '330066', '330099', '3300CC', '3300FF', '333300', '333333', '333366', '333399', '3333CC', '3333FF', '336600', '336633', '336666', '336699', '3366CC', '3366FF', '339900', '339933', '339966', '339999', '3399CC', '3399FF', '33CC00', '33CC33', '33CC66', '33CC99', '33CCCC', '33CCFF', '33FF00', '33FF33', '33FF66', '33FF99', '33FFCC', '33FFFF', '660000', '660033', '660066', '660099', '6600CC', '6600FF', '663300', '663333', '663366', '663399', '6633CC', '6633FF', '666600', '666633', '666666', '666699', '6666CC', '6666FF', '669900', '669933', '669966', '669999', '6699CC', '6699FF', '66CC00', '66CC33', '66CC66', '66CC99', '66CCCC', '66CCFF', '66FF00', '66FF33', '66FF66', '66FF99', '66FFCC', '66FFFF', '990000', '990033', '990066', '990099', '9900CC', '9900FF', '993300', '993333', '993366', '993399', '9933CC', '9933FF', '996600', '996633', '996666', '996699', '9966CC', '9966FF', '999900', '999933', '999966', '999999', '9999CC', '9999FF', '99CC00', '99CC33', '99CC66', '99CC99', '99CCCC', '99CCFF', '99FF00', '99FF33', '99FF66', '99FF99', '99FFCC', '99FFFF', 'CC0000', 'CC0033', 'CC0066', 'CC0099', 'CC00CC', 'CC00FF', 'CC3300', 'CC3333', 'CC3366', 'CC3399', 'CC33CC', 'CC33FF', 'CC6600', 'CC6633', 'CC6666', 'CC6699', 'CC66CC', 'CC66FF', 'CC9900', 'CC9933', 'CC9966', 'CC9999', 'CC99CC', 'CC99FF', 'CCCC00', 'CCCC33', 'CCCC66', 'CCCC99', 'CCCCCC', 'CCCCFF', 'CCFF00', 'CCFF33', 'CCFF66', 'CCFF99', 'CCFFCC', 'CCFFFF', 'FF0000', 'FF0033', 'FF0066', 'FF0099', 'FF00CC', 'FF00FF', 'FF3300', 'FF3333', 'FF3366', 'FF3399', 'FF33CC', 'FF33FF', 'FF6600', 'FF6633', 'FF6666', 'FF6699', 'FF66CC', 'FF66FF', 'FF9900', 'FF9933', 'FF9966', 'FF9999', 'FF99CC', 'FF99FF', 'FFCC00', 'FFCC33', 'FFCC66', 'FFCC99', 'FFCCCC', 'FFCCFF', 'FFFF00', 'FFFF33', 'FFFF66', 'FFFF99', 'FFFFCC', 'FFFFFF']
                     });
 
-                    plt.on('select',function(me,color){
+                    plt.on('select', function (me, color) {
                         var win = me.refOwner;
-                        win.fireEvent('ok',color);
+                        win.fireEvent('ok', color);
                         win.close();
                     });
 
-                    plt.on('over',function(me,color){
+                    plt.on('over', function (me, color) {
                         var win = me.refOwner;
-                        win.setTitle('选择颜色['+color+']');
+                        win.setTitle('选择颜色[' + color + ']');
                     });
 
                     var colorWin = new Ext.Window({
-                        title:'选择颜色',
-                        width:339,
-                        height:280,
-                        modal:true,
-                        resizable:false,
-                        closable:false,
-                        items:[plt],
-                        buttons:[{
-                            ref:'../btnCancel',
-                            text:"取消",
-                            handler:function(btn){
-                                var win = btn.refOwner;
-                                win.fireEvent('cancel');
-                                win.close();
+                        title: '选择颜色',
+                        width: 339,
+                        height: 280,
+                        modal: true,
+                        resizable: false,
+                        closable: false,
+                        items: [plt],
+                        buttons: [
+                            {
+                                ref: '../btnCancel',
+                                text: "取消",
+                                handler: function (btn) {
+                                    var win = btn.refOwner;
+                                    win.fireEvent('cancel');
+                                    win.close();
+                                }
                             }
-                        }]
+                        ]
                     });
-                    colorWin.addEvents('ok','cancel');
+                    colorWin.addEvents('ok', 'cancel');
                     this.editWin = colorWin;
                     colorWin.on('ok', function (value) {
                         delete this.editWin;
@@ -1316,10 +1361,10 @@ xds.Config = function (a) {
                     });
                     colorWin.show();
                 }
-            }),{
+            }), {
                 ignoreNoChange: true
             }),
-            icon:new Ext.ux.WinEditor(new Ext.ux.WinField({
+            icon: new Ext.ux.WinEditor(new Ext.ux.WinField({
                 triggerClass: "x-form-search-trigger",
                 onTriggerClick: function (e) {
                     var value = this.getValue();
@@ -1330,16 +1375,20 @@ xds.Config = function (a) {
                             root: "icons",
                             autoLoad: true,
                             url: "/tplt/icons.json",
-                            fields:[{
-                                name:"name",
-                                type:"string"
-                            },{
-                                name:"url",
-                                type:"string"
-                            },{
-                                name:"cls",
-                                type:"string"
-                            }]
+                            fields: [
+                                {
+                                    name: "name",
+                                    type: "string"
+                                },
+                                {
+                                    name: "url",
+                                    type: "string"
+                                },
+                                {
+                                    name: "cls",
+                                    type: "string"
+                                }
+                            ]
                         },
                         tpl: '<div class="xds-designer"><tpl for="."><div class="thumb-wrap" id={name}><div class="thumb"><img src=/tplt/{url} title={name} style="width:16px;height:16px"/></div><span class="x-editable" style="width:16px;">{shortName}</span></div></tpl><div class="x-clear"></div></div>',
                         overClass: "x-view-over",
@@ -1347,25 +1396,27 @@ xds.Config = function (a) {
                     });
 
                     var iconWin = new Ext.Window({
-                        title:'选择图标',
-                        width:416,
-                        height:276,
-                        modal:true,
-                        resizable:false,
-                        closable:false,
-                        autoScroll:true,
-                        items:[iconView],
-                        buttons:[{
-                            ref:'../btnCancel',
-                            text:"取消",
-                            handler:function(btn){
-                                var win = btn.refOwner;
-                                win.fireEvent('cancel');
-                                win.close();
+                        title: '选择图标',
+                        width: 416,
+                        height: 276,
+                        modal: true,
+                        resizable: false,
+                        closable: false,
+                        autoScroll: true,
+                        items: [iconView],
+                        buttons: [
+                            {
+                                ref: '../btnCancel',
+                                text: "取消",
+                                handler: function (btn) {
+                                    var win = btn.refOwner;
+                                    win.fireEvent('cancel');
+                                    win.close();
+                                }
                             }
-                        }]
+                        ]
                     });
-                    iconWin.addEvents('ok','cancel');
+                    iconWin.addEvents('ok', 'cancel');
                     this.editWin = iconWin;
                     iconWin.on('ok', function (value) {
                         delete this.editWin;
@@ -1376,67 +1427,70 @@ xds.Config = function (a) {
                         delete this.editWin;
                         this.fireEvent('cancel');
                     }, this);
-                    iconView.on('dblClick',function(dataview,idx,el){
+                    iconView.on('dblClick', function (dataview, idx, el) {
                         var item = dataview.getRecord(el);
-                        if(!Ext.isEmpty(item)){
+                        if (!Ext.isEmpty(item)) {
                             this.editWin.close();
                             delete this.editWin;
 
                             this.setValue(item.data.cls);
                             this.fireEvent('valueupdated');
                         }
-                    },this);
+                    }, this);
                     Ext.select('.el-film').hide();
                     iconWin.on('close', function () {
                         Ext.select('.el-film').show();
                     });
                     iconWin.show();
                 }
-            }),{
+            }), {
                 ignoreNoChange: true
             }),
-            text:new Ext.ux.WinEditor(new Ext.ux.WinField({
+            text: new Ext.ux.WinEditor(new Ext.ux.WinField({
                 triggerClass: "x-form-search-trigger",
                 editable: false,
                 onTriggerClick: function () {
                     var value = this.getValue();
                     if (typeof value == 'object') {
-                        if (value.toString){
+                        if (value.toString) {
                             value = value.toString();
-                        }else{
+                        } else {
                             value = '[Object]';
                         }
                     }
                     var scriptWin = new Ext.Window({
-                        title:'[Text]',
-                        width:800,
-                        height:600,
-                        modal:true,
-                        closable:false,
-                        layout:'fit',
-                        items:[new Ext.form.TextArea({
-                            ref:'field',
-                            style:'border:none;font-family:consolas;'
+                        title: '[Text]',
+                        width: 800,
+                        height: 600,
+                        modal: true,
+                        closable: false,
+                        layout: 'fit',
+                        items: [new Ext.form.TextArea({
+                            ref: 'field',
+                            style: 'border:none;font-family:consolas;'
                         })],
-                        buttons:[{
-                            ref:'../btnOk',
-                            text:"确定",
-                            handler:function(btn){
-                                var win = btn.refOwner;
-                                win.fireEvent('ok',win.field.getValue());
-                                win.close();
+                        buttons: [
+                            {
+                                ref: '../btnOk',
+                                text: "确定",
+                                handler: function (btn) {
+                                    var win = btn.refOwner;
+                                    win.fireEvent('ok', win.field.getValue());
+                                    win.close();
+                                }
+                            },
+                            {
+                                ref: '../btnCancel',
+                                text: "取消",
+                                handler: function (btn) {
+                                    var win = btn.refOwner;
+                                    win.fireEvent('cancel');
+                                    win.close();
+                                }
                             }
-                        },{
-                            ref:'../btnCancel',
-                            text:"取消",
-                            handler:function(btn){
-                                var win = btn.refOwner;
-                                win.fireEvent('cancel');
-                                win.close();
-                            }
-                        }]
+                        ]
                     });
-                    scriptWin.addEvents('ok','cancel');
+                    scriptWin.addEvents('ok', 'cancel');
                     this.editWin = scriptWin;
                     scriptWin.on('ok', function (value) {
                         delete this.editWin;
@@ -1455,84 +1509,89 @@ xds.Config = function (a) {
                     scriptWin.field.setValue(value);
                 }
             })),
-            file:new Ext.ux.WinEditor(new Ext.ux.WinField({
+            file: new Ext.ux.WinEditor(new Ext.ux.WinField({
                 triggerClass: "x-form-search-trigger",
                 editable: false,
                 onTriggerClick: function (e) {
                     var value = this.getValue();
                     if (typeof value == 'object') {
-                        if (value.toString){
+                        if (value.toString) {
                             value = value.toString();
-                        }else{
+                        } else {
                             value = '[Object]';
                         }
                     }
                     var uploadWin = new Ext.Window({
-                        title:'[File upload]',
-                        width:400,
-                        modal:true,
-                        closable:false,
-                        autoHeight:true,
-                        resizable:false,
-                        layout:'fit',
-                        items:[new Ext.form.FormPanel({
-                            padding:6,
-                            autoHeight:true,
-                            fileUpload:true,
-                            ref:'form',
-                            border:false,
-                            items:[{
-                                xtype:'fileuploadfield',
-                                anchor:'100%',
-                                fieldLabel:'选择文件',
-                                buttonText:'选择...',
-                                ref:'file',
-                                name:'file'
-                            }]
+                        title: '[File upload]',
+                        width: 400,
+                        modal: true,
+                        closable: false,
+                        autoHeight: true,
+                        resizable: false,
+                        layout: 'fit',
+                        items: [new Ext.form.FormPanel({
+                            padding: 6,
+                            autoHeight: true,
+                            fileUpload: true,
+                            ref: 'form',
+                            border: false,
+                            items: [
+                                {
+                                    xtype: 'fileuploadfield',
+                                    anchor: '100%',
+                                    fieldLabel: '选择文件',
+                                    buttonText: '选择...',
+                                    ref: 'file',
+                                    name: 'file'
+                                }
+                            ]
                         })],
-                        buttons:[{
-                            ref:'../btnOk',
-                            text:"上传",
-                            handler:function(btn){
-                                var win = btn.refOwner;
-                                var fileUploadMask = new Ext.LoadMask(Ext.getBody(),"文件上传中...");
-                                fileUploadMask.show();
+                        buttons: [
+                            {
+                                ref: '../btnOk',
+                                text: "上传",
+                                handler: function (btn) {
+                                    var win = btn.refOwner;
+                                    var fileUploadMask = new Ext.LoadMask(Ext.getBody(), "文件上传中...");
+                                    fileUploadMask.show();
 
-                                var form = win.form.getForm();
-                                Ext.Ajax.request({
-                                    url: '/code/upload',
-                                    method: 'POST',
-                                    form: form.el.dom,
-                                    isUpload: true,
-                                    success: function(response) {
-                                        var respStr = response.responseXML.body.firstChild.innerHTML;
-                                        try {
-                                            var resp = Ext.decode(respStr);
-                                            if (resp.success) {
-                                                if(resp.fileId){
-                                                    win.fireEvent('ok',resp.fileId);
-                                                    fileUploadMask.hide();
-                                                    win.close();
+                                    var form = win.form.getForm();
+                                    Ext.Ajax.request({
+                                        url: '/code/upload',
+                                        method: 'POST',
+                                        form: form.el.dom,
+                                        isUpload: true,
+                                        success: function (response) {
+                                            var respStr = response.responseXML.body.firstChild.innerHTML;
+                                            try {
+                                                var resp = Ext.decode(respStr);
+                                                if (resp.success) {
+                                                    if (resp.fileId) {
+                                                        win.fireEvent('ok', resp.fileId);
+                                                        fileUploadMask.hide();
+                                                        win.close();
+                                                    }
                                                 }
+                                            } catch (e) {
+                                                fileUploadMask.hide();
+                                                Ext.Msg.alert('错误', '文件上传失败！');
                                             }
-                                        } catch(e) {
-                                            fileUploadMask.hide();
-                                            Ext.Msg.alert('错误','文件上传失败！');
                                         }
-                                    }
-                                });
+                                    });
+                                }
+                            },
+                            {
+                                ref: '../btnCancel',
+                                text: "取消",
+                                handler: function (btn) {
+                                    var win = btn.refOwner;
+                                    win.fireEvent('cancel');
+                                    win.close();
+                                }
                             }
-                        },{
-                            ref:'../btnCancel',
-                            text:"取消",
-                            handler:function(btn){
-                                var win = btn.refOwner;
-                                win.fireEvent('cancel');
-                                win.close();
-                            }
-                        }]
+                        ]
                     });
-                    uploadWin.addEvents('ok','cancel');
+                    uploadWin.addEvents('ok', 'cancel');
                     this.editWin = uploadWin;
                     uploadWin.on('ok', function (value) {
                         delete this.editWin;
@@ -1628,10 +1687,10 @@ xds.Config.prototype = {
                 data = this.getOptions();
             }
 
-            if(Ext.isArray(data)){
-                for (var i=0;i<data.length;i++){
-                    if(!Ext.isArray(data[i])){
-                        data[i]=[data[i],data[i]];
+            if (Ext.isArray(data)) {
+                for (var i = 0; i < data.length; i++) {
+                    if (!Ext.isArray(data[i])) {
+                        data[i] = [data[i], data[i]];
                     }
                 }
             }
@@ -1741,8 +1800,8 @@ xds.Config.types = {
     fn: xds.Config.Fn,
     color: xds.Config.Color,
     icon: xds.Config.icon,
-    text:xds.Config.Text,
-    file:xds.Config.File
+    text: xds.Config.Text,
+    file: xds.Config.File
 };
 xds.Config.editors = {};
 //xds.editorConfigs = new Ext.util.MixedCollection(false, function (a) {
@@ -1826,11 +1885,11 @@ xds.actions = {
 
             var wizardWin = new xds.moduleWizard.WizardWindow({
                 iconCls: "icon-project-new",
-                modal:true,
-                resizable:false,
-                width:720,
-                height:460,
-                title:'新建模块'
+                modal: true,
+                resizable: false,
+                width: 720,
+                height: 460,
+                title: '新建模块'
             });
 
             wizardWin.show();
@@ -1848,41 +1907,48 @@ xds.actions = {
                 width: 600,
                 modal: true,
                 height: 450,
-                items: [{
-                    layout: 'form',
-                    region: 'center',
-                    border: false,
-                    hideLabels: true,
-                    items: [{
-                        id: 'configArea',
-                        xtype: 'textarea',
-                        style: 'border:none;font-family:"consolas","courier new","segoe ui";',
-                        anchor: '0 0'
-                    }]
-                }],
-                buttons: [{
-                    text: 'Open',
-                    handler: function () {
-                        xds.project.close(function () {
-                            var cfgArea = Ext.getCmp('configArea');
-                            if (!Ext.isEmpty(cfgArea)) {
-                                var cfgStr = cfgArea.getValue();
-                                var cfg = Ext.decode(cfgStr);
-                                if (xds.project) {
-                                    xds.project.close(function () {
-                                        new xds.Project().open(cfg);
-                                    });
-                                }
-                                cfgWin.close();
+                items: [
+                    {
+                        layout: 'form',
+                        region: 'center',
+                        border: false,
+                        hideLabels: true,
+                        items: [
+                            {
+                                id: 'configArea',
+                                xtype: 'textarea',
+                                style: 'border:none;font-family:"consolas","courier new","segoe ui";',
+                                anchor: '0 0'
                             }
-                        });
+                        ]
                     }
-                },{
-                    text: 'Cancel',
-                    handler: function () {
-                        cfgWin.close();
+                ],
+                buttons: [
+                    {
+                        text: 'Open',
+                        handler: function () {
+                            xds.project.close(function () {
+                                var cfgArea = Ext.getCmp('configArea');
+                                if (!Ext.isEmpty(cfgArea)) {
+                                    var cfgStr = cfgArea.getValue();
+                                    var cfg = Ext.decode(cfgStr);
+                                    if (xds.project) {
+                                        xds.project.close(function () {
+                                            new xds.Project().open(cfg);
+                                        });
+                                    }
+                                    cfgWin.close();
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: 'Cancel',
+                        handler: function () {
+                            cfgWin.close();
+                        }
                     }
-                }]
+                ]
             });
             Ext.select('.el-film').hide();
             cfgWin.on('close', function () {
@@ -1949,55 +2015,63 @@ xds.actions = {
             xds.inspector.forward();
         }
     }),
-    rtConfig:new Ext.Action({
+    rtConfig: new Ext.Action({
         text: "JSON",
         iconCls: 'icon-view-json',
         disabled: true,
-        handler: function(){
+        handler: function () {
             var preConfig = xds.active.topNode.component.getJsonConfig(true);
             Ext.Ajax.request({
-                url:'rtcfg',
-                method:'POST',
-                jsonData:{jsonCfg:Ext.encode(preConfig)},
-                success:function(resp){
-                    var win=new Ext.Window({
-                        modal:true,
-                        title:"RTConfig",
-                        width:900,
-                        height:600,
-                        bodyStyle:'background-color:#ffffff;',
-                        autoScroll:true,
-                        fbar:[{text:'Cancel',ref:'../btnCancel',handler:function(btn){btn.refOwner.close();}}]
+                url: 'rtcfg',
+                method: 'POST',
+                jsonData: {jsonCfg: Ext.encode(preConfig)},
+                success: function (resp) {
+                    var win = new Ext.Window({
+                        modal: true,
+                        title: "RTConfig",
+                        width: 900,
+                        height: 600,
+                        bodyStyle: 'background-color:#ffffff;',
+                        autoScroll: true,
+                        fbar: [
+                            {text: 'Cancel', ref: '../btnCancel', handler: function (btn) {
+                                btn.refOwner.close();
+                            }}
+                        ]
                     });
                     Ext.select(".el-film").hide();
                     win.on('close', function () {
                         Ext.select(".el-film").show();
                     });
                     win.show();
-                    var s=js_beautify(resp.responseText, {
+                    var s = js_beautify(resp.responseText, {
                         opt_keep_array_indentation: false
                     });
                     win.body.update("<pre class='brush:js' style='font-size:12px;font-family:\"consolas\",\"courier new\",\"segoe ui\";'>" + s + "</pre>");
 
-                    SyntaxHighlighter.highlight({toolbar:false});
+                    SyntaxHighlighter.highlight({toolbar: false});
                 },
-                scope:this
+                scope: this
             });
         }
     }),
-    xdsConfig:new Ext.Action({
+    xdsConfig: new Ext.Action({
         text: "XDS",
         iconCls: 'icon-view-json',
-        handler: function(){
+        handler: function () {
             var s;
-            var win=new Ext.Window({
-                modal:true,
-                title:"xds-conifg",
-                width:900,
-                height:600,
-                bodyStyle:'background-color:#ffffff;',
-                autoScroll:true,
-                fbar:[{text:'Cancel',ref:'../btnCancel',handler:function(btn){btn.refOwner.close();}}]
+            var win = new Ext.Window({
+                modal: true,
+                title: "xds-conifg",
+                width: 900,
+                height: 600,
+                bodyStyle: 'background-color:#ffffff;',
+                autoScroll: true,
+                fbar: [
+                    {text: 'Cancel', ref: '../btnCancel', handler: function (btn) {
+                        btn.refOwner.close();
+                    }}
+                ]
             });
             Ext.select(".el-film").hide();
             win.on('close', function () {
@@ -2005,14 +2079,14 @@ xds.actions = {
             });
             win.show();
 
-            var a = Ext.encode(xds.inspector.root.module.getInternals(true,true));
+            var a = Ext.encode(xds.inspector.root.module.getInternals(true, true));
 
-            s=js_beautify(a, {
+            s = js_beautify(a, {
                 opt_keep_array_indentation: false
             });
             win.body.update("<pre class='brush:js' style='font-size:12px;font-family:\"consolas\",\"courier new\",\"segoe ui\";'>" + s + "</pre>");
 
-            SyntaxHighlighter.highlight({toolbar:false});
+            SyntaxHighlighter.highlight({toolbar: false});
         }
     }),
     preview: new Ext.Action({
@@ -2023,12 +2097,12 @@ xds.actions = {
         handler: function () {
             var preConfig = xds.active.topNode.component.getJsonConfig(true);
             Ext.Ajax.request({
-                url:'rtcfg',
-                method:'POST',
-                jsonData:{jsonCfg:Ext.encode(preConfig)},
-                success:function(resp){
+                url: 'rtcfg',
+                method: 'POST',
+                jsonData: {jsonCfg: Ext.encode(preConfig)},
+                success: function (resp) {
                     var result = Ext.decode(resp.responseText);
-                    if(result){
+                    if (result) {
                         var previewWin = null;
                         if (preConfig.xtype && preConfig.xtype == 'window') {
                             previewWin = new Ext.Window(Ext.apply(result, {
@@ -2050,7 +2124,7 @@ xds.actions = {
                         previewWin.show();
                     }
                 },
-                scope:this
+                scope: this
             });
         }
     })
@@ -2059,7 +2133,7 @@ xds.Canvas = Ext.extend(Ext.Panel, {
     constructor: function (cfg) {
         xds.Canvas.superclass.constructor.call(this, cfg);
         xds.canvas = this;
-        xds.on("componentselect", this.onComponentSelect,this);
+        xds.on("componentselect", this.onComponentSelect, this);
     },
     afterRender: function () {
         xds.Canvas.superclass.afterRender.call(this);
@@ -2070,7 +2144,7 @@ xds.Canvas = Ext.extend(Ext.Panel, {
         this.body.on("dblclick", this.onBodyDblClick, this);
         this.initDD();
     },
-    initDD:function(){
+    initDD: function () {
         this.dropZone = new xds.Canvas.DropZone(this);
         this.dragTracker = new xds.Canvas.DragTracker({
             el: this.body
@@ -2085,7 +2159,7 @@ xds.Canvas = Ext.extend(Ext.Panel, {
     onBodyDblClick: function (b, a) {
         var d = this.findTarget(b);
         if (d) {
-            if(!d.component.isRef){
+            if (!d.component.isRef) {
                 d.component.onFilmDblClick(b);
             }
         }
@@ -2096,12 +2170,12 @@ xds.Canvas = Ext.extend(Ext.Panel, {
             if (f.component.onFilmClick(evt) !== false) {
                 xds.fireEvent("componentclick", f.component);
             }
-        }else{
+        } else {
             xds.inspector.getSelectionModel().clearSelections();
         }
     },
     getTargetNode: function (b) {
-        if (b.id.indexOf("film-for-") !== - 1) {
+        if (b.id.indexOf("film-for-") !== -1) {
             var a = b.id.substr(9);
             return xds.inspector.getNodeById(a);
         }
@@ -2119,25 +2193,25 @@ xds.Canvas = Ext.extend(Ext.Panel, {
         if (tgtNode && tgtNode.component && (!tgtNode.component.isRef)) {
             var cmp = tgtNode.component;
             var film = cmp.getFilm();
-            if(film){
+            if (film) {
                 var lr = film.lastRegion;
                 var d = 7;
                 var m = cmp.isResizable("Corner", e);
 
-                if (m && (e.browserEvent.offsetY > lr.bottom - lr.top -d) && (e.browserEvent.offsetX > lr.right - lr.left -d)) {
+                if (m && (e.browserEvent.offsetY > lr.bottom - lr.top - d) && (e.browserEvent.offsetX > lr.right - lr.left - d)) {
                     this.dragTracker.setDragMode("Corner");
                     film.setStyle("cursor", "se-resize");
                     return;
                 }
-                if ((e.browserEvent.offsetY > lr.bottom - lr.top -d)  && cmp.isResizable("Bottom", e)) {
+                if ((e.browserEvent.offsetY > lr.bottom - lr.top - d) && cmp.isResizable("Bottom", e)) {
                     this.dragTracker.setDragMode("Bottom");
                     film.setStyle("cursor", "s-resize");
                     return;
                 }
 
-                if ((e.browserEvent.offsetX > lr.right - lr.left -d) && cmp.isResizable("Right", e)) {
+                if ((e.browserEvent.offsetX > lr.right - lr.left - d) && cmp.isResizable("Right", e)) {
                     this.dragTracker.setDragMode("Right");
-                    film.setStyle("cursor","e-resize");
+                    film.setStyle("cursor", "e-resize");
                     return;
                 }
 
@@ -2147,7 +2221,7 @@ xds.Canvas = Ext.extend(Ext.Panel, {
         this.dragTracker.setDragMode("Absolute");
     },
     onBodyContextMenu: function (evt) {
-        if (xds.canvas.dragend === true){
+        if (xds.canvas.dragend === true) {
             xds.canvas.dragend = false;
             evt.preventDefault();
             return;
@@ -2162,9 +2236,9 @@ xds.Canvas = Ext.extend(Ext.Panel, {
         }
 
         //为了异步获取剪切板内容
-        od.Clipboard.getData(function(data){
-            var items = this.getContextMenuItems(f,data);
-            if(items.length>0){
+        od.Clipboard.getData(function (data) {
+            var items = this.getContextMenuItems(f, data);
+            if (items.length > 0) {
                 if (!this.contextMenu) {
                     this.contextMenu = new Ext.menu.Menu();
                 }
@@ -2172,34 +2246,34 @@ xds.Canvas = Ext.extend(Ext.Panel, {
                 this.contextMenu.add(items);
                 this.contextMenu.showAt(pos)
             }
-        },this);
+        }, this);
     },
-    getContextMenuItems:function(target,cbData){
+    getContextMenuItems: function (target, cbData) {
         var cmp;
-        if(target){
+        if (target) {
             cmp = target.component;
         }
         var ret = [];
-        if(!Ext.isEmpty(cmp)){
+        if (!Ext.isEmpty(cmp)) {
             var copy = new Ext.menu.Item({
-                text:"复制",
-                ref:"copy",
+                text: "复制",
+                ref: "copy",
                 iconCls: "icon-page-copy",
-                handler:function(){
+                handler: function () {
                     od.Clipboard.putData(Ext.encode(cmp.getInternals(true)));
                 }
             });
 
-            if(cmp.isRef){
+            if (cmp.isRef) {
                 this.contextMenu.add(copy);
                 return this.contextMenu;
-            }else{
+            } else {
                 var dup = new Ext.menu.Item({
                     text: "创建副本",
-                    iconCls:'icon-duplication',
+                    iconCls: 'icon-duplication',
                     handler: function () {
-                        var pos = xds.inspector.getDropPosition(cmp.node,"below");
-                        var n = xds.inspector.restore(cmp.getInternals(true),pos.parent,pos.before).select();
+                        var pos = xds.inspector.getDropPosition(cmp.node, "below");
+                        var n = xds.inspector.restore(cmp.getInternals(true), pos.parent, pos.before).select();
                         xds.fireEvent("componentchanged");
                     }
                 });
@@ -2215,16 +2289,16 @@ xds.Canvas = Ext.extend(Ext.Panel, {
 
 
                 var items = cmp.getTransforms();
-                if(!Ext.isEmpty(items)){
-                    var tfMenu = new Ext.menu.Menu({items:items});
-                    tfMenu.on("itemclick",function(tfItem){
+                if (!Ext.isEmpty(items)) {
+                    var tfMenu = new Ext.menu.Menu({items: items});
+                    tfMenu.on("itemclick", function (tfItem) {
                         xds.inspector.transform(cmp.node, tfItem.transtype);
                     });
                     ret.push(new Ext.menu.Item({
-                        text:"转换为",
-                        iconCls:'icon-transform',
-                        hideOnClick:false,
-                        menu:tfMenu
+                        text: "转换为",
+                        iconCls: 'icon-transform',
+                        hideOnClick: false,
+                        menu: tfMenu
                     }));
                     ret.push(new Ext.menu.Separator());
                 }
@@ -2235,12 +2309,12 @@ xds.Canvas = Ext.extend(Ext.Panel, {
             }
         }
 
-        if(cbData){
+        if (cbData) {
             ret.push(new Ext.menu.Item({
-                text:"粘贴",
+                text: "粘贴",
                 iconCls: "icon-page-paste",
-                handler:function(){
-                    xds.inspector.restore(Ext.decode(cbData), cmp?cmp.node:null).select();
+                handler: function () {
+                    xds.inspector.restore(Ext.decode(cbData), cmp ? cmp.node : null).select();
                     xds.fireEvent("componentchanged");
                 }
             }));
@@ -2270,8 +2344,8 @@ xds.Canvas = Ext.extend(Ext.Panel, {
         }
 
         var scrollTop = 0;
-        if(this.body.dom){
-            scrollTop=this.body.dom.scrollTop;
+        if (this.body.dom) {
+            scrollTop = this.body.dom.scrollTop;
         }
         var a = this.items.items[0];
         if (a) {
@@ -2287,7 +2361,7 @@ xds.Canvas = Ext.extend(Ext.Panel, {
                 var d = this.add(newCanvasConfig);
                 Ext.lib.Event.suspend();
                 this.doLayout();
-                this.body.dom.scrollTop=scrollTop;
+                this.body.dom.scrollTop = scrollTop;
                 Ext.lib.Event.resume();
                 this.syncAll.defer(10, this);
             }
@@ -2440,8 +2514,8 @@ xds.Canvas.DragTracker = Ext.extend(Ext.dd.DragTracker, {
         xds.Canvas.DragTracker.superclass.onMouseUp.call(this, a);
     },
     isAbsolute: function (a) {
-        if(a.component.getConfigValue("locked")) return false;
-        if(a.component.owner){
+        if (a.component.getConfigValue("locked")) return false;
+        if (a.component.owner) {
             var ltype = a.component.owner.getConfigValue("layout");
             return (ltype == "absolute");
         }
@@ -2459,9 +2533,6 @@ xds.Canvas.DragTracker = Ext.extend(Ext.dd.DragTracker, {
                     this.initSnapValue();
                     this.startX = pos[0];
                     this.startY = pos[1];
-//                    this.dx = pos[0] - b.xy[0];
-//                    this.dy = pos[1] - b.xy[1];
-
                     this.waiting = true;
                     return true;
                 }
@@ -2476,20 +2547,20 @@ xds.Canvas.DragTracker = Ext.extend(Ext.dd.DragTracker, {
         }
         return false;
     },
-    initSnapValue:function(){
+    initSnapValue: function () {
         var o = this.node.component.owner;
-        return this.snapValue = o ? o.snapToGrid : false ;
+        return this.snapValue = o ? o.snapToGrid : false;
     },
-    onStart: function (a) {
+    onStart: function (e) {
         this.waiting = false;
         this.node.select();
-        var f =this.cmp.getExtComponent().film;
-        if(f){
+        var f = this.cmp.getExtComponent().film;
+        if (f) {
             f.addClass("el-film-drag");
         }
     },
     onDrag: function (e) {
-        if(e.xy[0] == 0 && e.xy[1]==0){
+        if (e.xy[0] == 0 && e.xy[1] == 0) {
             return;
         }
         this["onDrag" + this.dragMode](e, this.getOffset(), this.cmp.getExtComponent());
@@ -2512,12 +2583,12 @@ xds.Canvas.DragTracker = Ext.extend(Ext.dd.DragTracker, {
     onDragCorner: function (e, c, a) {
         var w = Math.max(this.cmp.minWidth, this.snap(this.startSize.width - c[0]));
         var h = Math.max(this.cmp.minHeight, this.snap(this.startSize.height - c[1]));
-        a.setSize(w,h);
+        a.setSize(w, h);
         a.syncFilm();
     },
     onEnd: function (b) {
         var a = this.cmp.getExtComponent();
-        if(a.film){
+        if (a.film) {
             a.film.removeClass("el-film-drag");
         }
         this["onEnd" + this.dragMode](b, this.getOffset(), a);
@@ -2592,21 +2663,24 @@ xds.ConfigEditor = Ext.extend(Ext.Panel, {
             title: "组件属性",
             layout: "fit",
             items: this.grid,
-            tools: [{
-                id: "expand-all",
-                handler: function () {
-                    this.grid.view.expandAllGroups();
+            tools: [
+                {
+                    id: "expand-all",
+                    handler: function () {
+                        this.grid.view.expandAllGroups();
+                    },
+                    qtip: "Expand All",
+                    scope: this
                 },
-                qtip: "Expand All",
-                scope: this
-            },{
-                id: "collapse-all",
-                handler: function () {
-                    this.grid.view.collapseAllGroups();
-                },
-                qtip: "Collapse All",
-                scope: this
-            }]
+                {
+                    id: "collapse-all",
+                    handler: function () {
+                        this.grid.view.collapseAllGroups();
+                    },
+                    qtip: "Collapse All",
+                    scope: this
+                }
+            ]
         }, a));
     },
     findRecord: function (b) {
@@ -2663,22 +2737,25 @@ xds.ConfigEditor = Ext.extend(Ext.Panel, {
     onRowContext: function (a, c, b) {
         if (!this.contextMenu) {
             this.contextMenu = new Ext.menu.Menu({
-                items: [{
-                    text: "Delete",
-                    iconCls: "icon-delete",
-                    handler: function () {
-                        xds.active.component.getConfigObject(this.contextProperty).setValue(xds.active.component, undefined);
-                        this.refresh();
-                        xds.fireEvent("componentchanged");
+                items: [
+                    {
+                        text: "Delete",
+                        iconCls: "icon-delete",
+                        handler: function () {
+                            xds.active.component.getConfigObject(this.contextProperty).setValue(xds.active.component, undefined);
+                            this.refresh();
+                            xds.fireEvent("componentchanged");
+                        },
+                        scope: this
                     },
-                    scope: this
-                },
-                    "-", {
+                    "-",
+                    {
                         text: "Refresh values",
                         iconCls: "icon-refresh",
                         handler: this.refresh,
                         scope: this
-                    }]
+                    }
+                ]
             });
         }
         this.contextProperty = this.grid.store.getAt(c).data.name;
@@ -2705,63 +2782,68 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
     constructor: function (cfg) {
         Ext.apply(this, cfg);
         xds.Inspector.superclass.constructor.call(this, {
-            tools: [{
-                id:'ref-com',
-                qtip:'ref component',
-                handler:function(){
-                    var winSc = new od.SCWin({
-                        title:'选择组件',
-                        width:500,
-                        height:600
-                    });
-                    Ext.select('.el-film').hide();
-                    winSc.show();
-                    winSc.on('selected',function(n){
-                        this.addRefComponent(n.mid, n.comId);
-                    },this);
-                    winSc.on('close',function(){
-                        Ext.select('.el-film').show();
-                    });
-                },
-                scope:this
-            },{
-                id: "refresh",
-                qtip: "Repaint Canvas",
-                handler: function () {
-                    xds.fireEvent("componentchanged");
-                }
-            }],
-            keys: [{
-                key: Ext.EventObject.DELETE,
-                fn: function () {
-                    if (xds.active) {
-                        Ext.select('.el-film').hide();
-                        Ext.Msg.confirm("删除组件", "确认要删除选择的组件吗?", function (a) {
-                            if (a == "yes") {
-                                xds.inspector.removeComponent(xds.active.component);
-                                xds.fireEvent("componentchanged");
-                            }else{
-                                Ext.select('.el-film').show();
-                            }
+            tools: [
+                {
+                    id: 'ref-com',
+                    qtip: 'ref component',
+                    handler: function () {
+                        var winSc = new od.SCWin({
+                            title: '选择组件',
+                            width: 500,
+                            height: 600
                         });
+                        Ext.select('.el-film').hide();
+                        winSc.show();
+                        winSc.on('selected', function (n) {
+                            this.addRefComponent(n.mid, n.comId);
+                        }, this);
+                        winSc.on('close', function () {
+                            Ext.select('.el-film').show();
+                        });
+                    },
+                    scope: this
+                },
+                {
+                    id: "refresh",
+                    qtip: "Repaint Canvas",
+                    handler: function () {
+                        xds.fireEvent("componentchanged");
                     }
                 }
-            }]
+            ],
+            keys: [
+                {
+                    key: Ext.EventObject.DELETE,
+                    fn: function () {
+                        if (xds.active) {
+                            Ext.select('.el-film').hide();
+                            Ext.Msg.confirm("删除组件", "确认要删除选择的组件吗?", function (a) {
+                                if (a == "yes") {
+                                    xds.inspector.removeComponent(xds.active.component);
+                                    xds.fireEvent("componentchanged");
+                                } else {
+                                    Ext.select('.el-film').show();
+                                }
+                            });
+                        }
+                    }
+                }
+            ]
         });
     },
-    addRefComponent:function(mid,comId){
+    addRefComponent: function (mid, comId) {
         Ext.Ajax.request({
-            url:'xdscfg/'+mid+'/'+comId,
-            method:'GET',
-            success:function(resp){
+            url: 'xdscfg/' + mid + '/' + comId,
+            method: 'GET',
+            success: function (resp) {
                 var result = Ext.decode(resp.responseText);
-                if(result){
+                if (result) {
                     var cfg = result.xdsConfig;
-                    if(cfg){
+                    if (cfg) {
                         cfg.isRef = true;
                         cfg.refMid = mid;
                         var node = this.restore(cfg);
-                        if(node){
+                        if (node) {
                             node.select();
                             node.expand();
                             xds.project.setDirty(true);
@@ -2769,7 +2851,7 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
                     }
                 }
             },
-            scope:this
+            scope: this
         });
     },
     gotoSpec: function (a) {
@@ -2819,13 +2901,13 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
         this.on("beforenodedrop", this.onBeforeDrop, this);
         this.on("nodedrop", this.onAfterDrop, this);
         this.on("contextmenu", this.onNodeContext, this);
-        this.on("dblclick",this.onNodeDblClick,this);
+        this.on("dblclick", this.onNodeDblClick, this);
         xds.on("componentevent", this.onComponentEvent, this);
         xds.on("componentclick", this.onComponentClick, this);
         this.getSelectionModel().on("selectionchange", this.onInspectorSelectionChange, this);
         xds.Inspector.superclass.initComponent.call(this);
     },
-    onNodeDblClick:function(node,evt){
+    onNodeDblClick: function (node, evt) {
         var cmp = node.component;
         cmp.onNodeDblClick();
     },
@@ -2944,7 +3026,7 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
 
             xds.fireEvent("componentevent", {
                 type: 'delete',
-                component:b
+                component: b
             });
         }
     },
@@ -2957,29 +3039,32 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
             b.on("itemclick", this.onTransformClick, this);
             var a = this.contextMenu = new Ext.menu.Menu({
                 zIndex: 80000,
-                items: [{
-                    text: "创建副本",
-                    iconCls:'icon-duplication',
-                    itemId:'duplication',
-                    handler: function () {
-                        var f = a.node;
-                        var e = f.component.getInternals(true);
-                        var c = this.getDropPosition(f, "below");
-                        var d = this.restore(e, c.parent, c.before);
-                        d.select();
-                        xds.fireEvent("componentchanged");
+                items: [
+                    {
+                        text: "创建副本",
+                        iconCls: 'icon-duplication',
+                        itemId: 'duplication',
+                        handler: function () {
+                            var f = a.node;
+                            var e = f.component.getInternals(true);
+                            var c = this.getDropPosition(f, "below");
+                            var d = this.restore(e, c.parent, c.before);
+                            d.select();
+                            xds.fireEvent("componentchanged");
+                        },
+                        scope: this
                     },
-                    scope: this
-                },{
-                    text: "转换为",
-                    iconCls:'icon-transform',
-                    itemId:'transform',
-                    menu: this.transformMenu
-                },
-                    "-", {
+                    {
+                        text: "转换为",
+                        iconCls: 'icon-transform',
+                        itemId: 'transform',
+                        menu: this.transformMenu
+                    },
+                    "-",
+                    {
                         text: "上移",
                         itemId: "move-up",
-                        iconCls:'icon-move-up',
+                        iconCls: 'icon-move-up',
                         handler: function () {
                             a.node.parentNode.insertBefore(a.node, a.node.previousSibling);
                             a.node.select();
@@ -2989,14 +3074,15 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
                     {
                         text: "下移",
                         itemId: "move-down",
-                        iconCls:'icon-move-down',
+                        iconCls: 'icon-move-down',
                         handler: function () {
                             a.node.parentNode.insertBefore(a.node, a.node.nextSibling.nextSibling);
                             a.node.select();
                             xds.fireEvent("componentchanged");
                         }
                     },
-                    "-", {
+                    "-",
+                    {
                         text: "删除",
                         itemId: "del",
                         iconCls: "icon-delete",
@@ -3004,13 +3090,14 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
                             xds.inspector.removeComponent(a.node);
                             xds.fireEvent("componentchanged");
                         }
-                    }],
+                    }
+                ],
                 onContextShow: function () {
-                    var isSubref = function(n){
+                    var isSubref = function (n) {
                         var pn = n.parentNode;
-                        if(pn){
+                        if (pn) {
                             var pc = pn.component;
-                            if(pc && pc.isRef){
+                            if (pc && pc.isRef) {
                                 return true;
                             }
 
@@ -3069,15 +3156,16 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
             return naming;
         }
         var i = 0;
-        while (this.getNodeById(naming + (++i))) {}
+        while (this.getNodeById(naming + (++i))) {
+        }
         return naming + i;
     },
     onDragOver: function (a) {
         var ct = this.getDropPosition(a.target, a.point).parent.component;
         var c = a.dropNode.component || a.dropNode.instance;
-        if(ct){
+        if (ct) {
             return ct.isValidParent(c) && c.isValidChild(ct);
-        }else{
+        } else {
             return c.isValidChild(ct);
         }
     },
@@ -3129,7 +3217,7 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
         var parent = evt.parentId ? this.getNodeById(evt.parentId) : this.root;
         if (evt.type == "new") {
             var n = this.restore(evt.spec || evt.component, parent);
-            if(n){
+            if (n) {
                 n.ownerTree.expandPath(n.getPath());
                 n.select();
             }
@@ -3171,7 +3259,7 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
         parent = parent || this.root;
         var comp = xds.create(cfg);
 
-        if(!comp){
+        if (!comp) {
             return null;
         }
 
@@ -3182,12 +3270,12 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
         var node = comp.getNode();
 
         parent.insertBefore(node, f);
-        Ext.each(cfg.cn,function(c){
-            if(cfg.isRef){
+        Ext.each(cfg.cn, function (c) {
+            if (cfg.isRef) {
                 c.isRef = true;
             }
             this.restore(c, node);
-        },this);
+        }, this);
 
         return node;
     }
@@ -3199,28 +3287,9 @@ xds.Inspector.DemoLoader = Ext.extend(Ext.tree.TreeLoader, {
 });
 xds.Toolbox = Ext.extend(Ext.tree.TreePanel, {
     constructor: function (cfg) {
-        Ext.apply(this,cfg);
+        Ext.apply(this, cfg);
 
-        xds.Toolbox.superclass.constructor.call(this, {
-            width: 200,
-            region: "west",
-            split: true,
-            id: "toolbox",
-            border: false,
-            margins: "0 0 0 0",
-            cmargins: "0 1 0 0",
-            layout: "fit",
-            collapsible: true,
-            rootVisible: false,
-            animate: false,
-            autoScroll: true,
-            useArrows: true,
-            minWidth: 150,
-            enableDrag: true,
-            collapseFirst: false,
-            animCollapse: false,
-            animFloat: false
-        });
+        xds.Toolbox.superclass.constructor.call(this, cfg);
         xds.toolbox = this;
     },
     initComponent: function () {
@@ -3340,183 +3409,222 @@ xds.Layouts = {
         id: "form",
         xcls: "Ext.layout.FormLayout",
         text: "Form Layout",
-        configs: [{
-            name: "anchor",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "clearCls",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "fieldLabel",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "hideLabel",
-            group: "LayoutConfig",
-            ctype: "boolean"
-        },{
-            name: "itemCls",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "labelSeparator",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "labelStyle",
-            group: "LayoutConfig",
-            ctype: "string"
-        }],
-        layoutConfigs: [{
-            name: "labelAlign",
-            group: "LayoutConfig",
-            ctype: "string",
-            editor: "options",
-            options: ["left", "right", "top"]
-        },{
-            name: "labelSeparator",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "string"
-        },{
-            name: "labelPad",
-            group: "LayoutConfig",
-            ctype: "number"
-        },{
-            name: "labelWidth",
-            group: "LayoutConfig",
-            ctype: "number"
-        }]
+        configs: [
+            {
+                name: "anchor",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "clearCls",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "fieldLabel",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "hideLabel",
+                group: "LayoutConfig",
+                ctype: "boolean"
+            },
+            {
+                name: "itemCls",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "labelSeparator",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "labelStyle",
+                group: "LayoutConfig",
+                ctype: "string"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "labelAlign",
+                group: "LayoutConfig",
+                ctype: "string",
+                editor: "options",
+                options: ["left", "right", "top"]
+            },
+            {
+                name: "labelSeparator",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "string"
+            },
+            {
+                name: "labelPad",
+                group: "LayoutConfig",
+                ctype: "number"
+            },
+            {
+                name: "labelWidth",
+                group: "LayoutConfig",
+                ctype: "number"
+            }
+        ]
     },
     tableform: {
         id: "tableform",
         xcls: "Ext.ux.layout.TableFormLayout",
         text: "Table Form Layout",
-        configs: [{
-            name: "anchor",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "clearCls",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "fieldLabel",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "hideLabel",
-            group: "LayoutConfig",
-            ctype: "boolean"
-        },{
-            name: "itemCls",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "labelSeparator",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "labelStyle",
-            group: "LayoutConfig",
-            ctype: "string"
-        },{
-            name: "colspan",
-            group: "LayoutConfig",
-            ctype: "number"
-        },{
-            name: "rowspan",
-            group: "LayoutConfig",
-            ctype: "number"
-        }],
-        layoutConfigs: [{
-            name: "labelAlign",
-            group: "LayoutConfig",
-            ctype: "string",
-            editor: "options",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            options: ["left", "right", "top"]
-        },{
-            name: "labelPad",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "number"
-        },{
-            name: "labelWidth",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "number"
-        },{
-            name: "columns",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "number"
-        }]
+        configs: [
+            {
+                name: "anchor",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "clearCls",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "fieldLabel",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "hideLabel",
+                group: "LayoutConfig",
+                ctype: "boolean"
+            },
+            {
+                name: "itemCls",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "labelSeparator",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "labelStyle",
+                group: "LayoutConfig",
+                ctype: "string"
+            },
+            {
+                name: "colspan",
+                group: "LayoutConfig",
+                ctype: "number"
+            },
+            {
+                name: "rowspan",
+                group: "LayoutConfig",
+                ctype: "number"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "labelAlign",
+                group: "LayoutConfig",
+                ctype: "string",
+                editor: "options",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                options: ["left", "right", "top"]
+            },
+            {
+                name: "labelPad",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "number"
+            },
+            {
+                name: "labelWidth",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "number"
+            },
+            {
+                name: "columns",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "number"
+            }
+        ]
     },
     table: {
         id: "table",
         xcls: "Ext.layout.TableLayout",
         text: "Table Layout",
-        configs: [{
-            name: "cellId",
-            group: "Ext.layout.TableLayout",
-            ctype: "string"
-        },{
-            name: "cellCls",
-            group: "Ext.layout.TableLayout",
-            ctype: "string"
-        },{
-            name: "colspan",
-            group: "Ext.layout.TableLayout",
-            ctype: "number"
-        },{
-            name: "rowspan",
-            group: "Ext.layout.TableLayout",
-            ctype: "number"
-        }],
-        layoutConfigs: [{
-            name: "columns",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "number"
-        }]
+        configs: [
+            {
+                name: "cellId",
+                group: "Ext.layout.TableLayout",
+                ctype: "string"
+            },
+            {
+                name: "cellCls",
+                group: "Ext.layout.TableLayout",
+                ctype: "string"
+            },
+            {
+                name: "colspan",
+                group: "Ext.layout.TableLayout",
+                ctype: "number"
+            },
+            {
+                name: "rowspan",
+                group: "Ext.layout.TableLayout",
+                ctype: "number"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "columns",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "number"
+            }
+        ]
     },
     card: {
         id: "card",
         xcls: "Ext.layout.CardLayout",
         text: "Card Layout",
         configs: [],
-        layoutConfigs: [{
-            name: "deferredRender",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: false
-        },{
-            name: "layoutOnCardChange",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: false
-        },{
-            name: "activeItem",
-            group: "LayoutConfig",
-            ctype: "number",
-            updateFn: function (extCmp, value) {
-                extCmp.getLayout().setActiveItem(value);
+        layoutConfigs: [
+            {
+                name: "deferredRender",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: false
             },
-            defaultValue: 0
-        }],
+            {
+                name: "layoutOnCardChange",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: false
+            },
+            {
+                name: "activeItem",
+                group: "LayoutConfig",
+                ctype: "number",
+                updateFn: function (extCmp, value) {
+                    extCmp.getLayout().setActiveItem(value);
+                },
+                defaultValue: 0
+            }
+        ],
         onInit: function (node) {
             node.component.setConfig("activeItem", 0);
         }
@@ -3526,114 +3634,140 @@ xds.Layouts = {
         xcls: "Ext.layout.AccordionLayout",
         text: "Accordion Layout",
         configs: [],
-        layoutConfigs: [{
-            name: "fill",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: true
-        },{
-            name: "autoWidth",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: true
-        },{
-            name: "titleCollapse",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: true
-        },{
-            name: "hideCollapseTool",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: false
-        },{
-            name: "collapseFirst",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: false
-        },{
-            name: "animate",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: false
-        },{
-            name: "sequence",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: false
-        },{
-            name: "activeOnTop",
-            group: "LayoutConfig",
-            ctype: "boolean",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            defaultValue: false
-        }]
+        layoutConfigs: [
+            {
+                name: "fill",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: true
+            },
+            {
+                name: "autoWidth",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: true
+            },
+            {
+                name: "titleCollapse",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: true
+            },
+            {
+                name: "hideCollapseTool",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: false
+            },
+            {
+                name: "collapseFirst",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: false
+            },
+            {
+                name: "animate",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: false
+            },
+            {
+                name: "sequence",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: false
+            },
+            {
+                name: "activeOnTop",
+                group: "LayoutConfig",
+                ctype: "boolean",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                defaultValue: false
+            }
+        ]
     },
     border: {
         id: "border",
         xcls: "Ext.layout.BorderLayout",
         text: "Border Layout",
-        configs: [{
-            name: "animFloat",
-            group: "Ext.layout.BorderLayout",
-            ctype: "boolean"
-        },{
-            name: "autoHide",
-            group: "Ext.layout.BorderLayout",
-            ctype: "boolean"
-        },{
-            name: "cmargins",
-            group: "Ext.layout.BorderLayout",
-            ctype: "string"
-        },{
-            name: "collapseMode",
-            group: "Ext.layout.BorderLayout",
-            ctype: "string",
-            editor: "options",
-            options: ["standard", "mini"]
-        },{
-            name: "floatable",
-            group: "Ext.layout.BorderLayout",
-            ctype: "boolean"
-        },{
-            name: "margins",
-            group: "Ext.layout.BorderLayout",
-            ctype: "string"
-        },{
-            name: "minHeight",
-            group: "Ext.layout.BorderLayout",
-            ctype: "number"
-        },{
-            name: "minWidth",
-            group: "Ext.layout.BorderLayout",
-            ctype: "number"
-        },{
-            name: "region",
-            group: "Ext.layout.BorderLayout",
-            ctype: "string",
-            editor: "options",
-            options: [["center","中"], ["east","右"], ["north","上"], ["south","下"], ["west","左"]],
-            setFn: "setRegion"
-        },{
-            name: "split",
-            group: "Ext.layout.BorderLayout",
-            ctype: "boolean"
-        }],
+        configs: [
+            {
+                name: "animFloat",
+                group: "Ext.layout.BorderLayout",
+                ctype: "boolean"
+            },
+            {
+                name: "autoHide",
+                group: "Ext.layout.BorderLayout",
+                ctype: "boolean"
+            },
+            {
+                name: "cmargins",
+                group: "Ext.layout.BorderLayout",
+                ctype: "string"
+            },
+            {
+                name: "collapseMode",
+                group: "Ext.layout.BorderLayout",
+                ctype: "string",
+                editor: "options",
+                options: ["standard", "mini"]
+            },
+            {
+                name: "floatable",
+                group: "Ext.layout.BorderLayout",
+                ctype: "boolean"
+            },
+            {
+                name: "margins",
+                group: "Ext.layout.BorderLayout",
+                ctype: "string"
+            },
+            {
+                name: "minHeight",
+                group: "Ext.layout.BorderLayout",
+                ctype: "number"
+            },
+            {
+                name: "minWidth",
+                group: "Ext.layout.BorderLayout",
+                ctype: "number"
+            },
+            {
+                name: "region",
+                group: "Ext.layout.BorderLayout",
+                ctype: "string",
+                editor: "options",
+                options: [
+                    ["center", "中"],
+                    ["east", "右"],
+                    ["north", "上"],
+                    ["south", "下"],
+                    ["west", "左"]
+                ],
+                setFn: "setRegion"
+            },
+            {
+                name: "split",
+                group: "Ext.layout.BorderLayout",
+                ctype: "boolean"
+            }
+        ],
         onBeforeAdd: function (d, c) {
             if (!c.component.getConfigValue("region") && !c.component.dock) {
                 var g;
@@ -3643,13 +3777,13 @@ xds.Layouts = {
                     var b = e.component.getConfigValue("region");
                     if (b) {
                         var a = f.indexOf(b);
-                        if (a != - 1) {
+                        if (a != -1) {
                             f.splice(a, 1);
                         }
                     }
                     e = e.nextSibling;
                 }
-                c.component.setRegion("region",f[0]);
+                c.component.setRegion("region", f[0]);
             }
         },
         onInit: function (a) {
@@ -3664,40 +3798,48 @@ xds.Layouts = {
         id: "anchor",
         xcls: "Ext.layout.AnchorLayout",
         text: "Anchor Layout",
-        configs: [{
-            name: "anchor",
-            group: "Ext.layout.AnchorLayout",
-            ctype: "string"
-        }]
+        configs: [
+            {
+                name: "anchor",
+                group: "Ext.layout.AnchorLayout",
+                ctype: "string"
+            }
+        ]
     },
     absolute: {
         id: "absolute",
         xcls: "Ext.layout.AbsoluteLayout",
         text: "Absolute Layout",
-        configs: [{
-            name: "anchor",
-            text: "参照",
-            group: "Ext.layout.AbsoluteLayout",
-            ctype: "string"
-        },{
-            name: "x",
-            group: "Ext.layout.AbsoluteLayout",
-            ctype: "number"
-        },{
-            name: "y",
-            group: "Ext.layout.AbsoluteLayout",
-            ctype: "number"
-        }],
-        layoutConfigs: [{
-            name: "snapToGrid",
-            group: "Ext.layout.AbsoluteLayout",
-            setFn: "setSnapToGrid",
-            getFn: "getSnapToGrid",
-            ctype: "string",
-            editor: "options",
-            options: ["(none)", "5", "10", "15", "20"],
-            defaultValue: "(none)"
-        }],
+        configs: [
+            {
+                name: "anchor",
+                text: "参照",
+                group: "Ext.layout.AbsoluteLayout",
+                ctype: "string"
+            },
+            {
+                name: "x",
+                group: "Ext.layout.AbsoluteLayout",
+                ctype: "number"
+            },
+            {
+                name: "y",
+                group: "Ext.layout.AbsoluteLayout",
+                ctype: "number"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "snapToGrid",
+                group: "Ext.layout.AbsoluteLayout",
+                setFn: "setSnapToGrid",
+                getFn: "getSnapToGrid",
+                ctype: "string",
+                editor: "options",
+                options: ["(none)", "5", "10", "15", "20"],
+                defaultValue: "(none)"
+            }
+        ],
         onBeforeAdd: function (b, a) {
             if (xds.canvas.lastDropPoint) {
                 var d = b.component.getExtComponent();
@@ -3715,25 +3857,30 @@ xds.Layouts = {
         id: "flow",
         xcls: "od.flow.FlowLayout",
         text: "Flow layout",
-        configs: [{
-            name: "x",
-            group: "Layout",
-            ctype: "number"
-        },{
-            name: "y",
-            group: "Layout",
-            ctype: "number"
-        }],
-        layoutConfigs: [{
-            name: "snapToGrid",
-            group: "Layout",
-            setFn: "setSnapToGrid",
-            getFn: "getSnapToGrid",
-            ctype: "string",
-            editor: "options",
-            options: ["(none)", "5", "10", "15", "20"],
-            defaultValue: "(none)"
-        }],
+        configs: [
+            {
+                name: "x",
+                group: "Layout",
+                ctype: "number"
+            },
+            {
+                name: "y",
+                group: "Layout",
+                ctype: "number"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "snapToGrid",
+                group: "Layout",
+                setFn: "setSnapToGrid",
+                getFn: "getSnapToGrid",
+                ctype: "string",
+                editor: "options",
+                options: ["(none)", "5", "10", "15", "20"],
+                defaultValue: "(none)"
+            }
+        ],
         onBeforeAdd: function (b, a) {
             if (xds.canvas.lastDropPoint) {
                 var d = b.component.getExtComponent();
@@ -3751,16 +3898,20 @@ xds.Layouts = {
         id: "column",
         xcls: "Ext.layout.ColumnLayout",
         text: "Column Layout",
-        configs: [{
-            name: "columnWidth",
-            group: "Ext.layout.ColumnLayout",
-            ctype: "number"
-        }],
-        layoutConfigs: [{
-            name: "scrollOffset",
-            group: "LayoutConfig",
-            ctype: "number"
-        }]
+        configs: [
+            {
+                name: "columnWidth",
+                group: "Ext.layout.ColumnLayout",
+                ctype: "number"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "scrollOffset",
+                group: "LayoutConfig",
+                ctype: "number"
+            }
+        ]
     },
     fit: {
         id: "fit",
@@ -3772,118 +3923,134 @@ xds.Layouts = {
         id: "hbox",
         xcls: "Ext.layout.HBoxLayout",
         text: "HBox Layout",
-        configs: [{
-            name: "flex",
-            group: "Ext.layout.HBoxLayout",
-            ctype: "number"
-        },{
-            name: "margins",
-            group: "Ext.layout.HBoxLayout",
-            ctype: "string"
-        }],
-        layoutConfigs: [{
-            name: "align",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "string",
-            editor: "options",
-            options: ["top", "middle", "stretch", "stretchmax"]
-        },{
-            name: "pack",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "string",
-            editor: "options",
-            options: ["start", "center", "end"]
-        },{
-            name: "padding",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "string"
-        },{
-            name: "scrollOffset",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "number"
-        }],
-        onInit:function(a){
+        configs: [
+            {
+                name: "flex",
+                group: "Ext.layout.HBoxLayout",
+                ctype: "number"
+            },
+            {
+                name: "margins",
+                group: "Ext.layout.HBoxLayout",
+                ctype: "string"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "align",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "string",
+                editor: "options",
+                options: ["top", "middle", "stretch", "stretchmax"]
+            },
+            {
+                name: "pack",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "string",
+                editor: "options",
+                options: ["start", "center", "end"]
+            },
+            {
+                name: "padding",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "string"
+            },
+            {
+                name: "scrollOffset",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "number"
+            }
+        ],
+        onInit: function (a) {
             a.component.setContainerConfig("align", 'stretch');
             var b = a.firstChild;
             while (b) {
-                b.component.setConfig("flex",1);
+                b.component.setConfig("flex", 1);
                 b = b.nextSibling;
             }
             xds.props.refresh();
         },
-        onBeforeAdd:function(b, a){
-            a.component.setConfig("flex",1);
+        onBeforeAdd: function (b, a) {
+            a.component.setConfig("flex", 1);
         }
     },
     vbox: {
         id: "vbox",
         xcls: "Ext.layout.VBoxLayout",
         text: "VBox Layout",
-        configs: [{
-            name: "flex",
-            group: "Ext.layout.VBoxLayout",
-            ctype: "number"
-        },{
-            name: "margins",
-            group: "Ext.layout.VBoxLayout",
-            ctype: "string"
-        }],
-        layoutConfigs: [{
-            name: "align",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "string",
-            editor: "options",
-            options: ["left", "center", "stretch", "stretchmax"],
-            defaultValue: "top"
-        },{
-            name: "pack",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "string",
-            editor: "options",
-            options: ["start", "center", "end"],
-            defaultValue: "start"
-        },{
-            name: "padding",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "string",
-            defaultValue: "0"
-        },{
-            name: "scrollOffset",
-            group: "LayoutConfig",
-            setFn: "setContainerConfig",
-            getFn: "getContainerConfigValue",
-            ctype: "number",
-            defaultValue: 0
-        }],
-        onInit:function(a){
+        configs: [
+            {
+                name: "flex",
+                group: "Ext.layout.VBoxLayout",
+                ctype: "number"
+            },
+            {
+                name: "margins",
+                group: "Ext.layout.VBoxLayout",
+                ctype: "string"
+            }
+        ],
+        layoutConfigs: [
+            {
+                name: "align",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "string",
+                editor: "options",
+                options: ["left", "center", "stretch", "stretchmax"],
+                defaultValue: "top"
+            },
+            {
+                name: "pack",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "string",
+                editor: "options",
+                options: ["start", "center", "end"],
+                defaultValue: "start"
+            },
+            {
+                name: "padding",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "string",
+                defaultValue: "0"
+            },
+            {
+                name: "scrollOffset",
+                group: "LayoutConfig",
+                setFn: "setContainerConfig",
+                getFn: "getContainerConfigValue",
+                ctype: "number",
+                defaultValue: 0
+            }
+        ],
+        onInit: function (a) {
             a.component.setContainerConfig("align", 'stretch');
             var b = a.firstChild;
             while (b) {
-                b.component.setConfig("flex",1);
+                b.component.setConfig("flex", 1);
                 b = b.nextSibling;
             }
             xds.props.refresh();
         },
-        onBeforeAdd:function(b, a){
-            a.component.setConfig("flex",1);
+        onBeforeAdd: function (b, a) {
+            a.component.setConfig("flex", 1);
         }
     }
 };
-xds.layouts = ["auto", "absolute", "flow", "accordion", "anchor", "border", "card", "column", "fit", "form","tableform" ,"hbox", "table", "vbox"];
+xds.layouts = ["auto", "absolute", "flow", "accordion", "anchor", "border", "card", "column", "fit", "form", "tableform" , "hbox", "table", "vbox"];
 
 (function () {
     var initConfigs = function (property, layout) {
@@ -3899,7 +4066,7 @@ xds.layouts = ["auto", "absolute", "flow", "accordion", "anchor", "border", "car
     };
 
     for (var layout in xds.Layouts) {
-        if(xds.Layouts.hasOwnProperty(layout)){
+        if (xds.Layouts.hasOwnProperty(layout)) {
             if (!Ext.isEmpty(xds.Layouts[layout])) {
                 initConfigs("configs", xds.Layouts[layout]);
                 initConfigs("layoutConfigs", xds.Layouts[layout]);
@@ -3936,16 +4103,19 @@ xds.CWindow = Ext.extend(Ext.Window, {
             trackOver: true,
             overClass: "x-tile-over"
         })];
-        this.buttons = [{
-            text: "OK",
-            disabled: true,
-            handler: this.onAccept,
-            scope: this
-        },{
-            text: "Cancel",
-            handler: this.close,
-            scope: this
-        }];
+        this.buttons = [
+            {
+                text: "OK",
+                disabled: true,
+                handler: this.onAccept,
+                scope: this
+            },
+            {
+                text: "Cancel",
+                handler: this.close,
+                scope: this
+            }
+        ];
         this.view.on("selectionchange", this.onViewSelect, this);
         xds.CWindow.superclass.initComponent.call(this);
     },
@@ -3988,26 +4158,33 @@ xds.PWindow = Ext.extend(Ext.Window, {
                 field: "category",
                 direction: "ASC"
             },
-            fields: [{
-                name: 'id'
-            },{
-                name: 'text',
-                mapping: 'name'
-            },{
-                name: 'xdsConfig'
-            },{
-                name: 'moduleId'
-            },{
-                name: 'iconCls',
-                convert:function(v,rec){
-                    return Ext.isEmpty(v) ? 'icon-cmp' : v;
+            fields: [
+                {
+                    name: 'id'
+                },
+                {
+                    name: 'text',
+                    mapping: 'name'
+                },
+                {
+                    name: 'xdsConfig'
+                },
+                {
+                    name: 'moduleId'
+                },
+                {
+                    name: 'iconCls',
+                    convert: function (v, rec) {
+                        return Ext.isEmpty(v) ? 'icon-cmp' : v;
+                    }
+                },
+                {
+                    name: 'category',
+                    convert: function (v, rec) {
+                        return Ext.isEmpty(v) ? 'Moudles' : v;
+                    }
                 }
-            },{
-                name: 'category',
-                convert: function (v, rec) {
-                    return Ext.isEmpty(v) ? 'Moudles' : v;
-                }
-            }]
+            ]
         });
         this.items = [
             this.openView = new Ext.ux.TileView({
@@ -4028,175 +4205,191 @@ xds.PWindow = Ext.extend(Ext.Window, {
                 "iconCls": "icon-project"
             })]);
         }, this);
-        this.fbar = [{
-            text: 'Delete',
-            disabled: true,
-            handler: this.onDelete,
-            scope: this
-        },
-            '->', {
-                xtype:'splitbutton',
+        this.fbar = [
+            {
+                text: 'Delete',
+                disabled: true,
+                handler: this.onDelete,
+                scope: this
+            },
+            '->',
+            {
+                xtype: 'splitbutton',
                 text: "Open",
                 disabled: true,
                 handler: this.onAccept,
                 scope: this,
-                menu:new Ext.menu.Menu({
-                    items:[{
-                        text:'Select version ...',
-                        handler:function(btn){
-                            var id = this.selectedId;
-                            var ownerWin = this;
-                            var win = new Ext.Window({
-                                width: 636,
-                                height: 408,
-                                modal:true,
-                                title: "Select Version",
-                                constrain: true,
-                                layout: "fit",
-                                fbar: {
-                                    xtype: "toolbar",
-                                    items: [{
-                                        xtype: "button",
-                                        text: "确认",
-                                        ref: "../btnAccept"
-                                    },{
-                                        xtype: "button",
-                                        text: "取消",
-                                        ref: "../btnCancel",
-                                        listeners: {
-                                            click: function(btn) {
-                                                if (btn.refOwner) {
-                                                    btn.refOwner.close();
+                menu: new Ext.menu.Menu({
+                    items: [
+                        {
+                            text: 'Select version ...',
+                            handler: function (btn) {
+                                var id = this.selectedId;
+                                var ownerWin = this;
+                                var win = new Ext.Window({
+                                    width: 636,
+                                    height: 408,
+                                    modal: true,
+                                    title: "Select Version",
+                                    constrain: true,
+                                    layout: "fit",
+                                    fbar: {
+                                        xtype: "toolbar",
+                                        items: [
+                                            {
+                                                xtype: "button",
+                                                text: "确认",
+                                                ref: "../btnAccept"
+                                            },
+                                            {
+                                                xtype: "button",
+                                                text: "取消",
+                                                ref: "../btnCancel",
+                                                listeners: {
+                                                    click: function (btn) {
+                                                        if (btn.refOwner) {
+                                                            btn.refOwner.close();
+                                                        }
+                                                    }
                                                 }
-                                            }
-                                        }
-                                    }]
-                                },
-                                items: [{
-                                    xtype: "grid",
-                                    store: {
-                                        xtype: "jsonstore",
-                                        storeId: "MyStore",
-                                        url: "entity/moduleHistory",
-                                        root: "root",
-                                        autoLoad: true,
-                                        idProperty: "id",
-                                        sortField: "updateTime",
-                                        sortDir: "DESC",
-                                        restful: true,
-                                        baseParams:{dbId:id},
-                                        fields: [
-                                            {
-                                                name: "id",
-                                                type: "integer",
-                                                text: "ID"
-                                            },
-                                            {
-                                                name: "name",
-                                                type: "string",
-                                                text: "模块名称"
-                                            },
-                                            {
-                                                name: "moduleId",
-                                                type: "string",
-                                                text: "moduleId"
-                                            },
-                                            {
-                                                name: "category",
-                                                type: "string",
-                                                text: "category"
-                                            },
-                                            {
-                                                name: "autoSave",
-                                                type: "boolean",
-                                                text: "自动保存"
-                                            },
-                                            {
-                                                name: "updateTime",
-                                                type: "date",
-                                                text: "更新时间",
-                                                dateFormat: "time"
                                             }
                                         ]
                                     },
-                                    border: false,
-                                    forceFit: true,
-                                    columns: [{
-                                        header: "模块名称",
-                                        sortable: false,
-                                        resizable: true,
-                                        width: 200,
-                                        menuDisabled: true,
-                                        dataIndex: "name",
-                                        id: "name"
-                                    },{
-                                        header: "模块编码",
-                                        sortable: false,
-                                        resizable: true,
-                                        width: 160,
-                                        menuDisabled: true,
-                                        dataIndex: "moduleId",
-                                        id: "moduleId"
-                                    },{
-                                        xtype: "booleancolumn",
-                                        header: "自动保存",
-                                        sortable: false,
-                                        resizable: true,
-                                        width: 60,
-                                        menuDisabled: true,
-                                        dataIndex: "autoSave",
-                                        id: "autoSave"
-                                    },{
-                                        xtype: "datecolumn",
-                                        header: "更新时间",
-                                        sortable: true,
-                                        resizable: true,
-                                        width: 120,
-                                        format: "Y-m-d H:i:s",
-                                        menuDisabled: true,
-                                        dataIndex: "updateTime",
-                                        id: "updateTime"
-                                    }],
-                                    listeners:{
-                                        scope:this,
-                                        rowdblclick:function(grid,rowIdx){
-                                            var hisId = grid.getStore().getAt(rowIdx).id;
-                                            if(hisId){
-                                                Ext.Ajax.request({
-                                                    url: 'entity/moduleHistory/' + hisId,
-                                                    method: 'GET',
-                                                    success: function (resp) {
-                                                        var ret = Ext.decode(resp.responseText);
-                                                        if (!Ext.isEmpty(ret)) {
-                                                            var data = ret;
-                                                            //data.dbId = ret.dbId;
-                                                            if (xds.project) {
-                                                                xds.project.close(function () {
-                                                                    new xds.Project().open(data);
-                                                                });
-                                                            }
-                                                            win.close();
-                                                            ownerWin.close();
-                                                            xds.actions.saveAsAction.enable();
-                                                        }
+                                    items: [
+                                        {
+                                            xtype: "grid",
+                                            store: {
+                                                xtype: "jsonstore",
+                                                storeId: "MyStore",
+                                                url: "entity/moduleHistory",
+                                                root: "root",
+                                                autoLoad: true,
+                                                idProperty: "id",
+                                                sortField: "updateTime",
+                                                sortDir: "DESC",
+                                                restful: true,
+                                                baseParams: {dbId: id},
+                                                fields: [
+                                                    {
+                                                        name: "id",
+                                                        type: "integer",
+                                                        text: "ID"
+                                                    },
+                                                    {
+                                                        name: "name",
+                                                        type: "string",
+                                                        text: "模块名称"
+                                                    },
+                                                    {
+                                                        name: "moduleId",
+                                                        type: "string",
+                                                        text: "moduleId"
+                                                    },
+                                                    {
+                                                        name: "category",
+                                                        type: "string",
+                                                        text: "category"
+                                                    },
+                                                    {
+                                                        name: "autoSave",
+                                                        type: "boolean",
+                                                        text: "自动保存"
+                                                    },
+                                                    {
+                                                        name: "updateTime",
+                                                        type: "date",
+                                                        text: "更新时间",
+                                                        dateFormat: "time"
                                                     }
-                                                });
+                                                ]
+                                            },
+                                            border: false,
+                                            forceFit: true,
+                                            columns: [
+                                                {
+                                                    header: "模块名称",
+                                                    sortable: false,
+                                                    resizable: true,
+                                                    width: 200,
+                                                    menuDisabled: true,
+                                                    dataIndex: "name",
+                                                    id: "name"
+                                                },
+                                                {
+                                                    header: "模块编码",
+                                                    sortable: false,
+                                                    resizable: true,
+                                                    width: 160,
+                                                    menuDisabled: true,
+                                                    dataIndex: "moduleId",
+                                                    id: "moduleId"
+                                                },
+                                                {
+                                                    xtype: "booleancolumn",
+                                                    header: "自动保存",
+                                                    sortable: false,
+                                                    resizable: true,
+                                                    width: 60,
+                                                    menuDisabled: true,
+                                                    dataIndex: "autoSave",
+                                                    id: "autoSave"
+                                                },
+                                                {
+                                                    xtype: "datecolumn",
+                                                    header: "更新时间",
+                                                    sortable: true,
+                                                    resizable: true,
+                                                    width: 120,
+                                                    format: "Y-m-d H:i:s",
+                                                    menuDisabled: true,
+                                                    dataIndex: "updateTime",
+                                                    id: "updateTime"
+                                                }
+                                            ],
+                                            listeners: {
+                                                scope: this,
+                                                rowdblclick: function (grid, rowIdx) {
+                                                    var hisId = grid.getStore().getAt(rowIdx).id;
+                                                    if (hisId) {
+                                                        Ext.Ajax.request({
+                                                            url: 'entity/moduleHistory/' + hisId,
+                                                            method: 'GET',
+                                                            success: function (resp) {
+                                                                var ret = Ext.decode(resp.responseText);
+                                                                if (!Ext.isEmpty(ret)) {
+                                                                    var data = ret;
+                                                                    //data.dbId = ret.dbId;
+                                                                    if (xds.project) {
+                                                                        xds.project.close(function () {
+                                                                            new xds.Project().open(data);
+                                                                        });
+                                                                    }
+                                                                    win.close();
+                                                                    ownerWin.close();
+                                                                    xds.actions.saveAsAction.enable();
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
                                             }
                                         }
-                                    }
-                                }]
-                            });
+                                    ]
+                                });
 
-                            win.show();
-                        },
-                        scope:this
-                    }]
+                                win.show();
+                            },
+                            scope: this
+                        }
+                    ]
                 })
-            },{
+            },
+            {
                 text: "Cancel",
                 handler: this.close,
                 scope: this
-            }];
+            }
+        ];
         this.openView.on("selectionchange", this.onOpenViewSelect, this);
         this.openView.on('dblclick', this.onDblClick, this);
         xds.PWindow.superclass.initComponent.call(this);
@@ -4217,7 +4410,8 @@ xds.PWindow = Ext.extend(Ext.Window, {
             try {
                 //this.xdsJson=Ext.decode(a.data.xdsConfig);
                 this.selectedId = a.data.moduleId;
-            } catch (e) {}
+            } catch (e) {
+            }
         } else {
             this.buttons[0].disable();
             this.buttons[2].disable();
@@ -4256,7 +4450,7 @@ xds.PWindow = Ext.extend(Ext.Window, {
         var mid = a.data.moduleId;
         var view = this.openView;
 
-        Ext.Msg.confirm("Delete Module", "确认要删除模块"+a.data.text+"?", function (a) {
+        Ext.Msg.confirm("Delete Module", "确认要删除模块" + a.data.text + "?", function (a) {
             if (a == "yes") {
                 Ext.Ajax.request({
                     url: '/module/' + mid,
@@ -4429,20 +4623,20 @@ xds.Designer = Ext.extend(Ext.Panel, {
     layout: 'border',
     title: '模块管理',
     initComponent: function () {
-        xds.keyMap = new Ext.KeyMap(Ext.getDoc(),{
-            key:'s',
-            ctrl:true,
-            stopEvent:true,
-            fn:function(){
-                if(xds.project){
+        xds.keyMap = new Ext.KeyMap(Ext.getDoc(), {
+            key: 's',
+            ctrl: true,
+            stopEvent: true,
+            fn: function () {
+                if (xds.project) {
                     xds.project.save();
                 }
             }
         });
 
-        window.onbeforeunload = function(){
-            if(!Ext.isEmpty(xds.project)){
-                if(xds.project.dirty){
+        window.onbeforeunload = function () {
+            if (!Ext.isEmpty(xds.project)) {
+                if (xds.project.dirty) {
                     return 'Something not saved,do u want to save?';
                 }
             }
@@ -4463,9 +4657,9 @@ xds.Designer = Ext.extend(Ext.Panel, {
                 xds.actions.rtConfig
             ]
         });
-        var tbox = new xds.Toolbox({
-            title:'工具箱'
-        });
+//        var tbox = new xds.Toolbox({
+//            title:'工具箱'
+//        });
         xds.inspector = this.createInspector();
         xds.props = new xds.ConfigEditor({
             region: "center",
@@ -4501,7 +4695,7 @@ xds.Designer = Ext.extend(Ext.Panel, {
                     canvas.selectComponent(tgt.topNode);
                 }
 
-                if(tgt.component.isRef){
+                if (tgt.component.isRef) {
                     xds.props.disable();
                 }
             } else {
@@ -4543,7 +4737,7 @@ xds.Designer = Ext.extend(Ext.Panel, {
                     }
                     this.cmpActions = null;
                 }
-                if(!node.component.isRef){
+                if (!node.component.isRef) {
                     var actions = node.component.getActions();
                     if (actions) {
                         for (var n = 0, k = actions.length; n < k; n++) {
@@ -4564,20 +4758,22 @@ xds.Designer = Ext.extend(Ext.Panel, {
                 }
             }
 
-            xds.actions.deleteCmpAction[isEnable](); xds.actions.preview[isEnable]();
+            xds.actions.deleteCmpAction[isEnable]();
+            xds.actions.preview[isEnable]();
             xds.actions.rtConfig[isEnable]();
         };
-        xds.on("componentselect", xds.maintainToolbarState,this);
+        xds.on("componentselect", xds.maintainToolbarState, this);
         xds.on("componentselect", xds.onComponentSelect);
         xds.on("componentchanged", xds.onComponentChanged);
         xds.on("moduleselect", xds.onModuleSelect);
-        this.items = [xds.east,tbox,canvas];
+        var tbox = this.createToolbox();
+        this.items = [xds.east, tbox, canvas];
 
         xds.fireEvent("init");
 
         xds.Designer.superclass.initComponent.call(this);
     },
-    createInspector:function(){
+    createInspector: function () {
         return new xds.Inspector({
             id: "structure",
             region: "north",
@@ -4594,7 +4790,7 @@ xds.Designer = Ext.extend(Ext.Panel, {
             useArrows: true
         });
     },
-    createCanvas:function(){
+    createCanvas: function () {
         return new xds.Canvas({
             id: "xds-canvas",
             region: "center",
@@ -4602,6 +4798,29 @@ xds.Designer = Ext.extend(Ext.Panel, {
             layout: "auto",
             bodyStyle: "padding:5px;position:relative;left:0;top:0;",
             autoScroll: true
+        });
+    },
+    createToolbox: function () {
+        return new xds.Toolbox({
+            title: '工具箱',
+            width: 200,
+            region: "west",
+            split: true,
+            id: "toolbox",
+            border: false,
+            margins: "0 0 0 0",
+            cmargins: "0 1 0 0",
+            layout: "fit",
+            collapsible: true,
+            rootVisible: false,
+            animate: false,
+            autoScroll: true,
+            useArrows: true,
+            minWidth: 150,
+            enableDrag: true,
+            collapseFirst: false,
+            animCollapse: false,
+            animFloat: false
         });
     },
     destroy: function () {
@@ -4626,13 +4845,13 @@ xds.Designer = Ext.extend(Ext.Panel, {
 
         //Ext.TaskMgr.stop(this.autoSaveTask);
 
-        xds.un("componentselect", xds.maintainToolbarState,xds);
-        xds.un("componentselect", xds.onComponentSelect,xds);
-        xds.un("componentchanged", xds.onComponentChanged,xds);
-        xds.un("moduleselect", xds.onModuleSelect,xds);
+        xds.un("componentselect", xds.maintainToolbarState, xds);
+        xds.un("componentselect", xds.onComponentSelect, xds);
+        xds.un("componentchanged", xds.onComponentChanged, xds);
+        xds.un("moduleselect", xds.onModuleSelect, xds);
 
-        xds.un("componentevent", xds.inspector.onComponentEvent,xds.inspector);
-        xds.un("componentclick", xds.inspector.onComponentClick,xds.inspector);
+        xds.un("componentevent", xds.inspector.onComponentEvent, xds.inspector);
+        xds.un("componentclick", xds.inspector.onComponentClick, xds.inspector);
 
         xds.project.close();
         xds.project = null;
@@ -4647,16 +4866,16 @@ xds.Designer = Ext.extend(Ext.Panel, {
 XDSDesignerModule = Ext.extend(od.XdsModule, {
     id: 'xdsdesigner',
     iconCls: 'icon-xds',
-    name:'模块管理',
+    name: '模块管理',
     components: [xds.Designer],
     createDefaultComponent: function () {
         var designer = new xds.Designer();
         designer.on('afterlayout', function () {
             new xds.Project().open();
-        },this,{single:true});
+        }, this, {single: true});
         return designer;
     },
-    init:function(){
+    init: function () {
         xds.Registry.all.clear();
         xds.types.registerAllTypes();
         XDSDesignerModule.superclass.init.call(this);
