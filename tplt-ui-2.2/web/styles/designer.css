@@ -1154,27 +1154,33 @@ body {
     font-weight: bold;
 }
 
-.icon-flow-container{
+.icon-flow-process{
     background-image: url(../images/workflow-xds/flow_container.png) !important;
 }
 
-.icon-flow-start{
+.icon-flow-start-none{
     background-image: url(../images/workflow-xds/icon-start.png) !important;
 }
-
-.icon-flow-end{
-    background-image: url(../images/workflow-xds/icon-end.png) !important;
-}
-
-.icon-flow-msg{
+.icon-flow-start-msg{
     background-image: url(../images/workflow-xds/icon-msg.png) !important;
 }
-.icon-flow-timer{
+.icon-flow-start-timer{
     background-image: url(../images/workflow-xds/icon-timer.png) !important;
 }
-.icon-flow-exception{
+.icon-flow-start-error{
     background-image: url(../images/workflow-xds/icon-ex.png) !important;
 }
+
+.icon-flow-end-none{
+    background-image: url(../images/workflow-xds/icon-end-none.png) !important;
+}
+.icon-flow-end-error{
+    background-image: url(../images/workflow-xds/icon-end-error.png) !important;
+}
+.icon-flow-end-cancel{
+    background-image: url(../images/workflow-xds/icon-end-cancel.png) !important;
+}
+
 .icon-flow-gateway{
     background-image: url(../images/workflow-xds/icon-gateway.png) !important;
 }

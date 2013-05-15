@@ -1,6 +1,4 @@
 Ext.ns("od.flow");
-Ext.ns("xds.types.flow");
-Ext.ns("xds.flow");
 
 od.flow.getConPath = function (bb1, bb2) {
     var st = {x: bb1.x + bb1.width / 2, y: bb1.y - 1};
@@ -24,8 +22,9 @@ od.flow.getConPath = function (bb1, bb2) {
         dy = ec.y - sc.y;
     if (!dx && !dy) {
         r = 0;
+    } else {
+        r = (180 + Math.atan2(-dy, -dx) * 180 / Math.PI + 360) % 360;
     }
-    r = (180 + Math.atan2(-dy, -dx) * 180 / Math.PI + 360) % 360;
 
     var ps, p1, p2, pe;
     if (r <= 45 || r > 315) { //r-l
@@ -81,7 +80,7 @@ od.flow.FlowLayout = Ext.extend(Ext.layout.ContainerLayout, {
 
 Ext.Container.LAYOUTS['flow'] = od.flow.FlowLayout;
 
-od.flow.Container = Ext.extend(Ext.Container, {
+od.flow.Process = Ext.extend(Ext.Container, {
     layout: 'flow',
     onRender: function (ct) {
         var p = this.paper = Raphael(ct.dom);
@@ -92,7 +91,7 @@ od.flow.Container = Ext.extend(Ext.Container, {
             .attr({'stroke-width': .5, 'stroke': '#aaa', 'stroke-dasharray': '--'}).hide();
 
         this.el = Ext.get(this.paper.canvas);
-        od.flow.Container.superclass.onRender.call(this, ct);
+        od.flow.Process.superclass.onRender.call(this, ct);
     },
     getWidth: function () {
         return this.lastSize.width;
@@ -106,99 +105,11 @@ od.flow.Container = Ext.extend(Ext.Container, {
         this.paper.setSize(w, h);
     }
 });
-Ext.reg('flowcontainer', od.flow.Container);
-
-xds.types.flow.Container = Ext.extend(xds.types.BaseType, {
-    cid: 'flowcontainer',
-    iconCls: 'icon-flow-container',
-    category: "业务流程",
-    defaultName: "&lt;Flow&gt;",
-    text: "流程容器",
-    dtype: "xdflowcontainer",
-    xtype: 'flowcontainer',
-    naming: "Process",
-    isContainer: true,
-    bindable: false,
-    hiddenInToolbox: true,
-    initConfig: function () {
-        this.config.layout = 'flow';
-    },
-    getDefaultInternals: function (a) {
-        return {cid: 'flowcontainer',
-            userConfig: {
-                layout: 'flow'
-            }
-        };
-    },
-    isValidParent: function () {
-        return true;
-    },
-    getSnapToGrid: function (a) {
-        return !this.snapToGrid ? "(none)" : this.snapToGrid;
-    },
-    setSnapToGrid: function (b, a) {
-        var o = parseInt(this.snapToGrid, 0);
-        if (o > 0) {
-            xds.canvas.body.removeClass("xds-grid-" + o);
-        }
-
-        this.snapToGrid = a == "(none)" ? 0 : parseInt(a, 10);
-        if (this.snapToGrid > 0) {
-            xds.canvas.body.addClass("xds-grid-" + this.snapToGrid);
-        }
-    },
-    getReferenceForConfig: function (b, a) {
-        var c = xds.types.flow.Container.superclass.getReferenceForConfig.call(this, b, a);
-        if (b.isListener) {
-            c.type = "array";
-            c.ref = "flowListeners";
-        }
-        return c;
-    },
-    xdConfigs: [
-        {
-            name: 'id',
-            group: 'Process',
-            ctype: 'string'
-        },
-        {
-            name: 'name',
-            group: 'Process',
-            ctype: 'string'
-        },
-        {
-            name: 'nameSpace',
-            group: 'Process',
-            ctype: 'string'
-        },
-        {
-            name: 'candidateUsers',
-            group: 'Process',
-            ctype: 'string'
-        },
-        {
-            name: 'candidateGroups',
-            group: 'Process',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.flow.Container = Ext.extend(od.flow.Container, {
-    constructor: function (cfg) {
-        xds.flow.Container.superclass.constructor.call(this, cfg);
-        xds.flow.container = this;
-    },
-    createFilm: function () {
-
-    }
-});
-
-Ext.reg('xdflowcontainer', xds.flow.Container);
+Ext.reg('process', od.flow.Process);
 
 od.flow.SubProcess = Ext.extend(Ext.Container, {
     layout: 'flow',
-    onRender: function (ct) {
+    onRender: function () {
         if (!this.el) {
             var p = this.ownerCt.paper;
             if (p) {
@@ -290,145 +201,12 @@ od.flow.SubProcess = Ext.extend(Ext.Container, {
 });
 Ext.reg('flowsubprocess', od.flow.SubProcess);
 
-xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
-    cid: 'flowsubprocess',
-    iconCls: 'icon-flow-subprocess',
-    category: "容器(Container)",
-    defaultName: "&lt;SubProcess&gt;",
-    text: "子流程",
-    dtype: "xdflowsubprocess",
-    xtype: 'flowsubprocess',
-    naming: "SubProcess",
-    isContainer: true,
-    bindable: false,
-    connectable: true,
-    minWidth: 160,
-    minHeight: 100,
-    initConfig: function () {
-        this.config.layout = 'flow';
-        this.config.width = 400;
-        this.config.height = 250;
-        this.userConfig = this.userConfig || {};
-        if (this.userConfig.id) {
-        } else {
-            this.userConfig.id = this.nextId();
-            this.userConfig.name = this.userConfig.id;
-        }
-    },
-    isValidParent: function (c) {
-        return c.cid != 'flowsubprocess';
-    },
-    isResizable: function () {
-        return true;
-    },
-    setX: function (n, x) {
-        var ox = this.getConfigValue('x');
-        this.node.eachChild(function (c) {
-            var cc = c.component;
-            if (!cc.isConnection) {
-                var cox = cc.getConfigValue('x');
-                cc.setConfig('x', cox + x - ox);
-            }
-        });
-        this.setConfig('x', x);
-    },
-    setY: function (n, y) {
-        var oy = this.getConfigValue('y');
-        this.node.eachChild(function (c) {
-            var cc = c.component;
-            if (!cc.isConnection) {
-                var coy = cc.getConfigValue('y');
-                cc.setConfig('y', coy + y - oy);
-            }
-        });
-        this.setConfig('y', y);
-    },
-    xdConfigs: [
-        {
-            name: 'id',
-            group: 'SubProcess',
-            ctype: 'string'
-        },
-        {
-            name: 'name',
-            group: 'SubProcess',
-            ctype: 'string'
-        },
-        {
-            name: 'width',
-            group: 'SubProcess',
-            ctype: 'number'
-        },
-        {
-            name: 'height',
-            group: 'SubProcess',
-            ctype: 'number'
-        },
-        {
-            name: 'x',
-            group: 'Layout',
-            ctype: 'number',
-            setFn: 'setX'
-        },
-        {
-            name: 'y',
-            group: 'Layout',
-            ctype: 'number',
-            setFn: 'setY'
-        }
-    ]
-});
-
-xds.flow.SubProcess = Ext.extend(od.flow.SubProcess, {
-    isContainer: true,
-    createFilm: function () {
-
-    },
-    afterRender: function () {
-        xds.flow.SubProcess.superclass.afterRender.call(this);
-        var v = this.viewerNode;
-        if (v && this.shape) {
-            this.shape.forEach(function (i) {
-                i.vn = v;
-            });
-        }
-    }
-});
-
-Ext.reg('xdflowsubprocess', xds.flow.SubProcess);
-
 od.flow.EventSubProcess = Ext.extend(od.flow.SubProcess, {
     drawShape: function (p) {
         this.positionShape = p.rect(this.x, this.y, this.width, this.height, 6).attr({fill: 'white', 'stroke-dasharray': '-'});
     }
 });
 Ext.reg('flowevtsubprocess', od.flow.EventSubProcess);
-xds.types.flow.EventSubProcess = Ext.extend(xds.types.flow.SubProcess, {
-    cid: 'flowevtsubprocess',
-    iconCls: 'icon-flow-evtsubprocess',
-    defaultName: "&lt;EventSubProcess&gt;",
-    text: "事件子流程",
-    dtype: "xdflowevtsubprocess",
-    xtype: 'flowevtsubprocess',
-    naming: "EventSubProcess"
-});
-xds.flow.EventSubProcess = Ext.extend(od.flow.EventSubProcess, {
-    isContainer: true,
-    createFilm: function () {
-
-    },
-    afterRender: function () {
-        xds.flow.EventSubProcess.superclass.afterRender.call(this);
-        var v = this.viewerNode;
-        if (v && this.shape) {
-            this.shape.forEach(function (i) {
-                i.vn = v;
-            });
-        }
-    }
-});
-
-Ext.reg('xdflowevtsubprocess', xds.flow.EventSubProcess);
 
 od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     onRender: function (ct, pos) {
@@ -519,208 +297,21 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     offsetShape: function (dx, dy) {
         this.shape.transform('t' + dx + ',' + dy);
     }
-//    getShapePosition:function(){
-//        var sp =this.positionShape;
-//        if(sp){
-//            if(sp.type=='rect'){
-//                return {x:sp.attr('x'),y:sp.attr('y')};
-//            }else if(sp.type == 'circle'){
-//                return {x:sp.attr('cx'),y:sp.attr('cy')};
-//            }
-//        }
-//        var b=this.getBox();
-//        return {x: b.x,y: b.y};
-//    }
 });
 
-xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
-    transformGroup: "state",
-    connectable: true,
-    isResizable: function () {
-        return false;
-    },
-    initConfig: function (o) {
-        this.userConfig = this.userConfig || {};
-        if (this.userConfig.id) {
-        } else {
-            this.userConfig.id = this.nextId();
-            this.userConfig.name = this.userConfig.id;
-        }
-    },
-    onSelectChange: function (b) {
-        var cmp = this.getExtComponent();
-        if (cmp) {
-            cmp.toggleHilight(b);
-        }
-    },
-    setId: function (n, v) {
-        var oldId = this.getConfigValue('id') || this.id;
-        this.setConfig('id', v);
-        var fcn = this.owner.getNode();
-        if (fcn.hasChildNodes()) {
-            for (var b = 0, e; e = fcn.childNodes[b]; b++) {
-                if (e.component.isConnection) {
-                    var sid = e.component.getConfigValue('startId');
-                    var eid = e.component.getConfigValue('endId');
-                    if (sid == oldId) {
-                        e.component.setConfig('startId', v);
-                    } else if (eid == oldId) {
-                        e.component.setConfig('endId', v);
-                    }
-                }
-            }
-        }
-    },
-    xdConfigs: [
-        {
-            name: 'id',
-            group: 'Basic',
-            ctype: 'string',
-            setFn: 'setId'
-        },
-        {
-            name: 'name',
-            group: 'Basic',
-            ctype: 'string'
-        }
-    ]
-});
+Ext.ns('od.flow.start');
 
-od.flow.Start = Ext.extend(od.flow.Shape, {
-    width: 32, height: 32,
+od.flow.start.None = Ext.extend(od.flow.Shape, {
+    width: 32,
+    height: 32,
     drawShape: function (p) {
         this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
     }
 });
 
-Ext.reg('flowstart', od.flow.Start);
+Ext.reg('startnone', od.flow.start.None);
 
-xds.types.flow.Start = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'flowstart',
-    iconCls: 'icon-flow-start',
-    category: "事件(Events)",
-    defaultName: "&lt;Start&gt;",
-    text: "空启动事件",
-    dtype: "xdflowstart",
-    xtype: 'flowstart',
-    naming: "Start",
-    transformGroup: "state",
-    connectable: true,
-    xdConfigs: [
-        {
-            name: 'formKey',
-            group: 'Start',
-            ctype: 'string'
-        },
-        {
-            name: 'initiator',
-            group: 'Start',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.flow.Start = Ext.extend(od.flow.Start, {
-
-});
-
-Ext.reg('xdflowstart', xds.flow.Start);
-
-od.flow.TimerEvent = Ext.extend(od.flow.Start, {
-    drawShape: function (p) {
-        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
-        p.path(['M', this.x - 5, this.y, 'L', this.x + 10, this.y].join(',')).attr({'stroke-width': 4});
-        p.path(['M', this.x, this.y + 6, 'L', this.x, this.y - 13].join(',')).attr({'stroke-width': 2});
-    }
-});
-
-Ext.reg('flowtimer', od.flow.TimerEvent);
-
-xds.types.flow.TimerEvent = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'flowtimer',
-    iconCls: 'icon-flow-timer',
-    category: "事件(Events)",
-    defaultName: "&lt;TimerEvent&gt;",
-    text: "定时器事件",
-    dtype: "xdflowtimer",
-    xtype: 'flowtimer',
-    naming: "TimerEvent",
-    xdConfigs: [
-        {
-            name: 'type',
-            group: 'Timer',
-            ctype: 'string',
-            editor: 'options',
-            options: ['timeDate', 'timeDuration', 'timeCycle']
-        },
-        {
-            name: 'expression',
-            group: 'Timer',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.flow.TimerEvent = Ext.extend(od.flow.TimerEvent, {});
-Ext.reg('xdflowtimer', xds.flow.TimerEvent);
-
-od.flow.End = Ext.extend(od.flow.Start, {
-    drawShape: function (p) {
-        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
-        p.circle(this.x, this.y, 8).attr({fill: 'black'});
-    }
-});
-
-Ext.reg('flowend', od.flow.End);
-
-xds.types.flow.End = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'flowend',
-    iconCls: 'icon-flow-end',
-    category: "事件(Events)",
-    defaultName: "&lt;End&gt;",
-    text: "结束事件",
-    dtype: "xdflowend",
-    xtype: 'flowend',
-    naming: "End"
-});
-
-xds.flow.End = Ext.extend(od.flow.End, {
-
-});
-Ext.reg('xdflowend', xds.flow.End);
-
-od.flow.ExEvent = Ext.extend(od.flow.Start, {
-    drawShape: function (p) {
-        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
-        p.path(['M', this.x + 4, this.y - 10,
-            'L', this.x - 4, this.y, this.x + 4, this.y, this.x - 4, this.y + 10]).attr({'stroke-width': 4});
-    }
-});
-
-Ext.reg('flowexception', od.flow.ExEvent);
-
-xds.types.flow.ExEvent = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'flowexception',
-    iconCls: 'icon-flow-exception',
-    category: "事件(Events)",
-    defaultName: "&lt;ExcepitonEvent&gt;",
-    text: "异常事件",
-    dtype: "xdflowexception",
-    xtype: 'flowexception',
-    naming: "ExceptionEvent",
-    xdConfigs: [
-        {
-            name: 'errorRef',
-            group: 'Exception',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.flow.ExEvent = Ext.extend(od.flow.ExEvent, {});
-Ext.reg('xdflowexception', xds.flow.ExEvent);
-
-od.flow.MsgEvent = Ext.extend(od.flow.Start, {
+od.flow.start.Message = Ext.extend(od.flow.start.None, {
     drawShape: function (p) {
         this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
         p.rect(this.x - 10, this.y - 7, 20, 14).attr({fill: 'white'});
@@ -728,28 +319,60 @@ od.flow.MsgEvent = Ext.extend(od.flow.Start, {
     }
 });
 
-Ext.reg('flowmsg', od.flow.MsgEvent);
+Ext.reg('startmsg', od.flow.start.Message);
 
-xds.types.flow.MsgEvent = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'flowmsg',
-    iconCls: 'icon-flow-msg',
-    category: "事件(Events)",
-    defaultName: "&lt;MsgEvent&gt;",
-    text: "消息事件",
-    dtype: "xdflowmsg",
-    xtype: 'flowmsg',
-    naming: "MsgEvent",
-    xdConfigs: [
-        {
-            name: 'messageRef',
-            group: 'MsgEvent',
-            ctype: 'string'
-        }
-    ]
+od.flow.start.Error = Ext.extend(od.flow.start.None, {
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
+        p.path(['M', this.x + 4, this.y - 10,
+            'L', this.x - 4, this.y, this.x + 4, this.y, this.x - 4, this.y + 10]).attr({'stroke-width': 4});
+    }
 });
 
-xds.flow.MsgEvent = Ext.extend(od.flow.MsgEvent, {});
-Ext.reg('xdflowmsg', xds.flow.MsgEvent);
+Ext.reg('starterror', od.flow.start.Error);
+
+od.flow.start.Timer = Ext.extend(od.flow.start.None, {
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white'});
+        p.path(['M', this.x - 5, this.y, 'L', this.x + 10, this.y].join(',')).attr({'stroke-width': 4});
+        p.path(['M', this.x, this.y + 6, 'L', this.x, this.y - 13].join(',')).attr({'stroke-width': 2});
+    }
+});
+
+Ext.reg('starttimer', od.flow.start.Error);
+
+Ext.ns('od.flow.end');
+
+od.flow.end.None = Ext.extend(od.flow.start.None, {
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white','stroke-width':3});
+    }
+});
+
+Ext.reg('noneend', od.flow.end.None);
+
+od.flow.end.Error = Ext.extend(od.flow.end.None, {
+    drawShape: function (p) {
+        od.flow.end.Error.superclass.drawShape.call(this,p);
+        p.path(['M', this.x + 4, this.y - 10,
+            'L', this.x - 4, this.y, this.x + 4, this.y, this.x - 4, this.y + 10]).attr({'stroke-width': 4});
+
+    }
+});
+
+Ext.reg('errorend', od.flow.end.Error);
+
+od.flow.end.Cancel = Ext.extend(od.flow.end.None, {
+    drawShape: function (p) {
+        od.flow.end.Cancel.superclass.drawShape.call(this,p);
+        p.path(['M', this.x - 7, this.y - 7,
+            'L', this.x + 7, this.y+7,
+            'M',this.x + 7, this.y-7,
+            'L',this.x - 7, this.y + 7]).attr({'stroke-width': 5});
+    }
+});
+
+Ext.reg('cancelend', od.flow.end.Cancel);
 
 od.flow.UserTask = Ext.extend(od.flow.Shape, {
     iconUrl: '/tplt/images/workflow-xds/icon-user.png',
@@ -802,166 +425,12 @@ od.flow.UserTask = Ext.extend(od.flow.Shape, {
 
 Ext.reg('flowusertask', od.flow.UserTask);
 
-xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
-    isTask: true,
-    category: "任务(Task)",
-    minWidth: 100,
-    minHeight: 60,
-    isContainer: true,
-    isResizable: function () {
-        return true;
-    },
-    isValidParent: function () {
-        return false;
-    },
-    initConfig: function (o) {
-        xds.types.flow.TaskBase.superclass.initConfig.call(this, o);
-        this.config.width = 100;
-        this.config.height = 60;
-    },
-    getReferenceForConfig: function (b, a) {
-        var c = xds.types.flow.Container.superclass.getReferenceForConfig.call(this, b, a);
-        if (b.isListener) {
-            c.type = "array";
-            c.ref = "flowListeners";
-        }
-        return c;
-    },
-    xdConfigs: [
-        {
-            name: 'width',
-            group: 'Layout',
-            ctype: 'number'
-        },
-        {
-            name: 'height',
-            group: 'Layout',
-            ctype: 'number'
-        },
-        {
-            name: 'asynchronous',
-            group: 'Basic',
-            ctype: 'boolean'
-        },
-        {
-            name: 'exclusive',
-            group: 'Basic',
-            ctype: 'boolean'
-        },
-        {
-            name: 'sequential',
-            group: 'MultiInstance',
-            ctype: 'boolean'
-        },
-        {
-            name: 'loopCardinality',
-            group: 'MultiInstance',
-            ctype: 'string'
-        },
-        {
-            name: 'collection',
-            group: 'MultiInstance',
-            ctype: 'string'
-        },
-        {
-            name: 'elementVariable',
-            group: 'MultiInstance',
-            ctype: 'string'
-        },
-        {
-            name: 'complateCondition',
-            group: 'MultiInstance',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.types.flow.UserTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowusertask',
-    iconCls: 'icon-flow-task-user',
-    defaultName: "&lt;UserTask&gt;",
-    text: "用户任务",
-    dtype: "xdflowusertask",
-    xtype: 'flowusertask',
-    naming: "UserTask",
-    xdConfigs: [
-        {
-            name: 'assignee',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'candidateUsers',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'candidateGroups',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'formKey',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'dueDate',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'priority',
-            group: 'General',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.flow.UserTask = Ext.extend(od.flow.UserTask, {
-
-});
-Ext.reg('xdflowusertask', xds.flow.UserTask);
-
 od.flow.ServiceTask = Ext.extend(od.flow.UserTask, {
     iconUrl: '/tplt/images/workflow-xds/icon-gear.png'
 });
 
 Ext.reg('flowservicetask', od.flow.ServiceTask);
 
-xds.types.flow.ServiceTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowservicetask',
-    iconCls: 'icon-flow-task-service',
-    defaultName: "&lt;ServiceTask&gt;",
-    text: "服务任务",
-    dtype: "xdflowservicetask",
-    xtype: 'flowservicetask',
-    naming: "ServiceTask",
-    xdConfigs: [
-        {
-            name: 'type',
-            group: 'General',
-            ctype: 'string',
-            editor: 'options',
-            options: ['javaClass', 'expression', 'delegateExpression']
-        },
-        {
-            name: 'service',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'resultVariable',
-            group: 'General',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.flow.ServiceTask = Ext.extend(od.flow.ServiceTask, {
-
-});
-Ext.reg('xdflowservicetask', xds.flow.ServiceTask);
 
 od.flow.ScriptTask = Ext.extend(od.flow.UserTask, {
     iconUrl: '/tplt/images/workflow-xds/icon-script.png'
@@ -969,118 +438,17 @@ od.flow.ScriptTask = Ext.extend(od.flow.UserTask, {
 
 Ext.reg('flowscripttask', od.flow.ScriptTask);
 
-xds.types.flow.ScriptTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowscripttask',
-    iconCls: 'icon-flow-task-script',
-    defaultName: "&lt;ScriptTask&gt;",
-    text: "脚本任务",
-    dtype: "xdflowscripttask",
-    xtype: 'flowscripttask',
-    naming: "ScriptTask",
-    xdConfigs: [
-        {
-            name: 'scriptLanguage',
-            group: 'General',
-            ctype: 'string',
-            editor: 'options',
-            options: ['javascript', 'groovy']
-        },
-        {
-            name: 'script',
-            group: 'General',
-            ctype: 'text'
-        }
-    ]
-});
-
-xds.flow.ScriptTask = Ext.extend(od.flow.ScriptTask, {
-
-});
-Ext.reg('xdflowscripttask', xds.flow.ScriptTask);
-
 od.flow.MailTask = Ext.extend(od.flow.UserTask, {
     iconUrl: '/tplt/images/workflow-xds/icon-email.png'
 });
 
 Ext.reg('flowmailtask', od.flow.MailTask);
 
-xds.types.flow.MailTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowmailtask',
-    iconCls: 'icon-flow-task-email',
-    defaultName: "&lt;MailTask&gt;",
-    text: "邮件任务",
-    dtype: "xdflowmailtask",
-    xtype: 'flowmailtask',
-    naming: "MailTask",
-    xdConfigs: [
-        {
-            name: 'to',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'from',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'subject',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'cc',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'bcc',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'charset',
-            group: 'General',
-            ctype: 'string'
-        },
-        {
-            name: 'htmlText',
-            group: 'General',
-            ctype: 'text'
-        },
-        {
-            name: 'non-htmlText',
-            group: 'General',
-            ctype: 'text'
-        }
-    ]
-});
-
-xds.flow.MailTask = Ext.extend(od.flow.MailTask, {
-
-});
-Ext.reg('xdflowmailtask', xds.flow.MailTask);
-
 od.flow.ManualTask = Ext.extend(od.flow.UserTask, {
     iconUrl: '/tplt/images/workflow-xds/icon-hand.png'
 });
 
 Ext.reg('flowmanualtask', od.flow.ManualTask);
-
-xds.types.flow.ManualTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowmanualtask',
-    iconCls: 'icon-flow-task-manual',
-    defaultName: "&lt;ManualTask&gt;",
-    text: "人工任务",
-    dtype: "xdflowmanualtask",
-    xtype: 'flowmanualtask',
-    naming: "ManualTask"
-});
-
-xds.flow.ManualTask = Ext.extend(od.flow.ManualTask, {
-
-});
-Ext.reg('xdflowmanualtask', xds.flow.ManualTask);
 
 od.flow.Gateway = Ext.extend(od.flow.Shape, {
     width: 32,
@@ -1098,21 +466,6 @@ od.flow.Gateway = Ext.extend(od.flow.Shape, {
 
 Ext.reg('flowgateway', od.flow.Gateway);
 
-xds.types.flow.Gateway = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'flowgateway',
-    iconCls: 'icon-flow-gateway',
-    category: "分支(Gateway)",
-    defaultName: "&lt;Gateway&gt;",
-    text: "分支",
-    dtype: "xdflowgateway",
-    xtype: 'flowgateway',
-    naming: "Gateway"
-});
-
-xds.flow.Gateway = Ext.extend(od.flow.Gateway, {});
-
-Ext.reg('xdflowgateway', xds.flow.Gateway);
-
 od.flow.GatewayAnd = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
         this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
@@ -1125,20 +478,6 @@ od.flow.GatewayAnd = Ext.extend(od.flow.Gateway, {
 
 Ext.reg('flowgatewayand', od.flow.GatewayAnd);
 
-xds.types.flow.GatewayAnd = Ext.extend(xds.types.flow.Gateway, {
-    cid: 'flowgatewayand',
-    iconCls: 'icon-flow-gatewayand',
-    defaultName: "&lt;GatewayAnd&gt;",
-    text: "分支(并行)",
-    dtype: "xdflowgatewayand",
-    xtype: 'flowgatewayand',
-    naming: "GatewayAnd"
-});
-
-xds.flow.GatewayAnd = Ext.extend(od.flow.GatewayAnd, {});
-
-Ext.reg('xdflowgatewayand', xds.flow.GatewayAnd);
-
 od.flow.GatewayOr = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
         this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
@@ -1147,20 +486,6 @@ od.flow.GatewayOr = Ext.extend(od.flow.Gateway, {
 });
 
 Ext.reg('flowgatewayor', od.flow.GatewayOr);
-
-xds.types.flow.GatewayOr = Ext.extend(xds.types.flow.Gateway, {
-    cid: 'flowgatewayor',
-    iconCls: 'icon-flow-gatewayor',
-    defaultName: "&lt;GatewayOr&gt;",
-    text: "分支(包容)",
-    dtype: "xdflowgatewayor",
-    xtype: 'flowgatewayor',
-    naming: "GatewayOr"
-});
-
-xds.flow.GatewayOr = Ext.extend(od.flow.GatewayOr, {});
-
-Ext.reg('xdflowgatewayor', xds.flow.GatewayOr);
 
 od.flow.GatewayXor = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
@@ -1174,90 +499,11 @@ od.flow.GatewayXor = Ext.extend(od.flow.Gateway, {
 
 Ext.reg('flowgatewayxor', od.flow.GatewayXor);
 
-xds.types.flow.GatewayXor = Ext.extend(xds.types.flow.Gateway, {
-    cid: 'flowgatewayxor',
-    iconCls: 'icon-flow-gatewayxor',
-    defaultName: "&lt;GatewayXor&gt;",
-    text: "分支(排他)",
-    dtype: "xdflowgatewayxor",
-    xtype: 'flowgatewayxor',
-    naming: "GatewayXor"
-});
-
-xds.flow.GatewayXor = Ext.extend(od.flow.GatewayXor, {});
-
-Ext.reg('xdflowgatewayxor', xds.flow.GatewayXor);
-
 od.flow.Listener = Ext.extend(Ext.util.Observable, {
 
 });
 
 Ext.reg('flowlistener', od.flow.Listener);
-
-xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
-    defaultName: "&lt;Listener&gt;",
-    dtype: 'flowlistener',
-    naming: "Listener",
-    isVisual: false,
-    isListener: true,
-    hiddenInToolbox: true,
-    initConfig: function (o) {
-        this.userConfig = this.userConfig || {};
-        if (!this.userConfig.id) {
-            this.userConfig.id = this.nextId();
-        }
-    },
-    xdConfigs: [
-        {
-            name: 'type',
-            group: 'Listener',
-            ctype: 'string',
-            editor: 'options',
-            options: ['Java class', 'Expression', 'Delegate expression']
-        },
-        {
-            name: 'listener',
-            group: 'Listener',
-            ctype: 'string'
-        },
-        {
-            name: 'fields',
-            group: 'Listener',
-            ctype: 'text'
-        }
-    ]
-});
-
-xds.types.flow.ExecListener = Ext.extend(xds.types.flow.ListenerBase, {
-    iconCls: 'icon-flow-exec-listener',
-    cid: 'flowexeclistener',
-    xtype: 'flowexeclistener',
-    xdConfigs: [
-        {
-            name: 'event',
-            group: 'Listener',
-            ctype: 'string',
-            editor: 'options',
-            options: ['start', 'end']
-        }
-    ]
-});
-
-xds.types.flow.TaskListener = Ext.extend(xds.types.flow.ListenerBase, {
-    iconCls: 'icon-flow-task-listener',
-    cid: 'flowtasklistener',
-    xtype: 'flowtasklistener',
-    xdConfigs: [
-        {
-            name: 'event',
-            group: 'Listener',
-            ctype: 'string',
-            editor: 'options',
-            options: ['create', 'assignment', 'complete', 'all']
-        }
-    ]
-
-});
 
 od.flow.Connection = Ext.extend(Ext.Component, {
     isConnection: true,
@@ -1316,124 +562,6 @@ od.flow.Connection = Ext.extend(Ext.Component, {
 
 Ext.reg("flowconnection", od.flow.Connection);
 
-xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
-    cid: 'flowconnection',
-    iconCls: 'icon-flow-connection',
-    defaultName: "&lt;Connection&gt;",
-    xtype: 'flowconnection',
-    dtype: 'xdflowconnection',
-    isContainer: false,
-    naming: "Connection",
-    isVisual: false,
-    isConnection: true,
-    hiddenInToolbox: true,
-    initConfig: function (o) {
-        this.userConfig = this.userConfig || {};
-        if (!this.userConfig.id) {
-            this.userConfig.id = this.nextId();
-        }
-    },
-    onSelectChange: function (a) {
-        var cmp = this.getExtComponent();
-        if (cmp) {
-            cmp.toggleHilight(a);
-        }
-    },
-    xdConfigs: [
-        {
-            name: 'id',
-            group: 'Connection',
-            ctype: 'string'
-        },
-        {
-            name: 'name',
-            group: 'Connection',
-            ctype: 'string'
-        },
-        {
-            name: 'startId',
-            group: 'Connection',
-            ctype: 'string'
-        },
-        {
-            name: 'endId',
-            group: 'Connection',
-            ctype: 'string'
-        }
-    ]
-});
-
-xds.flow.Connection = Ext.extend(od.flow.Connection, {
-    createFilm: function () {
-
-    },
-    getNodeByIdProperty: function (i) {
-        var node = xds.inspector.getNodeById(i);
-        if (node) {
-            return Ext.getCmp(node.component.cmpId);
-        }
-        return null;
-    },
-    getStartNode: function () {
-        return this.getNodeByIdProperty(this.startId);
-    },
-    getEndNode: function () {
-        return this.getNodeByIdProperty(this.endId);
-    },
-    toggleHilight: function (a) {
-        if (a) {
-            this.shape.attr({'stroke-width': 3});
-            var p = this.shape.paper;
-            var path = this.shape.attr('path');
-            var startPoint = Raphael.getPointAtLength(path, 0);
-            var endPoint = Raphael.getPointAtLength(path, Raphael.getTotalLength(path));
-            this.startHandler = p.circle(startPoint.x, startPoint.y, 4).attr({fill: 'red', 'stroke-width': 2});
-            this.endHandler = p.circle(endPoint.x, endPoint.y, 4).attr({fill: 'red', 'stroke-width': 2});
-            this.startHandler.vn = this.endHandler.vn = this.viewerNode;
-        } else {
-            this.shape.attr({'stroke-width': 2});
-            if (this.startHandler) {
-                this.startHandler.remove();
-                delete this.startHandler;
-            }
-            if (this.endHandler) {
-                this.endHandler.remove();
-                delete this.endHandler;
-            }
-        }
-    },
-    doRender: function (ct, pos) {
-        xds.flow.Connection.superclass.doRender.call(this, ct, pos);
-        if (this.startNode) {
-            this.startNode.on('move', this.updatePath, this);
-        }
-        if (this.endNode) {
-            this.endNode.on('move', this.updatePath, this);
-        }
-        if (this.viewerNode.isSelected()) {
-            this.toggleHilight(true);
-        }
-    },
-    updatePath: function () {
-        if (this.shape) {
-            var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
-            var path = od.flow.getConPath(sb, eb).join(',');
-            this.shape.attr({path: path});
-            this.updateText();
-        }
-    },
-    updateText: function () {
-        if (this.text) {
-            var p = this.ownerCt.paper;
-            var tp = this.shape.attr('path');
-            var pt = Raphael.getPointAtLength(tp, Raphael.getTotalLength(tp) / 2);
-            var dx = pt.alpha == 90 ? 10 : 0, dy = pt.alpha == 180 ? 10 : 0;
-            this.text.attr({x: pt.x - dx, y: pt.y - dy, transform: 'r' + (pt.alpha + 180)});
-        }
-    }
-});
-
-Ext.reg('xdflowconnection', xds.flow.Connection);
 
 od.flow.Project = Ext.extend(xds.Project, {
     open: function (data) {
@@ -1464,7 +592,7 @@ od.flow.Project = Ext.extend(xds.Project, {
     },
     getDefaultCfg: function () {
         return {cn: [
-            {cid: 'flowcontainer'}
+            {cid: 'process'}
         ]};
     },
     save: function () {
@@ -1501,7 +629,7 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
     },
     findTarget: function (e) {
         var ret = xds.inspector.root.firstChild;
-        var c = xds.flow.container;
+        var c = xds.flow.process;
         if (c) {
             var s = c.paper.getElementByPoint(e.xy[0], e.xy[1]);
             if (s) {
@@ -1549,7 +677,7 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
         var ret = od.flow.Canvas.superclass.getContextMenuItems.call(this, t, c);
         if (t) {
             var cmp = t.component;
-            if (cmp.cid == 'flowcontainer') {
+            if (cmp.cid == 'process') {
                 return[new Ext.menu.Item({
                     text: '添加执行监听器',
                     iconCls: 'icon-flow-exec-listener-blue',
@@ -1600,7 +728,7 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
 od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     selecteds: [],
     isAbsolute: function (a) {
-        return a.component.cid != 'flowcontainer' && !a.component.isConnection;
+        return a.component.cid != 'process' && !a.component.isConnection;
     },
     onBeforeStart: function (e) {
         var ret = od.flow.Canvas.DragTracker.superclass.onBeforeStart.call(this, e);
@@ -1687,8 +815,8 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         }
         var lt = this.el.translatePoints(r.left, r.top), rb = this.el.translatePoints(r.right, r.bottom);
         var sbb = {x: lt.left, y: lt.top, x2: rb.left, y2: rb.top, width: rb.left - lt.left, height: rb.top - lt.top};
-        if (xds.flow.container.items) {
-            this.addSelected(sbb, xds.flow.container.items);
+        if (xds.flow.process.items) {
+            this.addSelected(sbb, xds.flow.process.items);
         }
     },
     isBBInside: function (c, t) {
@@ -1894,7 +1022,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     },
     updateParent: function (e, c) {
         if (!c.isContainer) {
-            var p = xds.flow.container;
+            var p = xds.flow.process;
             var pn = p.viewerNode;
             var ec = c.getExtComponent();
             if (p.items) {
@@ -1905,8 +1033,8 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
                         if (this.isBBInside(pb, cb)) {
                             if (i.viewerNode != c.node.parentNode) {
                                 i.viewerNode.appendChild(c.node);
-                                if(ec.outputs){
-                                    ec.outputs.each(function(oc){
+                                if (ec.outputs) {
+                                    ec.outputs.each(function (oc) {
                                         i.viewerNode.appendChild(oc.viewerNode);
                                     });
                                 }
@@ -1922,8 +1050,8 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
 
             if (c.node.parentNode != pn && !f) {
                 pn.appendChild(c.node);
-                if(ec.outputs){
-                    ec.outputs.each(function(oc){
+                if (ec.outputs) {
+                    ec.outputs.each(function (oc) {
                         pn.appendChild(oc.viewerNode);
                     });
                 }
@@ -1991,24 +1119,32 @@ od.FlowDesignerModule = Ext.extend(od.XdsModule, {
     init: function () {
         xds.Registry.all.clear();
 
-        xds.Registry.register(xds.types.flow.Container);
+        xds.Registry.register(xds.types.flow.Process);
         xds.Registry.register(xds.types.flow.Connection);
-        xds.Registry.register(xds.types.flow.Start);
-        xds.Registry.register(xds.types.flow.End);
-        xds.Registry.register(xds.types.flow.TimerEvent);
-        xds.Registry.register(xds.types.flow.ExEvent);
-        xds.Registry.register(xds.types.flow.MsgEvent);
+
+        xds.Registry.register(xds.types.flow.start.None);
+        xds.Registry.register(xds.types.flow.start.Message);
+        xds.Registry.register(xds.types.flow.start.Timer);
+        xds.Registry.register(xds.types.flow.start.Error);
+
+        xds.Registry.register(xds.types.flow.end.None);
+        xds.Registry.register(xds.types.flow.end.Error);
+        xds.Registry.register(xds.types.flow.end.Cancel);
+
         xds.Registry.register(xds.types.flow.UserTask);
         xds.Registry.register(xds.types.flow.ServiceTask);
         xds.Registry.register(xds.types.flow.ScriptTask);
         xds.Registry.register(xds.types.flow.MailTask);
-        xds.Registry.register(xds.types.flow.ManualTask);
+        xds.Registry.register(xds.types.flow.ManualTask)
+        ;
 //        xds.Registry.register(xds.types.flow.Gateway);
         xds.Registry.register(xds.types.flow.GatewayAnd);
         xds.Registry.register(xds.types.flow.GatewayOr);
         xds.Registry.register(xds.types.flow.GatewayXor);
+
         xds.Registry.register(xds.types.flow.SubProcess);
         xds.Registry.register(xds.types.flow.EventSubProcess);
+
         xds.Registry.register(xds.types.flow.ExecListener);
         xds.Registry.register(xds.types.flow.TaskListener);
 
