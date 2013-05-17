@@ -912,15 +912,20 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
     hiddenInToolbox: true,
     initConfig: function (o) {
         this.userConfig = this.userConfig || {};
-        if (!this.userConfig.id) {
-            this.userConfig.id = this.nextId();
-        }
+        this.userConfig.id = this.userConfig.id || this.nextId();
+        this.userConfig.routerDir = this.userConfig.routerDir || 'H';
     },
     onSelectChange: function (a) {
         var cmp = this.getExtComponent();
         if (cmp) {
             cmp.toggleHilight(a);
         }
+    },
+    onFilmDblClick:function(){
+        var d = this.getConfigValue('routerDir','H') == 'H'?'V':'H';
+        this.setConfig('routerDir',d);
+        xds.props.setValue('routerDir',d);
+        xds.fireEvent("componentchanged");
     },
     xdConfigs: [
         {
@@ -942,6 +947,12 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
             name: 'endId',
             group: 'Connection',
             ctype: 'string'
+        },{
+            name:'routerDir',
+            group:'Connection',
+            ctype:'string',
+            editor:'options',
+            options:['H','V']
         }
     ]
 });
@@ -1000,7 +1011,7 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
     updatePath: function () {
         if (this.shape) {
             var sb = this.startNode.getBox(), eb = this.endNode.getBox();
-            var path = od.flow.getConPath(sb, eb).join(',');
+            var path = od.flow.getConPath(sb, eb,this.routerDir).join(',');
             this.shape.attr({path: path});
             this.updateText();
         }

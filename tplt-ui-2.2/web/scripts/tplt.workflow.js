@@ -1,10 +1,11 @@
 Ext.ns("od.flow");
 
-od.flow.getConPath = function (bb1, bb2) {
-    bb1.x -= bb1.width/2;
-    bb1.y -= bb1.height/2;
-    bb2.x -= bb2.width/2;
-    bb2.y -= bb2.height/2;
+od.flow.getConPath = function (bb1, bb2, d) {
+    d = d || 'H';
+    bb1.x -= bb1.width / 2;
+    bb1.y -= bb1.height / 2;
+    bb2.x -= bb2.width / 2;
+    bb2.y -= bb2.height / 2;
 
     var st = {x: bb1.x + bb1.width / 2, y: bb1.y - 1};
     var sb = {x: bb1.x + bb1.width / 2, y: bb1.y + bb1.height + 1};
@@ -18,8 +19,33 @@ od.flow.getConPath = function (bb1, bb2) {
     var er = {x: bb2.x + bb2.width + 1, y: bb2.y + bb2.height / 2};
     var ec = {x: bb2.x + bb2.width / 2, y: bb2.y + bb2.height / 2};
 
-    if (bb1.x == bb2.x && bb1.y==bb2.y && bb1.width == bb2.width && bb1.height == bb2.height) {
+    if (bb1.x == bb2.x && bb1.y == bb2.y && bb1.width == bb2.width && bb1.height == bb2.height) {
         return ['M', sr.x, sr.y, 'L', sr.x + 10, sl.y, sr.x + 10, st.y - 10, sl.x - 20, st.y - 10, sl.x - 20, sl.y, sl.x, sl.y];
+    }
+
+    var area;
+    if (el.x > sr.x) {
+        if (eb.y < st.y) {
+            area = 'rt';
+        } else if (et.y > sb.y) {
+            area = 'rb';
+        } else {
+            area = 'r'
+        }
+    } else if (er.x < sl.x) {
+        if (eb.y < st.y) {
+            area = 'lt';
+        } else if (et.y > sb.y) {
+            area = 'lb';
+        } else {
+            area = 'l'
+        }
+    } else if (eb.y < st.y) {
+        area = 't';
+    } else if (et.y > sb.y) {
+        area = 'b';
+    } else {
+        area = 'c';
     }
 
     var r = 0;
@@ -31,33 +57,61 @@ od.flow.getConPath = function (bb1, bb2) {
         r = (180 + Math.atan2(-dy, -dx) * 180 / Math.PI + 360) % 360;
     }
 
-    var ps, p1, p2, pe;
-    if (r <= 45 || r > 315) { //r-l
-        ps = sr;
-        pe = el;
-        p1 = {x: ps.x + (pe.x - ps.x) / 2, y: ps.y};
-        p2 = {x: p1.x, y: pe.y};
-    } else if (r > 45 && r <= 135) {//b-t
-        ps = sb;
-        pe = et;
-        p1 = {x: ps.x, y: ps.y + (pe.y - ps.y) / 2};
-        p2 = {x: pe.x, y: p1.y}
-    } else if (r > 135 && r <= 225) {//l-r
-        ps = sl;
-        pe = er;
-        p1 = {x: pe.x + (ps.x - pe.x) / 2, y: ps.y};
-        p2 = {x: p1.x, y: pe.y};
-    } else {//t-b
-        ps = st;
-        pe = eb;
-        p1 = {x: ps.x, y: pe.y + (ps.y - pe.y) / 2};
-        p2 = {x: pe.x, y: p1.y};
+    var rl = { ps: sr, pe: el, p1: {x: sr.x + (el.x - sr.x) / 2, y: sr.y}, p2: {x: sr.x + (el.x - sr.x) / 2, y: el.y}},
+        bt = {ps: sb, pe: et, p1: {x: sb.x, y: sb.y + (et.y - sb.y) / 2}, p2: {x: et.x, y: sb.y + (et.y - sb.y) / 2}},
+        lr = {ps: sl, pe: er, p1: {x: er.x + (sl.x - er.x) / 2, y: sl.y}, p2: {x: er.x + (sl.x - er.x) / 2, y: er.y}},
+        tb = {ps: st, pe: eb, p1: {x: st.x, y: eb.y + (st.y - eb.y) / 2}, p2: {x: eb.x, y: eb.y + (st.y - eb.y) / 2}};
+
+    var ret;
+    switch (area) {
+        case 'r':
+            ret = rl;
+            break;
+        case 'b':
+            ret = bt;
+            break;
+        case 'l':
+            ret = lr;
+            break;
+        case 't':
+            ret = tb;
+            break;
+        case 'rt':
+            if (d == 'H') {
+                ret = rl;
+            } else {
+                ret = tb;
+            }
+            break;
+        case 'rb':
+            if (d == 'H') {
+                ret = rl;
+            } else {
+                ret = bt;
+            }
+            break;
+        case 'lt':
+            if (d == 'H') {
+                ret = lr;
+            } else {
+                ret = tb;
+            }
+            break;
+        case 'lb':
+            if (d == 'H') {
+                ret = lr;
+            } else {
+                ret = bt;
+            }
+            break;
+        default:
+            ret = rl;
     }
 
-    return ['M', ps.x.toFixed(0), ps.y.toFixed(0),
-        'L', p1.x.toFixed(0), p1.y.toFixed(0),
-        p2.x.toFixed(0), p2.y.toFixed(0),
-        pe.x.toFixed(0), pe.y.toFixed(0)];
+    return ['M', ret.ps.x.toFixed(0), ret.ps.y.toFixed(0),
+        'L', ret.p1.x.toFixed(0), ret.p1.y.toFixed(0),
+        ret.p2.x.toFixed(0), ret.p2.y.toFixed(0),
+        ret.pe.x.toFixed(0), ret.pe.y.toFixed(0)];
 };
 
 od.flow.FlowLayout = Ext.extend(Ext.layout.ContainerLayout, {
@@ -124,7 +178,7 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
     },
     drawBoundaryEvents: function (p) {
         if (!Ext.isEmpty(this.boundarys)) {
-            var i = 0, d = 12, r = this.x + this.width/2 - d, l = this.x - this.width/2 + d, b = this.y + this.height/2;
+            var i = 0, d = 12, r = this.x + this.width / 2 - d, l = this.x - this.width / 2 + d, b = this.y + this.height / 2;
             this.boundarys.each(function (item) {
                 var s = i / 2;
                 item.x = i % 2 == 0 ? r - item.width * (s + .5) : l + item.width * s;
@@ -156,11 +210,11 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
     },
     syncFilm: function () {
         this.positionShape.attr({width: this.width, height: this.height});
-        var dx = this.x - this.width/2 - this.positionShape.attr('x'), dy = this.y -this.height/2 - this.positionShape.attr('y');
+        var dx = this.x - this.width / 2 - this.positionShape.attr('x'), dy = this.y - this.height / 2 - this.positionShape.attr('y');
         this.shape.transform('t' + dx + ',' + dy);
 
         if (this.boundarys) {
-            var i = 0, d = 12, r = this.x + this.width/2 - d, l = this.x - this.width/2 + d, b = this.y + this.height/2;
+            var i = 0, d = 12, r = this.x + this.width / 2 - d, l = this.x - this.width / 2 + d, b = this.y + this.height / 2;
             this.boundarys.each(function (item) {
                 var s = i / 2;
                 item.x = i % 2 == 0 ? r - item.width * (s + .5) : l + item.width * s;
@@ -171,13 +225,13 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
             }, this);
         }
     },
-    setSize:function(w,h){
-        if(w){
-            this.x += (w-this.width)/2;
+    setSize: function (w, h) {
+        if (w) {
+            this.x += (w - this.width) / 2;
             this.width = w;
         }
-        if(h){
-            this.y += (h-this.height)/2;
+        if (h) {
+            this.y += (h - this.height) / 2;
             this.height = h;
         }
     },
@@ -210,20 +264,20 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
 od.flow.SubProcess = Ext.extend(od.flow.ShapeContainer, {
     drawText: function (p) {
         if (this.name) {
-            var x = this.x-this.width/ 2,y=this.y-this.height/2;
+            var x = this.x - this.width / 2, y = this.y - this.height / 2;
             p.text(x + 12, y + 12, this.name)
                 .attr({'text-anchor': 'start', 'font-size': 12, 'font-family': 'sans-serif'});
         }
     },
     drawShape: function (p) {
-        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white'});
     }
 });
 Ext.reg('flowsubprocess', od.flow.SubProcess);
 od.flow.EventSubProcess = Ext.extend(od.flow.SubProcess, {
     drawShape: function (p) {
-        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white', 'stroke-dasharray': '-'});
     }
 });
@@ -288,10 +342,10 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     syncFilm: function () {
         var ps = this.positionShape;
         var ax = ps.type == 'rect' ? 'x' : 'cx', ay = ps.type == 'rect' ? 'y' : 'cy';
-        var ox = ps.type == 'rect' ? this.width/2 : 0, oy = ps.type == 'rect' ? this.height/2 : 0;
+        var ox = ps.type == 'rect' ? this.width / 2 : 0, oy = ps.type == 'rect' ? this.height / 2 : 0;
         var dx = this.x - this.positionShape.attr(ax) - ox;
         var dy = this.y - this.positionShape.attr(ay) - oy;
-        if(dx!=0 || dy != 0){
+        if (dx != 0 || dy != 0) {
             this.shape.transform('t' + dx + ',' + dy);
         }
     },
@@ -567,13 +621,13 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
         }
         return ret;
     },
-    setSize:function(w,h){
-        if(w){
-            this.x += (w-this.width)/2;
+    setSize: function (w, h) {
+        if (w) {
+            this.x += (w - this.width) / 2;
             this.width = w;
         }
-        if(h){
-            this.y += (h-this.height)/2;
+        if (h) {
+            this.y += (h - this.height) / 2;
             this.height = h;
         }
     },
@@ -593,7 +647,7 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
         }
 
         if (this.boundarys) {
-            var i = 0, d = 12, r = this.x + this.width/2 - d, l = this.x - this.width/2 + d, b = this.y + this.height/2;
+            var i = 0, d = 12, r = this.x + this.width / 2 - d, l = this.x - this.width / 2 + d, b = this.y + this.height / 2;
             this.boundarys.each(function (item) {
                 var s = i / 2;
                 item.x = i % 2 == 0 ? r - item.width * (s + .5) : l + item.width * s;
@@ -641,10 +695,10 @@ od.flow.Gateway = Ext.extend(od.flow.Shape, {
     width: 32,
     height: 32,
     drawShape: function (p) {
-        this.positionShape = p.rect(this.x-this.width/2, this.y-this.height/2, this.width, this.height, 5).attr({fill: 'white'});
+        this.positionShape = p.rect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height, 5).attr({fill: 'white'});
     },
-    onRender:function(ct,pos){
-        od.flow.Gateway.superclass.onRender.call(this,ct,pos);
+    onRender: function (ct, pos) {
+        od.flow.Gateway.superclass.onRender.call(this, ct, pos);
         this.shape.transform('r45');
     },
     drawText: function () {
@@ -652,9 +706,12 @@ od.flow.Gateway = Ext.extend(od.flow.Shape, {
     },
     syncFilm: function () {
         var ps = this.positionShape;
-        var dx = this.x -this.width/2- this.positionShape.attr('x');
-        var dy = this.y -this.height/2- this.positionShape.attr('y');
+        var dx = this.x - this.width / 2 - this.positionShape.attr('x');
+        var dy = this.y - this.height / 2 - this.positionShape.attr('y');
         this.shape.transform(['t' + dx + ',' + dy + 'r45']);
+    },
+    getBox:function(){
+        return {x:this.x,y:this.y,width:this.width+8,height:this.height+8};
     }
 });
 
@@ -662,7 +719,7 @@ Ext.reg('flowgateway', od.flow.Gateway);
 
 od.flow.GatewayAnd = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 5).attr({fill: 'white'});
         p.path(['M', x + 8, y + 8,
             'L', x + 24, y + 24,
@@ -675,7 +732,7 @@ Ext.reg('flowgatewayand', od.flow.GatewayAnd);
 
 od.flow.GatewayOr = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 5).attr({fill: 'white'});
         p.circle(this.x, this.y, 10).attr({'stroke-width': 4});
     }
@@ -685,7 +742,7 @@ Ext.reg('flowgatewayor', od.flow.GatewayOr);
 
 od.flow.GatewayXor = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 5).attr({fill: 'white'});
         p.path(['M', x + 5, this.y + 16,
             'L', x + 27, y + 16,
@@ -704,6 +761,7 @@ Ext.reg('flowlistener', od.flow.Listener);
 
 od.flow.Connection = Ext.extend(Ext.Component, {
     isConnection: true,
+    routerDir: 'H',
     onRender: function (ct, pos) {
         this.startNode = this.getStartNode();
         if (this.startNode) {
@@ -726,7 +784,7 @@ od.flow.Connection = Ext.extend(Ext.Component, {
     doRender: function () {
         var p = this.ownerCt.paper;
         var sb = this.startNode.getBox(), eb = this.endNode.getBox();
-        var path = od.flow.getConPath(sb, eb);
+        var path = od.flow.getConPath(sb, eb,this.routerDir);
         this.shape = p.path(path).attr(this.getDefAttr());
         if (this.viewerNode) {
             this.shape.vn = this.viewerNode;
@@ -1266,10 +1324,10 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
             var pn = p.viewerNode;
             var ec = c.getExtComponent();
             if (p.items) {
-                var cb = {x: ec.x - ec.width/2, y: ec.y-ec.height/2, x2: ec.x + ec.width/2, y2: ec.y + ec.height/2}, f = false;
+                var cb = {x: ec.x - ec.width / 2, y: ec.y - ec.height / 2, x2: ec.x + ec.width / 2, y2: ec.y + ec.height / 2}, f = false;
                 p.items.each(function (i) {
                     if (i.isContainer) {
-                        var pb = {x: i.x-i.width/2, y: i.y- i.height/2, x2: i.x + i.width/2, y2: i.y + i.height/2};
+                        var pb = {x: i.x - i.width / 2, y: i.y - i.height / 2, x2: i.x + i.width / 2, y2: i.y + i.height / 2};
                         if (this.isBBInside(pb, cb)) {
                             if (i.viewerNode != c.node.parentNode) {
                                 i.viewerNode.appendChild(c.node);
@@ -1387,8 +1445,8 @@ od.FlowDesignerModule = Ext.extend(od.XdsModule, {
         xds.Registry.register(xds.types.flow.ServiceTask);
         xds.Registry.register(xds.types.flow.ScriptTask);
         xds.Registry.register(xds.types.flow.MailTask);
-        xds.Registry.register(xds.types.flow.ManualTask)
-        ;
+        xds.Registry.register(xds.types.flow.ManualTask);
+
 //        xds.Registry.register(xds.types.flow.Gateway);
         xds.Registry.register(xds.types.flow.GatewayAnd);
         xds.Registry.register(xds.types.flow.GatewayOr);
