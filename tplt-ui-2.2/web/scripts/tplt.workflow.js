@@ -1,6 +1,11 @@
 Ext.ns("od.flow");
 
 od.flow.getConPath = function (bb1, bb2) {
+    bb1.x -= bb1.width/2;
+    bb1.y -= bb1.height/2;
+    bb2.x -= bb2.width/2;
+    bb2.y -= bb2.height/2;
+
     var st = {x: bb1.x + bb1.width / 2, y: bb1.y - 1};
     var sb = {x: bb1.x + bb1.width / 2, y: bb1.y + bb1.height + 1};
     var sl = {x: bb1.x - 1, y: bb1.y + bb1.height / 2};
@@ -56,26 +61,7 @@ od.flow.getConPath = function (bb1, bb2) {
 };
 
 od.flow.FlowLayout = Ext.extend(Ext.layout.ContainerLayout, {
-    renderAll: function (ct, target) {
-        var items = ct.items.items, i, c, len = items.length;
-        var conns = [];
-        for (i = 0; i < len; i++) {
-            c = items[i];
-            if (c.isConnection) {
-                conns.push(c);
-                continue;
-            }
-            if (c && (!c.rendered || !this.isValidParent(c, target))) {
-                this.renderItem(c, i, target);
-            }
-        }
-
-        Ext.each(conns, function (con) {
-            if (con && (!con.rendered || !this.isValidParent(con, target))) {
-                this.renderItem(con, i, target);
-            }
-        }, this);
-    }
+    type: 'flow'
 });
 
 Ext.Container.LAYOUTS['flow'] = od.flow.FlowLayout;
@@ -107,8 +93,18 @@ od.flow.Process = Ext.extend(Ext.Container, {
 });
 Ext.reg('process', od.flow.Process);
 
-od.flow.SubProcess = Ext.extend(Ext.Container, {
+od.flow.ShapeContainer = Ext.extend(Ext.Container, {
     layout: 'flow',
+    initComponent: function () {
+        od.flow.ShapeContainer.superclass.initComponent.call(this);
+        if (this.boundaryEvents) {
+            this.boundarys = new Ext.util.MixedCollection(false, this.getComponentId);
+            Ext.each(this.boundaryEvents, function (e) {
+                this.boundarys.add(Ext.create(Ext.apply(e, {ownerCt: this})));
+            }, this);
+            delete this.boundaryEvents;
+        }
+    },
     onRender: function () {
         if (!this.el) {
             var p = this.ownerCt.paper;
@@ -122,21 +118,29 @@ od.flow.SubProcess = Ext.extend(Ext.Container, {
             }
         }
     },
-    drawText: function (p) {
-        if (this.name) {
-            p.text(this.x + 12, this.y + 12, this.name)
-                .attr({'text-anchor': 'start', 'font-size': 12, 'font-family': 'sans-serif'});
+    afterRender: function () {
+        od.flow.ShapeContainer.superclass.afterRender.call(this);
+        this.drawBoundaryEvents(this.paper);
+    },
+    drawBoundaryEvents: function (p) {
+        if (!Ext.isEmpty(this.boundarys)) {
+            var i = 0, d = 12, r = this.x + this.width/2 - d, l = this.x - this.width/2 + d, b = this.y + this.height/2;
+            this.boundarys.each(function (item) {
+                var s = i / 2;
+                item.x = i % 2 == 0 ? r - item.width * (s + .5) : l + item.width * s;
+                item.y = b + 4;
+                item.render(this);
+                i++;
+            }, this);
         }
     },
-    drawShape: function (p) {
-        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 6).attr({fill: 'white'});
-    },
-    onLayout: function () {
-        od.flow.SubProcess.superclass.onLayout.call(this);
-        this.positionShape.toBack();
-    },
+    drawText: Ext.emptyFn,
+    drawShape: Ext.emptyFn,
     getLayoutTarget: function () {
         return this.ownerCt.el;
+    },
+    onLayout: function () {
+        this.positionShape.toBack();
     },
     getInputs: function () {
         if (!this.inputs) {
@@ -150,44 +154,38 @@ od.flow.SubProcess = Ext.extend(Ext.Container, {
         }
         return this.outputs;
     },
-    getCenterOffset: function () {
-        return {x: this.width / 2, y: this.height / 2};
+    syncFilm: function () {
+        this.positionShape.attr({width: this.width, height: this.height});
+        var dx = this.x - this.width/2 - this.positionShape.attr('x'), dy = this.y -this.height/2 - this.positionShape.attr('y');
+        this.shape.transform('t' + dx + ',' + dy);
+
+        if (this.boundarys) {
+            var i = 0, d = 12, r = this.x + this.width/2 - d, l = this.x - this.width/2 + d, b = this.y + this.height/2;
+            this.boundarys.each(function (item) {
+                var s = i / 2;
+                item.x = i % 2 == 0 ? r - item.width * (s + .5) : l + item.width * s;
+                item.y = b + 4;
+                item.syncFilm();
+                item.fireEvent('move');
+                i++;
+            }, this);
+        }
+    },
+    setSize: function (w, h) {
+        this.width = w || this.width;
+        this.height = h || this.height;
     },
     getSize: function () {
         return {width: this.width, height: this.height};
-    },
-    setPosition: function (x, y, ic) {
-        var dx = x - this.positionShape.attr('x'), dy = y - this.positionShape.attr('y');
-        this.shape.transform('t' + dx + ',' + dy);
-        if (this.items && ic != false) {
-            this.items.each(function (c) {
-                if (!c.isConnection) {
-                    if (c.boxReady) {
-                        c.setPosition(x + c.x - this.x, y + c.y - this.y);
-                    } else {
-                        c.x += (x - this.x);
-                        c.y += (y - this.y);
-                    }
-
-                }
-            }, this);
-        }
-        od.flow.SubProcess.superclass.setPosition.call(this, x, y);
-    },
-    setSize: function (w, h) {
-        if (w) {
-            this.width = w;
-        }
-        if (h) {
-            this.height = h;
-        }
-        this.positionShape.attr({width: this.width, height: this.height});
     },
     getWidth: function () {
         return this.width;
     },
     getHeight: function () {
         return this.height;
+    },
+    createFilm: function () {
+
     },
     toggleHilight: function (a) {
         if (this.positionShape) {
@@ -199,11 +197,25 @@ od.flow.SubProcess = Ext.extend(Ext.Container, {
         }
     }
 });
-Ext.reg('flowsubprocess', od.flow.SubProcess);
 
+od.flow.SubProcess = Ext.extend(od.flow.ShapeContainer, {
+    drawText: function (p) {
+        if (this.name) {
+            var x = this.x-this.width/ 2,y=this.y-this.height/2;
+            p.text(x + 12, y + 12, this.name)
+                .attr({'text-anchor': 'start', 'font-size': 12, 'font-family': 'sans-serif'});
+        }
+    },
+    drawShape: function (p) {
+        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white'});
+    }
+});
+Ext.reg('flowsubprocess', od.flow.SubProcess);
 od.flow.EventSubProcess = Ext.extend(od.flow.SubProcess, {
     drawShape: function (p) {
-        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 6).attr({fill: 'white', 'stroke-dasharray': '-'});
+        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white', 'stroke-dasharray': '-'});
     }
 });
 Ext.reg('flowevtsubprocess', od.flow.EventSubProcess);
@@ -220,29 +232,12 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
                 this.el = Ext.get(this.positionShape.node);
             }
         }
-        od.flow.Shape.superclass.onRender.call(this, ct, pos);
     },
     drawShape: Ext.emptyFn,
     drawText: function (p) {
         if (this.name) {
             p.text(this.x, this.y + 28, this.name).attr({'font-size': 12, 'font-family': 'sans-serif'});
         }
-    },
-    onResize: function (aw, ah) {
-        this.width = aw;
-        this.height = ah;
-    },
-    getSize: function () {
-        return {width: this.width, height: this.height};
-    },
-    getWidth: function () {
-        return this.getSize().width;
-    },
-    getHeight: function () {
-        return this.getSize().height;
-    },
-    createFilm: function () {
-
     },
     afterRender: function () {
         od.flow.Shape.superclass.afterRender.call(this);
@@ -281,21 +276,38 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
         }
         return this.outputs;
     },
-    getCenterOffset: function () {
-        var ps = this.positionShape;
-        var rx = ps.type == 'rect' ? this.width / 2 : 0, ry = ps.type == 'rect' ? this.height / 2 : 0;
-        return {x: rx, y: ry};
-    },
-    setPosition: function (x, y) {
+    syncFilm: function () {
         var ps = this.positionShape;
         var ax = ps.type == 'rect' ? 'x' : 'cx', ay = ps.type == 'rect' ? 'y' : 'cy';
-        var dx = x - this.positionShape.attr(ax);
-        var dy = y - this.positionShape.attr(ay);
-        this.offsetShape(dx, dy);
-        od.flow.Shape.superclass.setPosition.call(this, x, y);
-    },
-    offsetShape: function (dx, dy) {
+        var ox = ps.type == 'rect' ? this.width/2 : 0, oy = ps.type == 'rect' ? this.height/2 : 0;
+        var dx = this.x - ox - this.positionShape.attr(ax);
+        var dy = this.y - oy - this.positionShape.attr(ay);
+
         this.shape.transform('t' + dx + ',' + dy);
+    },
+    setSize: function (w, h) {
+        this.width = w || this.width;
+        this.height = h || this.height;
+    },
+    getSize: function () {
+        return {width: this.width, height: this.height};
+    },
+    getWidth: function () {
+        return this.width;
+    },
+    getHeight: function () {
+        return this.height;
+    },
+    setPosition: function (x, y) {
+        this.x = x;
+        this.y = y;
+        this.fireEvent('move');
+    },
+    getPosition: function () {
+        return [this.x, this.y];
+    },
+    createFilm: function () {
+
     }
 });
 
@@ -339,13 +351,15 @@ od.flow.start.Timer = Ext.extend(od.flow.start.None, {
     }
 });
 
-Ext.reg('starttimer', od.flow.start.Error);
+Ext.reg('starttimer', od.flow.start.Timer);
 
 Ext.ns('od.flow.end');
 
-od.flow.end.None = Ext.extend(od.flow.start.None, {
+od.flow.end.None = Ext.extend(od.flow.Shape, {
+    width: 32,
+    height: 32,
     drawShape: function (p) {
-        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white','stroke-width':3});
+        this.positionShape = p.circle(this.x, this.y, 16).attr({fill: 'white', 'stroke-width': 3});
     }
 });
 
@@ -353,7 +367,7 @@ Ext.reg('noneend', od.flow.end.None);
 
 od.flow.end.Error = Ext.extend(od.flow.end.None, {
     drawShape: function (p) {
-        od.flow.end.Error.superclass.drawShape.call(this,p);
+        od.flow.end.Error.superclass.drawShape.call(this, p);
         p.path(['M', this.x + 4, this.y - 10,
             'L', this.x - 4, this.y, this.x + 4, this.y, this.x - 4, this.y + 10]).attr({'stroke-width': 4});
 
@@ -364,87 +378,238 @@ Ext.reg('errorend', od.flow.end.Error);
 
 od.flow.end.Cancel = Ext.extend(od.flow.end.None, {
     drawShape: function (p) {
-        od.flow.end.Cancel.superclass.drawShape.call(this,p);
+        od.flow.end.Cancel.superclass.drawShape.call(this, p);
         p.path(['M', this.x - 7, this.y - 7,
-            'L', this.x + 7, this.y+7,
-            'M',this.x + 7, this.y-7,
-            'L',this.x - 7, this.y + 7]).attr({'stroke-width': 5});
+            'L', this.x + 7, this.y + 7,
+            'M', this.x + 7, this.y - 7,
+            'L', this.x - 7, this.y + 7]).attr({'stroke-width': 5});
     }
 });
 
 Ext.reg('cancelend', od.flow.end.Cancel);
 
-od.flow.UserTask = Ext.extend(od.flow.Shape, {
-    iconUrl: '/tplt/images/workflow-xds/icon-user.png',
+Ext.ns('od.flow.boundary');
+od.flow.boundary.Timer = Ext.extend(od.flow.Shape, {
+    width: 26,
+    height: 26,
     drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, this.width / 2).attr({fill: 'white'});
+        p.circle(this.x, this.y, this.width / 2 - 3);
+        p.path(['M', this.x - 3, this.y, 'L', this.x + 6, this.y].join(',')).attr({'stroke-width': 2});
+        p.path(['M', this.x, this.y + 4, 'L', this.x, this.y - 8].join(','));
+    },
+    drawText: function () {
+
+    }
+});
+Ext.reg('boundarytimer', od.flow.boundary.Timer);
+
+od.flow.boundary.Error = Ext.extend(od.flow.boundary.Timer, {
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, this.width / 2).attr({fill: 'white'});
+        p.circle(this.x, this.y, this.width / 2 - 3);
+        p.path(['M', this.x + 3, this.y - 7,
+            'L', this.x - 3, this.y, this.x + 3, this.y, this.x - 3, this.y + 7]).attr({'stroke-width': 2});
+    }
+});
+Ext.reg('boundaryerror', od.flow.boundary.Error);
+
+od.flow.boundary.Signal = Ext.extend(od.flow.boundary.Timer, {
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, this.width / 2).attr({fill: 'white'});
+        p.circle(this.x, this.y, this.width / 2 - 3);
+        p.path(['M', this.x, this.y - 6,
+            'L', this.x - 5, this.y + 4, this.x + 5, this.y + 4, 'Z']);
+    }
+});
+Ext.reg('boundarysignal', od.flow.boundary.Signal);
+
+od.flow.boundary.Message = Ext.extend(od.flow.boundary.Timer, {
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, this.width / 2).attr({fill: 'white'});
+        p.circle(this.x, this.y, this.width / 2 - 3);
+        p.rect(this.x - 6, this.y - 4, 12, 8).attr({fill: 'white'});
+        p.path(['M', this.x, this.y, 'L', this.x - 6, this.y - 4, this.x + 6, this.y - 4, 'Z']);
+    }
+});
+Ext.reg('boundarymsg', od.flow.boundary.Message);
+
+od.flow.boundary.Cancel = Ext.extend(od.flow.boundary.Timer, {
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, this.width / 2).attr({fill: 'white'});
+        p.circle(this.x, this.y, this.width / 2 - 3);
+        p.path(['M', this.x - 5, this.y - 5,
+            'L', this.x + 5, this.y + 5,
+            'M', this.x + 5, this.y - 5,
+            'L', this.x - 5, this.y + 5]).attr({'stroke-width': 3});
+    }
+});
+Ext.reg('boundarycancel', od.flow.boundary.Cancel);
+
+Ext.ns('od.flow.inter');
+od.flow.inter.None = Ext.extend(od.flow.Shape, {
+    width: 32,
+    height: 32,
+    drawShape: function (p) {
+        this.positionShape = p.circle(this.x, this.y, this.width / 2).attr({fill: 'white'});
+        p.circle(this.x, this.y, this.width / 2 - 4);
+    }
+});
+Ext.reg('internone', od.flow.inter.None);
+
+od.flow.inter.Timer = Ext.extend(od.flow.inter.None, {
+    drawShape: function (p) {
+        od.flow.inter.Timer.superclass.drawShape.call(this, p);
+        p.path(['M', this.x - 5, this.y, 'L', this.x + 9, this.y].join(',')).attr({'stroke-width': 4});
+        p.path(['M', this.x, this.y + 6, 'L', this.x, this.y - 11].join(',')).attr({'stroke-width': 2});
+    }
+});
+Ext.reg('intertimer', od.flow.inter.Timer);
+
+od.flow.inter.SignalCatch = Ext.extend(od.flow.inter.None, {
+    drawShape: function (p) {
+        od.flow.inter.SignalCatch.superclass.drawShape.call(this, p);
+        p.path(['M', this.x, this.y - 8,
+            'L', this.x - 7, this.y + 5, this.x + 7, this.y + 5, 'Z']);
+    }
+});
+Ext.reg('intersignalcatch', od.flow.inter.SignalCatch);
+
+od.flow.inter.Message = Ext.extend(od.flow.inter.None, {
+    drawShape: function (p) {
+        od.flow.inter.Message.superclass.drawShape.call(this, p);
+        p.rect(this.x - 8, this.y - 5, 16, 10).attr({fill: 'white'});
+        p.path(['M', this.x, this.y,
+            'L', this.x - 8, this.y - 5, this.x + 8, this.y - 5, 'Z']);
+    }
+});
+Ext.reg('intermsg', od.flow.inter.Message);
+
+od.flow.inter.SignalThrow = Ext.extend(od.flow.inter.None, {
+    drawShape: function (p) {
+        od.flow.inter.SignalThrow.superclass.drawShape.call(this, p);
+        p.path(['M', this.x, this.y - 8,
+            'L', this.x - 7, this.y + 5, this.x + 7, this.y + 5,
+            'Z']).attr({fill: 'black'});
+    }
+});
+Ext.reg('intersignalthrow', od.flow.inter.SignalThrow);
+
+od.flow.TaskBase = Ext.extend(od.flow.Shape, {
+    initComponent: function () {
+        od.flow.TaskBase.superclass.initComponent.call(this);
+        if (this.boundaryEvents) {
+            this.boundarys = new Ext.util.MixedCollection(false, this.getComponentId);
+            Ext.each(this.boundaryEvents, function (e) {
+                this.boundarys.add(Ext.create(Ext.apply(e, {ownerCt: this})));
+            }, this);
+            delete this.boundaryEvents;
+        }
+    },
+    drawShape: function (p) {
+        this.paper = p;
         var x = this.x - this.width / 2, y = this.y - this.height / 2;
-        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 7).attr({fill: '315-#fff-#ffffbb'});
-        p.image(this.iconUrl, this.x + 5, this.y + 5, 16, 16);
+        this.positionShape = p.rect(x, y, this.width, this.height, 7).attr({fill: '315-#fff-#ffffbb'});
+        p.image(this.iconUrl, x + 5, y + 5, 16, 16);
         this.drawSequential(p);
     },
     getColor: function () {
         return '315-#fff-#ffffbb';
     },
+    afterRender: function () {
+        od.flow.TaskBase.superclass.afterRender.call(this);
+        this.drawBoundaryEvents(this.paper);
+    },
+    drawBoundaryEvents: function (p) {
+        if (!Ext.isEmpty(this.boundarys)) {
+            var i = 0, d = 12, r = this.x + this.width / 2 - d, l = this.x - this.width / 2 + d, b = this.y + this.height / 2;
+            this.boundarys.each(function (item) {
+                var s = i / 2;
+                item.x = i % 2 == 0 ? r - item.width * (s + .5) : l + item.width * s;
+                item.y = b + 4;
+                item.render(this);
+                i++;
+            }, this);
+        }
+    },
     drawText: function (p) {
         if (this.name) {
-            var x = this.x + this.width / 2, y = this.y + this.height / 2;
-            p.text(x, y, this.name).attr({'font-size': 12, 'font-family': 'sans-serif'});
+            this.textShape = p.text(this.x, this.y, this.name).attr({'font-size': 12, 'font-family': 'sans-serif'});
         }
     },
     drawSequential: function (p) {
-        var x = this.x + this.width / 2, y = this.y + this.height / 2;
+        var sp = this.getSequentialPath();
+        if (!Ext.isEmpty(sp)) {
+            this.sequentialShape = p.path(sp);
+        }
+    },
+    getSequentialPath: function () {
+        var x = this.x, h = this.y + this.height / 2;
+        var ret = [];
         if (this.sequential) {
-            p.rect(x - 6, y + this.height / 2 - 10, 12, .1, 0);
-            p.rect(x - 6, y + this.height / 2 - 7, 12, .1, 0);
-            p.rect(x - 6, y + this.height / 2 - 4, 12, .1, 0);
+            ret = ['M', x - 6, h - 10, 'L', x + 6, h - 10,
+                'M', x - 6, h - 7, 'L', x + 6, h - 7,
+                'M', x - 6, h - 4, 'L', x + 6, h - 4];
         } else if (this.sequential === false) {
-            p.rect(x - 3, y + this.height / 2 - 12, .1, 10, 0);
-            p.rect(x, y + this.height / 2 - 12, .1, 10, 0);
-            p.rect(x + 3, y + this.height / 2 - 12, .1, 10, 0);
+            ret = ['M', x - 3, h - 12, 'L', x - 3, h - 2,
+                'M', x, h - 12, 'L', x, h - 2,
+                'M', x + 3, h - 12, 'L', x + 3, h - 2];
         }
+        return ret;
     },
-    getSize: function () {
-        return {width: this.width, height: this.height};
-    },
-    setSize: function (w, h) {
-        if (w) {
-            this.width = w;
+    syncFilm: function () {
+        od.flow.TaskBase.superclass.syncFilm.call(this);
+        var bb = this.positionShape.getBBox();
+        var dx = this.x - bb.x, dy = this.y - bb.y, dw = this.width - bb.width, dh = this.height - bb.height;
+        if (dh != 0 || dw != 0) {
+            this.positionShape.attr({width: this.width, height: this.height});
+            if (this.textShape) {
+                this.textShape.attr({x: this.x+dw/2, y: this.y+dh/2});
+            }
+            if (this.sequentialShape) {
+                this.sequentialShape.attr({path: this.getSequentialPath()});
+            }
         }
-        if (h) {
-            this.height = h;
+        if (this.boundarys) {
+            var i = 0, d = 12, r = this.x + this.width/2 - d, l = this.x - this.width/2 + d, b = this.y + this.height/2;
+            this.boundarys.each(function (item) {
+                var s = i / 2;
+                item.x = i % 2 == 0 ? r - item.width * (s + .5) : l + item.width * s;
+                item.y = b + 4;
+                item.syncFilm();
+                item.fireEvent('move');
+                i++;
+            }, this);
         }
-        this.positionShape.attr({width: this.width, height: this.height});
-    },
-    getWidth: function () {
-        return this.width;
-    },
-    getHeight: function () {
-        return this.height;
     }
+});
+
+od.flow.UserTask = Ext.extend(od.flow.TaskBase, {
+    iconUrl: '/tplt/images/workflow-xds/icon-user.png'
 });
 
 Ext.reg('flowusertask', od.flow.UserTask);
 
-od.flow.ServiceTask = Ext.extend(od.flow.UserTask, {
+od.flow.ServiceTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-gear.png'
 });
 
 Ext.reg('flowservicetask', od.flow.ServiceTask);
 
 
-od.flow.ScriptTask = Ext.extend(od.flow.UserTask, {
+od.flow.ScriptTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-script.png'
 });
 
 Ext.reg('flowscripttask', od.flow.ScriptTask);
 
-od.flow.MailTask = Ext.extend(od.flow.UserTask, {
+od.flow.MailTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-email.png'
 });
 
 Ext.reg('flowmailtask', od.flow.MailTask);
 
-od.flow.ManualTask = Ext.extend(od.flow.UserTask, {
+od.flow.ManualTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-hand.png'
 });
 
@@ -454,12 +619,19 @@ od.flow.Gateway = Ext.extend(od.flow.Shape, {
     width: 32,
     height: 32,
     drawShape: function (p) {
-        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
+        this.positionShape = p.rect(this.x-this.width/2, this.y-this.height/2, this.width, this.height, 5).attr({fill: 'white'});
+    },
+    onRender:function(ct,pos){
+        od.flow.Gateway.superclass.onRender.call(this,ct,pos);
+        this.shape.transform('r45');
     },
     drawText: function () {
 
     },
-    offsetShape: function (dx, dy) {
+    syncFilm: function () {
+        var ps = this.positionShape;
+        var dx = this.x -this.width/2- this.positionShape.attr('x');
+        var dy = this.y -this.height/2- this.positionShape.attr('y');
         this.shape.transform(['t' + dx + ',' + dy + 'r45']);
     }
 });
@@ -468,11 +640,12 @@ Ext.reg('flowgateway', od.flow.Gateway);
 
 od.flow.GatewayAnd = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
-        p.path(['M', this.x + 8, this.y + 8,
-            'L', this.x + 24, this.y + 24,
-            'M', this.x + 24, this.y + 8,
-            'L', this.x + 8, this.y + 24].join(',')).attr({'stroke-width': 4});
+        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        this.positionShape = p.rect(x, y, this.width, this.height, 5).attr({fill: 'white'});
+        p.path(['M', x + 8, y + 8,
+            'L', x + 24, y + 24,
+            'M', x + 24, y + 8,
+            'L', x + 8, y + 24].join(',')).attr({'stroke-width': 4});
     }
 });
 
@@ -480,8 +653,9 @@ Ext.reg('flowgatewayand', od.flow.GatewayAnd);
 
 od.flow.GatewayOr = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
-        p.circle(this.x + 16, this.y + 16, 10).attr({'stroke-width': 4});
+        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        this.positionShape = p.rect(x, y, this.width, this.height, 5).attr({fill: 'white'});
+        p.circle(this.x, this.y, 10).attr({'stroke-width': 4});
     }
 });
 
@@ -489,11 +663,12 @@ Ext.reg('flowgatewayor', od.flow.GatewayOr);
 
 od.flow.GatewayXor = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
-        this.positionShape = p.rect(this.x, this.y, this.width, this.height, 5).attr({fill: 'white'});
-        p.path(['M', this.x + 5, this.y + 16,
-            'L', this.x + 27, this.y + 16,
-            'M', this.x + 16, this.y + 5,
-            'L', this.x + 16, this.y + 27].join(',')).attr({'stroke-width': 4});
+        var x = this.x-this.width/ 2,y=this.y-this.height/2;
+        this.positionShape = p.rect(x, y, this.width, this.height, 5).attr({fill: 'white'});
+        p.path(['M', x + 5, this.y + 16,
+            'L', x + 27, y + 16,
+            'M', x + 16, y + 5,
+            'L', x + 16, y + 27].join(',')).attr({'stroke-width': 4});
     }
 });
 
@@ -525,11 +700,10 @@ od.flow.Connection = Ext.extend(Ext.Component, {
                 this.doRender();
             }
         }
-        //od.flow.Connection.superclass.onRender.call(this, ct, pos);
     },
     doRender: function () {
         var p = this.ownerCt.paper;
-        var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
+        var sb = this.startNode.getBox(), eb = this.endNode.getBox();
         var path = od.flow.getConPath(sb, eb);
         this.shape = p.path(path).attr(this.getDefAttr());
         if (this.viewerNode) {
@@ -561,7 +735,6 @@ od.flow.Connection = Ext.extend(Ext.Component, {
 });
 
 Ext.reg("flowconnection", od.flow.Connection);
-
 
 od.flow.Project = Ext.extend(xds.Project, {
     open: function (data) {
@@ -728,12 +901,14 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
 od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     selecteds: [],
     isAbsolute: function (a) {
-        return a.component.cid != 'process' && !a.component.isConnection;
+        return a.component.cid != 'process' && !a.component.isConnection && !a.component.isBoundary;
     },
     onBeforeStart: function (e) {
         var ret = od.flow.Canvas.DragTracker.superclass.onBeforeStart.call(this, e);
-        if (ret && e.button == 2 && this.cmp.connectable) {
+        if (e.button == 2 && this.cmp.connectable) {
             this.dragMode = "Connection";
+            this.waiting = true;
+            return true;
         } else if (this.node) {
             if (this.node.component.isConnection) {
                 var c = this.node.component.getExtComponent();
@@ -776,12 +951,12 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
             if (this.dragMode == 'Absolute') {
                 if (this.cmp.isContainer) {
                     if (Ext.isEmpty(this.selecteds)) {
-                        var n = this.cmp.node;
-                        if (n.hasChildNodes()) {
-                            this.selecteds.push(n);
-                            n.eachChild(function (cn) {
-                                if (!cn.component.isConnection) {
-                                    this.selecteds.push(cn);
+                        var ec = this.cmp.getExtComponent();
+                        if (ec.items) {
+                            this.selecteds.push(this.cmp.node);
+                            ec.items.each(function (c) {
+                                if (!c.isConnection) {
+                                    this.selecteds.push(c.viewerNode);
                                 }
                             }, this);
                         }
@@ -838,12 +1013,15 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     },
     clearSelections: function () {
         Ext.each(this.selecteds, function (item) {
-            item.component.getExtComponent().toggleHilight(false);
+            var ec = item.component.getExtComponent();
+            if (ec) {
+                ec.toggleHilight(false);
+            }
         });
         this.selecteds = [];
     },
     onDragConnection: function (e, c, a) {
-        var s = this.cmp.getExtComponent().positionShape;
+        var s = this.cmp.getExtComponent();
         var cp = this.cmp.getExtComponent().ownerCt;
 
         var pt = cp.el.translatePoints(e.xy[0], e.xy[1]);
@@ -851,15 +1029,15 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var tc = xds.canvas.findTarget(e);
         if (tc && tc.component.connectable && tc != this.cmp.node.parentNode) {
             this.conTarget = tc.component;
-            eb = this.conTarget.getExtComponent().positionShape.getBBox();
+            eb = this.conTarget.getExtComponent().getBox();
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(s.getBBox(), eb);
+        var path = od.flow.getConPath(s.getBox(), eb);
         if (this.conTrack) {
             this.conTrack.attr({path: path});
         } else {
-            this.conTrack = s.paper.path(path).attr({'stroke-width': 2, 'arrow-end': 'block-wide-long', 'stroke-linejoin': 'miter'});
+            this.conTrack = s.positionShape.paper.path(path).attr({'stroke-width': 2, 'arrow-end': 'block-wide-long', 'stroke-linejoin': 'miter'});
         }
     },
     onEndConnection: function (b, c, a) {
@@ -891,11 +1069,11 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var tc = xds.canvas.findTarget(b);
         if (tc && tc.component.connectable && tc != this.cmp.node.parentNode) {
             this.conTarget = tc.component;
-            sb = this.conTarget.getExtComponent().positionShape.getBBox();
+            sb = this.conTarget.getExtComponent().getBox();
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(sb, ec.endNode.positionShape.getBBox());
+        var path = od.flow.getConPath(sb, ec.endNode.getBox());
         ec.shape.attr({path: path});
     },
     onEndConStart: function (b, c, a) {
@@ -917,11 +1095,11 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         var tc = xds.canvas.findTarget(b);
         if (tc && tc.component.connectable && tc != this.cmp.node.parentNode) {
             this.conTarget = tc.component;
-            eb = this.conTarget.getExtComponent().positionShape.getBBox();
+            eb = this.conTarget.getExtComponent().getBox();
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(ec.startNode.positionShape.getBBox(), eb);
+        var path = od.flow.getConPath(ec.startNode.getBox(), eb);
         ec.shape.attr({path: path});
     },
     onEndConEnd: function (b, c, a) {
@@ -935,57 +1113,58 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         }
         xds.fireEvent("componentchanged");
     },
-    onDragAbsolute: function (e, c, a) {
+    getSnapedPoint: function (e, d, a) {
         var ec = this.cmp.getExtComponent();
         var ct = ec.ownerCt;
-        var x = this.startX - c[0] + ec.getCenterOffset().x,
-            y = this.startY - c[1] + ec.getCenterOffset().y,
-            dx = 0, dy = 0,
+        var x = this.startX - d[0],
+            y = this.startY - d[1],
             vf = false, lf = false;
-//        if (ct) {
-//            var p = ct.paper;
-//            if (p) {
-//                p.hl.hide();
-//                p.vl.hide();
-//                for (var i = 0; i < ct.items.items.length; i++) {
-//                    var item = ct.items.items[i];
-//                    if (item !== ec && !item.isConnection && item.shape) {
-//                        var bb = item.positionShape.getBBox();
-//                        var cx = (bb.x + bb.width / 2);
-//                        var cy = (bb.y + bb.height / 2);
-//
-//                        if (Math.abs(x - cx) < 20 && !lf) {
-//                            p.hl.attr({path: ['M', cx, 0, 'L', cx, p.height].join(',')});
-//                            p.hl.toBack().show();
-//                            dx = x - cx;
-//                            lf = true;
-//                        }
-//                        if (Math.abs(y - cy) < 20 && !vf) {
-//                            p.vl.attr({path: ['M', 0, cy, 'L', p.width, cy].join(',')});
-//                            p.vl.toBack().show();
-//                            dy = y - cy;
-//                            vf = true;
-//                        }
-//
-//                        if (lf && vf) {
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        a.setPosition(this.snap(this.startX - c[0]), this.snap(this.startY - c[1]));
-//        console.log(c[0],c[1],dx,dy,this.startX,this.startY);
+        var ret = {x: this.startX - d[0], y: this.startY - d[1]};
+        if (ct) {
+            var p = ct.paper;
+            if (p) {
+                p.hl.hide();
+                p.vl.hide();
+                for (var i = 0; i < ct.items.items.length; i++) {
+                    var item = ct.items.items[i];
+                    if (item !== ec && !item.isConnection && item.shape) {
+                        var bb = item.getBox();
+                        if (Math.abs(x - bb.x) < 20 && !lf) {
+                            p.hl.attr({path: ['M', bb.x, 0, 'L', bb.x, p.height].join(',')});
+                            p.hl.toBack().show();
+                            ret.x = bb.x;
+                            lf = true;
+                        }
+                        if (Math.abs(y - bb.y) < 20 && !vf) {
+                            p.vl.attr({path: ['M', 0, bb.y, 'L', p.width, bb.y].join(',')});
+                            p.vl.toBack().show();
+                            ret.y = bb.y;
+                            vf = true;
+                        }
+
+                        if (lf && vf) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return ret;
+    },
+    onDragAbsolute: function (e, d, a) {
         if (!Ext.isEmpty(this.selecteds)) {
             Ext.each(this.selecteds, function (sn) {
                 var s = sn.component.getExtComponent();
-                s.setPosition(s.x - c[0] - dx, s.y - c[1] - dy, false);
+                s.setPosition(s.x - d[0], s.y - d[1]);
+                this.startXY = e.getXY();
+                s.syncFilm();
             }, this);
         } else {
-            a.setPosition(a.x - c[0] - dx, a.y - c[1] - dy, false);
+            var p = this.getSnapedPoint(e, d, a);
+            a.setPosition(p.x, p.y);
+            a.syncFilm();
         }
-
-        this.startXY = e.getXY();
     },
     onEndAbsolute: function (e, c, a) {
         xds.canvas.beginUpdate();
@@ -1026,10 +1205,10 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
             var pn = p.viewerNode;
             var ec = c.getExtComponent();
             if (p.items) {
-                var cb = {x: ec.x, y: ec.y, x2: ec.x + ec.width, y2: ec.y + ec.height}, f = false;
+                var cb = {x: ec.x - ec.width/2, y: ec.y-ec.height/2, x2: ec.x + ec.width/2, y2: ec.y + ec.height/2}, f = false;
                 p.items.each(function (i) {
                     if (i.isContainer) {
-                        var pb = {x: i.x, y: i.y, x2: i.x + i.width, y2: i.y + i.height};
+                        var pb = {x: i.x-i.width/2, y: i.y- i.height/2, x2: i.x + i.width/2, y2: i.y + i.height/2};
                         if (this.isBBInside(pb, cb)) {
                             if (i.viewerNode != c.node.parentNode) {
                                 i.viewerNode.appendChild(c.node);
@@ -1130,6 +1309,18 @@ od.FlowDesignerModule = Ext.extend(od.XdsModule, {
         xds.Registry.register(xds.types.flow.end.None);
         xds.Registry.register(xds.types.flow.end.Error);
         xds.Registry.register(xds.types.flow.end.Cancel);
+
+        xds.Registry.register(xds.types.flow.boundary.Timer);
+        xds.Registry.register(xds.types.flow.boundary.Error);
+        xds.Registry.register(xds.types.flow.boundary.Message);
+        xds.Registry.register(xds.types.flow.boundary.Signal);
+        xds.Registry.register(xds.types.flow.boundary.Cancel);
+
+        xds.Registry.register(xds.types.flow.inter.None);
+        xds.Registry.register(xds.types.flow.inter.Timer);
+        xds.Registry.register(xds.types.flow.inter.Message);
+        xds.Registry.register(xds.types.flow.inter.SignalCatch);
+        xds.Registry.register(xds.types.flow.inter.SignalThrow);
 
         xds.Registry.register(xds.types.flow.UserTask);
         xds.Registry.register(xds.types.flow.ServiceTask);

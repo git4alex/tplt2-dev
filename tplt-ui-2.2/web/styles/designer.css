@@ -1181,6 +1181,38 @@ body {
     background-image: url(../images/workflow-xds/icon-end-cancel.png) !important;
 }
 
+.icon-flow-boundary-timer{
+    background-image: url(../images/workflow-xds/icon-timer.png) !important;
+}
+.icon-flow-boundary-error{
+    background-image: url(../images/workflow-xds/icon-ex.png) !important;
+}
+.icon-flow-boundary-msg{
+    background-image: url(../images/workflow-xds/icon-msg.png) !important;
+}
+.icon-flow-boundary-signal{
+    background-image: url(../images/workflow-xds/icon-signal.png) !important;
+}
+.icon-flow-boundary-cancel{
+    background-image: url(../images/workflow-xds/icon-cancel.png) !important;
+}
+
+.icon-flow-inter-timer{
+    background-image: url(../images/workflow-xds/icon-timer.png) !important;
+}
+.icon-flow-inter-signal-black{
+    background-image: url(../images/workflow-xds/icon-signal-black.png) !important;
+}
+.icon-flow-inter-msg{
+    background-image: url(../images/workflow-xds/icon-msg.png) !important;
+}
+.icon-flow-inter-signal{
+    background-image: url(../images/workflow-xds/icon-signal.png) !important;
+}
+.icon-flow-inter-none{
+    background-image: url(../images/workflow-xds/icon-start.png) !important;
+}
+
 .icon-flow-gateway{
     background-image: url(../images/workflow-xds/icon-gateway.png) !important;
 }

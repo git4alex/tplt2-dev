@@ -9,7 +9,6 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
     xtype: 'process',
     naming: "Process",
     isContainer: true,
-    bindable: false,
     hiddenInToolbox: true,
     initConfig: function () {
         this.config.layout = 'flow';
@@ -21,8 +20,8 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
             }
         };
     },
-    isValidParent: function () {
-        return true;
+    isValidParent: function (c) {
+        return !c.isBoundary;
     },
     getSnapToGrid: function () {
         return !this.snapToGrid ? "(none)" : this.snapToGrid;
@@ -97,7 +96,6 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
     xtype: 'flowsubprocess',
     naming: "SubProcess",
     isContainer: true,
-    bindable: false,
     connectable: true,
     minWidth: 160,
     minHeight: 100,
@@ -111,6 +109,17 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
             this.userConfig.id = this.nextId();
             this.userConfig.name = this.userConfig.id;
         }
+    },
+    getReferenceForConfig: function (b, a) {
+        var c = xds.types.flow.SubProcess.superclass.getReferenceForConfig.call(this, b, a);
+        if (b.isListener) {
+            c.type = "array";
+            c.ref = "flowListeners";
+        } else if (b.isBoundary) {
+            c.type = 'array';
+            c.ref = "boundaryEvents";
+        }
+        return c;
     },
     isValidParent: function (c) {
         return c.cid != 'flowsubprocess';
@@ -282,8 +291,8 @@ xds.types.flow.start.None = Ext.extend(xds.types.flow.ShapeBase, {
     iconCls: 'icon-flow-start-none',
     category: "启动事件(StartEvents)",
     defaultName: "&lt;NoneStart&gt;",
-    text: "空启动",
-    dtype: "xdstartnone",
+    text: "空事件",
+    dtype: "startnone",
     xtype: 'startnone',
     naming: "NoneStart",
     transformGroup: "state",
@@ -302,15 +311,12 @@ xds.types.flow.start.None = Ext.extend(xds.types.flow.ShapeBase, {
     ]
 });
 
-xds.flow.start.None = Ext.extend(od.flow.start.None, {});
-Ext.reg('xdstartnone', xds.flow.start.None);
-
 xds.types.flow.start.Message = Ext.extend(xds.types.flow.start.None, {
     cid: 'startmsg',
     iconCls: 'icon-flow-start-msg',
     defaultName: "&lt;MessageStart&gt;",
-    text: "消息启动",
-    dtype: "xdstartmsg",
+    text: "消息事件",
+    dtype: "startmsg",
     xtype: 'startmsg',
     naming: "MessageStart",
     xdConfigs: [
@@ -322,15 +328,12 @@ xds.types.flow.start.Message = Ext.extend(xds.types.flow.start.None, {
     ]
 });
 
-xds.flow.start.Message = Ext.extend(od.flow.start.Message, {});
-Ext.reg('xdstartmsg', xds.flow.start.Message);
-
 xds.types.flow.start.Error = Ext.extend(xds.types.flow.start.None, {
     cid: 'starterror',
     iconCls: 'icon-flow-start-error',
     defaultName: "&lt;ErrorStart&gt;",
-    text: "异常启动",
-    dtype: "xdstarterror",
+    text: "异常事件",
+    dtype: "starterror",
     xtype: 'starterror',
     naming: "ErrorStart",
     xdConfigs: [
@@ -342,15 +345,12 @@ xds.types.flow.start.Error = Ext.extend(xds.types.flow.start.None, {
     ]
 });
 
-xds.flow.start.Error = Ext.extend(od.flow.start.Error, {});
-Ext.reg('xdstarterror', xds.flow.start.Error);
-
 xds.types.flow.start.Timer = Ext.extend(xds.types.flow.start.None, {
     cid: 'starttimer',
     iconCls: 'icon-flow-start-timer',
     defaultName: "&lt;TimerStart&gt;",
-    text: "定时器启动",
-    dtype: "xdstarttimer",
+    text: "定时器事件",
+    dtype: "starttimer",
     xtype: 'starttimer',
     naming: "TimerStart",
     xdConfigs: [
@@ -369,21 +369,20 @@ xds.types.flow.start.Timer = Ext.extend(xds.types.flow.start.None, {
     ]
 });
 
-xds.flow.start.Timer = Ext.extend(od.flow.start.Timer, {});
-Ext.reg('xdstarttimer', xds.flow.start.Timer);
-
 Ext.ns('xds.flow.end');
 Ext.ns('xds.types.flow.end');
 
-xds.types.flow.end.None = Ext.extend(xds.types.flow.start.None, {
+xds.types.flow.end.None = Ext.extend(xds.types.flow.ShapeBase, {
     cid: 'noneend',
     iconCls: 'icon-flow-end-none',
     category: "结束事件(EndEvents)",
     defaultName: "&lt;NoneEnd&gt;",
-    text: "空结束",
+    text: "空事件",
     dtype: "xdnoneend",
     xtype: 'noneend',
-    naming: "NoneEnd"
+    naming: "NoneEnd",
+    transformGroup: "state",
+    connectable: true
 });
 
 xds.flow.end.None = Ext.extend(od.flow.end.None, {});
@@ -393,50 +392,168 @@ xds.types.flow.end.Error = Ext.extend(xds.types.flow.end.None, {
     cid: 'errorend',
     iconCls: 'icon-flow-end-error',
     defaultName: "&lt;ErrorEnd&gt;",
-    text: "异常结束",
-    dtype: "xderrorend",
+    text: "异常事件",
+    dtype: "errorend",
     xtype: 'errorend',
     naming: "ErrorEnd"
 });
-
-xds.flow.end.Error = Ext.extend(od.flow.end.Error, {});
-Ext.reg('xderrorend', xds.flow.end.Error);
 
 xds.types.flow.end.Cancel = Ext.extend(xds.types.flow.end.None, {
     cid: 'cancelend',
     iconCls: 'icon-flow-end-cancel',
     defaultName: "&lt;CancelEnd&gt;",
-    text: "取消结束",
-    dtype: "xdcancelend",
+    text: "取消事件",
+    dtype: "cancelend",
     xtype: 'cancelend',
     naming: "CancelEnd"
 });
 
-xds.flow.end.Cancel = Ext.extend(od.flow.end.Cancel, {});
-Ext.reg('xdcancelend', xds.flow.end.Cancel);
+Ext.ns('xds.flow.boundary');
+Ext.ns('xds.types.flow.boundary');
+xds.types.flow.boundary.BoundaryBase = Ext.extend(xds.types.flow.ShapeBase, {
+    category: "边界事件(BoundaryEvents)",
+    isBoundary: true,
+    isValidChild: function (ct) {
+        return ct.isTask || ct.isContainer;
+    }
+});
+
+xds.types.flow.boundary.Timer = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
+    cid: 'boundarytimer',
+    iconCls: 'icon-flow-boundary-timer',
+    defaultName: "&lt;Timer&gt;",
+    text: "定时器事件",
+    dtype: "boundarytimer",
+    xtype: 'boundarytimer',
+    naming: "Timer"
+});
+
+xds.types.flow.boundary.Error = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
+    cid: 'boundaryerror',
+    iconCls: 'icon-flow-boundary-error',
+    defaultName: "&lt;Error&gt;",
+    text: "异常事件",
+    dtype: "boundaryerror",
+    xtype: 'boundaryerror',
+    naming: "Error"
+});
+
+xds.types.flow.boundary.Signal = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
+    cid: 'boundarysignal',
+    iconCls: 'icon-flow-boundary-signal',
+    defaultName: "&lt;Signal&gt;",
+    text: "信号事件",
+    dtype: "boundarysignal",
+    xtype: 'boundarysignal',
+    naming: "Signal"
+});
+
+xds.types.flow.boundary.Message = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
+    cid: 'boundarymsg',
+    iconCls: 'icon-flow-boundary-msg',
+    defaultName: "&lt;Message&gt;",
+    text: "消息事件",
+    dtype: "boundarymsg",
+    xtype: 'boundarymsg',
+    naming: "Message"
+});
+
+xds.types.flow.boundary.Cancel = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
+    cid: 'boundarycancel',
+    iconCls: 'icon-flow-boundary-cancel',
+    defaultName: "&lt;Cancel&gt;",
+    text: "取消事件",
+    dtype: "boundarycancel",
+    xtype: 'boundarycancel',
+    naming: "Cancel"
+});
+
+Ext.ns('xds.types.flow.inter');
+xds.types.flow.inter.None = Ext.extend(xds.types.flow.ShapeBase, {
+    cid: 'internone',
+    iconCls: 'icon-flow-inter-none',
+    category: "中间事件(IntermediateEvents)",
+    defaultName: "&lt;None&gt;",
+    text: "空抛出事件",
+    dtype: "internone",
+    xtype: 'internone',
+    naming: "None",
+    transformGroup: 'state',
+    connectable: true
+});
+
+xds.types.flow.inter.Timer = Ext.extend(xds.types.flow.inter.None, {
+    cid: 'intertimer',
+    iconCls: 'icon-flow-inter-timer',
+    defaultName: "&lt;Timer&gt;",
+    text: "定时器事件",
+    dtype: "intertimer",
+    xtype: 'intertimer',
+    naming: "Timer"
+});
+xds.types.flow.inter.Message = Ext.extend(xds.types.flow.inter.None, {
+    cid: 'intermsg',
+    iconCls: 'icon-flow-inter-msg',
+    defaultName: "&lt;Message&gt;",
+    text: "消息事件",
+    dtype: "intermsg",
+    xtype: 'intermsg',
+    naming: "Message"
+});
+xds.types.flow.inter.SignalCatch = Ext.extend(xds.types.flow.inter.None, {
+    cid: 'intersignalcatch',
+    iconCls: 'icon-flow-inter-signal',
+    defaultName: "&lt;Signal&gt;",
+    text: "信号(捕获)事件",
+    dtype: "intersignalcatch",
+    xtype: 'intersignalcatch',
+    naming: "Signal"
+});
+xds.types.flow.inter.SignalThrow = Ext.extend(xds.types.flow.inter.None, {
+    cid: 'intersignalthrow',
+    iconCls: 'icon-flow-inter-signal-black',
+    defaultName: "&lt;Signal&gt;",
+    text: "信号(抛出)事件",
+    dtype: "intersignalthrow",
+    xtype: 'intersignalthrow',
+    naming: "Signal"
+});
 
 xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
     isTask: true,
     category: "任务(Task)",
     minWidth: 100,
     minHeight: 60,
-    isContainer: true,
     isResizable: function () {
         return true;
     },
-    isValidParent: function () {
-        return false;
+    isValidParent: function (c) {
+        return c.isBoundary;
     },
     initConfig: function (o) {
         xds.types.flow.TaskBase.superclass.initConfig.call(this, o);
         this.config.width = 100;
         this.config.height = 60;
     },
+    getNode: function () {
+        if (!this.node) {
+            this.node = new Ext.tree.TreeNode({
+                id: this.id,
+                text: this.getNodeText(),
+                iconCls: this.iconCls
+            });
+            this.node.component = this;
+        }
+        return this.node;
+    },
     getReferenceForConfig: function (b, a) {
-        var c = xds.types.flow.Container.superclass.getReferenceForConfig.call(this, b, a);
+        var c = xds.types.flow.TaskBase.superclass.getReferenceForConfig.call(this, b, a);
         if (b.isListener) {
             c.type = "array";
             c.ref = "flowListeners";
+        } else if (b.isBoundary) {
+            c.type = 'array';
+            c.ref = "boundaryEvents";
         }
         return c;
     },
@@ -494,7 +611,7 @@ xds.types.flow.UserTask = Ext.extend(xds.types.flow.TaskBase, {
     iconCls: 'icon-flow-task-user',
     defaultName: "&lt;UserTask&gt;",
     text: "用户任务",
-    dtype: "xdflowusertask",
+    dtype: "flowusertask",
     xtype: 'flowusertask',
     naming: "UserTask",
     xdConfigs: [
@@ -531,17 +648,12 @@ xds.types.flow.UserTask = Ext.extend(xds.types.flow.TaskBase, {
     ]
 });
 
-xds.flow.UserTask = Ext.extend(od.flow.UserTask, {
-
-});
-Ext.reg('xdflowusertask', xds.flow.UserTask);
-
 xds.types.flow.ServiceTask = Ext.extend(xds.types.flow.TaskBase, {
     cid: 'flowservicetask',
     iconCls: 'icon-flow-task-service',
     defaultName: "&lt;ServiceTask&gt;",
     text: "服务任务",
-    dtype: "xdflowservicetask",
+    dtype: "flowservicetask",
     xtype: 'flowservicetask',
     naming: "ServiceTask",
     xdConfigs: [
@@ -564,11 +676,6 @@ xds.types.flow.ServiceTask = Ext.extend(xds.types.flow.TaskBase, {
         }
     ]
 });
-
-xds.flow.ServiceTask = Ext.extend(od.flow.ServiceTask, {
-
-});
-Ext.reg('xdflowservicetask', xds.flow.ServiceTask);
 
 xds.types.flow.ScriptTask = Ext.extend(xds.types.flow.TaskBase, {
     cid: 'flowscripttask',
@@ -799,7 +906,6 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
     defaultName: "&lt;Connection&gt;",
     xtype: 'flowconnection',
     dtype: 'xdflowconnection',
-    isContainer: false,
     naming: "Connection",
     isVisual: false,
     isConnection: true,
@@ -893,7 +999,7 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
     },
     updatePath: function () {
         if (this.shape) {
-            var sb = this.startNode.positionShape.getBBox(), eb = this.endNode.positionShape.getBBox();
+            var sb = this.startNode.getBox(), eb = this.endNode.getBox();
             var path = od.flow.getConPath(sb, eb).join(',');
             this.shape.attr({path: path});
             this.updateText();

@@ -2563,8 +2563,7 @@ xds.Canvas.DragTracker = Ext.extend(Ext.dd.DragTracker, {
     },
     onDragAbsolute: function (b, c, a) {
         a.setPosition(this.snap(this.startX - c[0]), this.snap(this.startY - c[1]));
-//        a.setPagePosition(this.snap(b.xy[0] + this.dx), this.snap(b.xy[1]+this.dy));
-        a.viewerNode.component.syncFilm();
+        a.syncFilm();
     },
     onDragRight: function (e, c, a) {
         var w = Math.max(this.cmp.minWidth, this.snap(this.startSize.width - c[0]));
@@ -3884,8 +3883,8 @@ xds.Layouts = {
                     var c = d.getLayoutTarget().translatePoints(xds.canvas.lastDropPoint);
                     c.left = xds.canvas.dragTracker.snap(c.left, b.component.snapToGrid);
                     c.top = xds.canvas.dragTracker.snap(c.top, b.component.snapToGrid);
-                    a.component.config.x = c.left - 12;
-                    a.component.config.y = c.top - 12;
+                    a.component.config.x = c.left;
+                    a.component.config.y = c.top;
                 }
             }
         }
