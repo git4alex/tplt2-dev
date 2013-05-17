@@ -18,7 +18,7 @@ od.flow.getConPath = function (bb1, bb2) {
     var er = {x: bb2.x + bb2.width + 1, y: bb2.y + bb2.height / 2};
     var ec = {x: bb2.x + bb2.width / 2, y: bb2.y + bb2.height / 2};
 
-    if (bb1 == bb2) {
+    if (bb1.x == bb2.x && bb1.y==bb2.y && bb1.width == bb2.width && bb1.height == bb2.height) {
         return ['M', sr.x, sr.y, 'L', sr.x + 10, sl.y, sr.x + 10, st.y - 10, sl.x - 20, st.y - 10, sl.x - 20, sl.y, sl.x, sl.y];
     }
 
@@ -171,9 +171,15 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
             }, this);
         }
     },
-    setSize: function (w, h) {
-        this.width = w || this.width;
-        this.height = h || this.height;
+    setSize:function(w,h){
+        if(w){
+            this.x += (w-this.width)/2;
+            this.width = w;
+        }
+        if(h){
+            this.y += (h-this.height)/2;
+            this.height = h;
+        }
     },
     getSize: function () {
         return {width: this.width, height: this.height};
@@ -183,6 +189,9 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
     },
     getHeight: function () {
         return this.height;
+    },
+    getPosition: function () {
+        return [this.x, this.y];
     },
     createFilm: function () {
 
@@ -280,10 +289,11 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
         var ps = this.positionShape;
         var ax = ps.type == 'rect' ? 'x' : 'cx', ay = ps.type == 'rect' ? 'y' : 'cy';
         var ox = ps.type == 'rect' ? this.width/2 : 0, oy = ps.type == 'rect' ? this.height/2 : 0;
-        var dx = this.x - ox - this.positionShape.attr(ax);
-        var dy = this.y - oy - this.positionShape.attr(ay);
-
-        this.shape.transform('t' + dx + ',' + dy);
+        var dx = this.x - this.positionShape.attr(ax) - ox;
+        var dy = this.y - this.positionShape.attr(ay) - oy;
+        if(dx!=0 || dy != 0){
+            this.shape.transform('t' + dx + ',' + dy);
+        }
     },
     setSize: function (w, h) {
         this.width = w || this.width;
@@ -557,19 +567,31 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
         }
         return ret;
     },
+    setSize:function(w,h){
+        if(w){
+            this.x += (w-this.width)/2;
+            this.width = w;
+        }
+        if(h){
+            this.y += (h-this.height)/2;
+            this.height = h;
+        }
+    },
     syncFilm: function () {
         od.flow.TaskBase.superclass.syncFilm.call(this);
         var bb = this.positionShape.getBBox();
-        var dx = this.x - bb.x, dy = this.y - bb.y, dw = this.width - bb.width, dh = this.height - bb.height;
+        var dx = this.x - bb.x, dy = this.y - bb.y,
+            dw = this.width - bb.width, dh = this.height - bb.height;
         if (dh != 0 || dw != 0) {
             this.positionShape.attr({width: this.width, height: this.height});
             if (this.textShape) {
-                this.textShape.attr({x: this.x+dw/2, y: this.y+dh/2});
+                this.textShape.attr({x: this.x, y: this.y});
             }
             if (this.sequentialShape) {
                 this.sequentialShape.attr({path: this.getSequentialPath()});
             }
         }
+
         if (this.boundarys) {
             var i = 0, d = 12, r = this.x + this.width/2 - d, l = this.x - this.width/2 + d, b = this.y + this.height/2;
             this.boundarys.each(function (item) {
@@ -1022,7 +1044,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     },
     onDragConnection: function (e, c, a) {
         var s = this.cmp.getExtComponent();
-        var cp = this.cmp.getExtComponent().ownerCt;
+        var cp = xds.flow.process;
 
         var pt = cp.el.translatePoints(e.xy[0], e.xy[1]);
         var eb = {x: pt.left, y: pt.top, x2: pt.left, y2: pt.top, width: 0, height: 0};
@@ -1188,6 +1210,45 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
             }
         }
         this.clearSelections();
+    },
+    onEndRight: function (c, d, b) {
+        xds.canvas.beginUpdate();
+        var a = b.getWidth();
+        var x = b.x;
+        this.cmp.setConfig("x", x);
+        xds.props.setValue("x", x);
+        this.cmp.setConfig("width", a);
+        xds.props.setValue("width", a);
+        xds.canvas.endUpdate(true);
+        xds.fireEvent("componentchanged");
+    },
+    onEndBottom: function (c, d, b) {
+        xds.canvas.beginUpdate();
+        var a = b.getHeight();
+        var y = b.y;
+        this.cmp.setConfig("y", y);
+        xds.props.setValue("y", y);
+        this.cmp.setConfig("height", a);
+        xds.props.setValue("height", a);
+        xds.canvas.endUpdate(true);
+        xds.fireEvent("componentchanged");
+    },
+    onEndCorner: function (d, f, c) {
+        xds.canvas.beginUpdate();
+        var b = c.getWidth();
+        var x = c.x;
+        this.cmp.setConfig("x", x);
+        xds.props.setValue("x", x);
+        this.cmp.setConfig("width", b);
+        xds.props.setValue("width", b);
+        var a = c.getHeight();
+        var y = c.y;
+        this.cmp.setConfig("y", y);
+        xds.props.setValue("y", y);
+        this.cmp.setConfig("height", a);
+        xds.props.setValue("height", a);
+        xds.canvas.endUpdate(true);
+        xds.fireEvent("componentchanged");
     },
     updatePosConfig: function (c, e, up) {
         var ec = c.getExtComponent();
