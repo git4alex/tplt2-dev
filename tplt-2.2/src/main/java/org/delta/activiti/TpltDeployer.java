@@ -41,33 +41,37 @@ public class TpltDeployer extends BpmnDeployer {
                 TpltParse bpmnParse = new TpltParse(new String(bytes));
                 bpmnParse.execute();
 
-                for (ProcessDefinitionEntity processDefinition: bpmnParse.getProcessDefinitions()) {
-//                    processDefinition.setResourceName(resourceName);
-//
-//                    String diagramResourceName = getDiagramResourceForProcess(resourceName, processDefinition.getKey(), resources);
-//
-//                    // Only generate the resource when deployment is new to prevent modification of deployment resources
-//                    // after the process-definition is actually deployed. Also to prevent resource-generation failure every
-//                    // time the process definition is added to the deployment-cache when diagram-generation has failed the first time.
-//                    if(deployment.isNew()) {
-//                        if (Context.getProcessEngineConfiguration().isCreateDiagramOnDeploy() &&
-//                                diagramResourceName==null && processDefinition.isGraphicalNotationDefined()) {
-//                            try {
-//                                byte[] diagramBytes = IoUtil.readInputStream(ProcessDiagramGenerator.generatePngDiagram(bpmnParse.getBpmnModel()), null);
-//                                diagramResourceName = getProcessImageResourceName(resourceName, processDefinition.getKey(), "png");
-//                                createResource(diagramResourceName, diagramBytes, deployment);
-//                            } catch (Throwable t) { // if anything goes wrong, we don't store the image (the process will still be executable).
-//                                logger.warn("Error while generating process diagram, image will not be stored in repository", t);
-//                            }
-//                        }
-//                    }
-//
-//                    processDefinition.setDiagramResourceName(diagramResourceName);
-                    processDefinitions.add(processDefinition);
-                }
+                processDefinitions = bpmnParse.getProcessDefinitions();
             }
         }
 
+        checkProcessKey(processDefinitions);
+
+        CommandContext commandContext = Context.getCommandContext();
+        ProcessDefinitionEntityManager processDefinitionManager = commandContext.getProcessDefinitionEntityManager();
+
+        for (ProcessDefinitionEntity processDefinition : processDefinitions) {
+            if (deployment.isNew()) {
+                persistProcessDefinition(processDefinition,deployment);
+            } else {
+                String deploymentId = deployment.getId();
+                processDefinition.setDeploymentId(deploymentId);
+                ProcessDefinitionEntity persistedProcessDefinition =
+                        processDefinitionManager.findProcessDefinitionByDeploymentAndKey(deploymentId, processDefinition.getKey());
+                processDefinition.setId(persistedProcessDefinition.getId());
+                processDefinition.setVersion(persistedProcessDefinition.getVersion());
+                processDefinition.setSuspensionState(persistedProcessDefinition.getSuspensionState());
+            }
+
+            // Add to cache
+            cacheProcessDefinition(processDefinition);
+
+            // Add to deployment for further usage
+            deployment.addDeployedArtifact(processDefinition);
+        }
+    }
+
+    private void checkProcessKey(List<ProcessDefinitionEntity> processDefinitions){
         // check if there are process definitions with the same process key to prevent database unique index violation
         List<String> keyList = new ArrayList<String>();
         for (ProcessDefinitionEntity processDefinition : processDefinitions) {
@@ -76,65 +80,47 @@ public class TpltDeployer extends BpmnDeployer {
             }
             keyList.add(processDefinition.getKey());
         }
+    }
 
-        CommandContext commandContext = Context.getCommandContext();
-        ProcessDefinitionEntityManager processDefinitionManager = commandContext.getProcessDefinitionEntityManager();
-        DbSqlSession dbSqlSession = commandContext.getSession(DbSqlSession.class);
-        for (ProcessDefinitionEntity processDefinition : processDefinitions) {
-
-            if (deployment.isNew()) {
-                int processDefinitionVersion;
-
-                ProcessDefinitionEntity latestProcessDefinition = processDefinitionManager.findLatestProcessDefinitionByKey(processDefinition.getKey());
-                if (latestProcessDefinition != null) {
-                    processDefinitionVersion = latestProcessDefinition.getVersion() + 1;
-                } else {
-                    processDefinitionVersion = 1;
-                }
-
-                processDefinition.setVersion(processDefinitionVersion);
-                processDefinition.setDeploymentId(deployment.getId());
-
-                String nextId = idGenerator.getNextId();
-                String processDefinitionId = processDefinition.getKey()
-                        + ":" + processDefinition.getVersion()
-                        + ":" + nextId; // ACT-505
-
-                // ACT-115: maximum id length is 64 charcaters
-                if (processDefinitionId.length() > 64) {
-                    processDefinitionId = nextId;
-                }
-                processDefinition.setId(processDefinitionId);
-
-                removeObsoleteTimers(processDefinition);
-                addTimerDeclarations(processDefinition);
-
-                removeObsoleteMessageEventSubscriptions(processDefinition, latestProcessDefinition);
-                addMessageEventSubscriptions(processDefinition);
-
-                dbSqlSession.insert(processDefinition);
-                addAuthorizations(processDefinition);
-
-
-            } else {
-                String deploymentId = deployment.getId();
-                processDefinition.setDeploymentId(deploymentId);
-                ProcessDefinitionEntity persistedProcessDefinition = processDefinitionManager.findProcessDefinitionByDeploymentAndKey(deploymentId, processDefinition.getKey());
-                processDefinition.setId(persistedProcessDefinition.getId());
-                processDefinition.setVersion(persistedProcessDefinition.getVersion());
-                processDefinition.setSuspensionState(persistedProcessDefinition.getSuspensionState());
-            }
-
-            // Add to cache
-            Context
-                    .getProcessEngineConfiguration()
-                    .getDeploymentManager()
-                    .getProcessDefinitionCache()
-                    .add(processDefinition.getId(), processDefinition);
-
-            // Add to deployment for further usage
-            deployment.addDeployedArtifact(processDefinition);
+    private void persistProcessDefinition(ProcessDefinitionEntity pd,DeploymentEntity deployment){
+        int processDefinitionVersion;
+        CommandContext cc = Context.getCommandContext();
+        ProcessDefinitionEntity latestProcessDefinition = cc.getProcessDefinitionEntityManager().findLatestProcessDefinitionByKey(pd.getKey());
+        if (latestProcessDefinition != null) {
+            processDefinitionVersion = latestProcessDefinition.getVersion() + 1;
+        } else {
+            processDefinitionVersion = 1;
         }
+
+        pd.setVersion(processDefinitionVersion);
+        pd.setDeploymentId(deployment.getId());
+
+        String nextId = idGenerator.getNextId();
+        String processDefinitionId = pd.getKey()
+                + ":" + pd.getVersion()
+                + ":" + nextId; // ACT-505
+
+        // ACT-115: maximum id length is 64 charcaters
+        if (processDefinitionId.length() > 64) {
+            processDefinitionId = nextId;
+        }
+        pd.setId(processDefinitionId);
+
+        removeObsoleteTimers(pd);
+        addTimerDeclarations(pd);
+
+        removeObsoleteMessageEventSubscriptions(pd, latestProcessDefinition);
+        addMessageEventSubscriptions(pd);
+
+        cc.getSession(DbSqlSession.class).insert(pd);
+        addAuthorizations(pd);
+    }
+
+    private void cacheProcessDefinition(ProcessDefinitionEntity processDefinition) {
+        Context.getProcessEngineConfiguration()
+                .getDeploymentManager()
+                .getProcessDefinitionCache()
+                .add(processDefinition.getId(), processDefinition);
     }
 
     private boolean isTpltResource(String resName){

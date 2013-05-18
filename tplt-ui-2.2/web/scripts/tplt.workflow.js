@@ -272,16 +272,12 @@ od.flow.SubProcess = Ext.extend(od.flow.ShapeContainer, {
     drawShape: function (p) {
         var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white'});
+        if(this.triggeredByEvent){
+            this.positionShape.attr({'stroke-dasharray':'-'});
+        }
     }
 });
-Ext.reg('flowsubprocess', od.flow.SubProcess);
-od.flow.EventSubProcess = Ext.extend(od.flow.SubProcess, {
-    drawShape: function (p) {
-        var x = this.x - this.width / 2, y = this.y - this.height / 2;
-        this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white', 'stroke-dasharray': '-'});
-    }
-});
-Ext.reg('flowevtsubprocess', od.flow.EventSubProcess);
+Ext.reg('subprocess', od.flow.SubProcess);
 
 od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     onRender: function (ct, pos) {
@@ -385,7 +381,7 @@ od.flow.start.None = Ext.extend(od.flow.Shape, {
     }
 });
 
-Ext.reg('startnone', od.flow.start.None);
+Ext.reg('nonestart', od.flow.start.None);
 
 od.flow.start.Message = Ext.extend(od.flow.start.None, {
     drawShape: function (p) {
@@ -395,7 +391,7 @@ od.flow.start.Message = Ext.extend(od.flow.start.None, {
     }
 });
 
-Ext.reg('startmsg', od.flow.start.Message);
+Ext.reg('msgstart', od.flow.start.Message);
 
 od.flow.start.Error = Ext.extend(od.flow.start.None, {
     drawShape: function (p) {
@@ -405,7 +401,7 @@ od.flow.start.Error = Ext.extend(od.flow.start.None, {
     }
 });
 
-Ext.reg('starterror', od.flow.start.Error);
+Ext.reg('errorstart', od.flow.start.Error);
 
 od.flow.start.Timer = Ext.extend(od.flow.start.None, {
     drawShape: function (p) {
@@ -415,7 +411,7 @@ od.flow.start.Timer = Ext.extend(od.flow.start.None, {
     }
 });
 
-Ext.reg('starttimer', od.flow.start.Timer);
+Ext.reg('timerstart', od.flow.start.Timer);
 
 Ext.ns('od.flow.end');
 
@@ -1142,7 +1138,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     },
     onDragConStart: function (b, c, a) {
         var ec = this.cmp.getExtComponent();
-        var cp = ec.ownerCt;
+        var cp = xds.flow.process;
 
         var pt = cp.el.translatePoints(b.xy[0], b.xy[1]);
         var sb = {x: pt.left, y: pt.top, x2: pt.left, y2: pt.top, width: 0, height: 0};
@@ -1153,7 +1149,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(sb, ec.endNode.getBox());
+        var path = od.flow.getConPath(sb, ec.endNode.getBox(),ec.routerDir);
         ec.shape.attr({path: path});
     },
     onEndConStart: function (b, c, a) {
@@ -1168,7 +1164,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     },
     onDragConEnd: function (b, c, a) {
         var ec = this.cmp.getExtComponent();
-        var cp = ec.ownerCt;
+        var cp = xds.flow.process;
 
         var pt = cp.el.translatePoints(b.xy[0], b.xy[1]);
         var eb = {x: pt.left, y: pt.top, x2: pt.left, y2: pt.top, width: 0, height: 0};
@@ -1179,7 +1175,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(ec.startNode.getBox(), eb);
+        var path = od.flow.getConPath(ec.startNode.getBox(), eb,ec.routerDir);
         ec.shape.attr({path: path});
     },
     onEndConEnd: function (b, c, a) {
@@ -1453,7 +1449,6 @@ od.FlowDesignerModule = Ext.extend(od.XdsModule, {
         xds.Registry.register(xds.types.flow.GatewayXor);
 
         xds.Registry.register(xds.types.flow.SubProcess);
-        xds.Registry.register(xds.types.flow.EventSubProcess);
 
         xds.Registry.register(xds.types.flow.ExecListener);
         xds.Registry.register(xds.types.flow.TaskListener);

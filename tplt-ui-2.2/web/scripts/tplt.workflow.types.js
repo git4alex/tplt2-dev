@@ -57,18 +57,23 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
             ctype: 'string'
         },
         {
+            name:'isExecutable',
+            group:'Process',
+            ctype:'boolean'
+        },
+        {
             name: 'nameSpace',
             group: 'Process',
             ctype: 'string'
         },
         {
             name: 'candidateUsers',
-            group: 'Process',
+            group: 'Activiti Extend',
             ctype: 'string'
         },
         {
             name: 'candidateGroups',
-            group: 'Process',
+            group: 'Activiti Extend',
             ctype: 'string'
         }
     ]
@@ -87,13 +92,13 @@ xds.flow.Process = Ext.extend(od.flow.Process, {
 Ext.reg('xdprocess', xds.flow.Process);
 
 xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
-    cid: 'flowsubprocess',
+    cid: 'subprocess',
     iconCls: 'icon-flow-subprocess',
     category: "容器(Container)",
     defaultName: "&lt;SubProcess&gt;",
     text: "子流程",
-    dtype: "xdflowsubprocess",
-    xtype: 'flowsubprocess',
+    dtype: "xdsubprocess",
+    xtype: 'subprocess',
     naming: "SubProcess",
     isContainer: true,
     connectable: true,
@@ -122,7 +127,7 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
         return c;
     },
     isValidParent: function (c) {
-        return c.cid != 'flowsubprocess';
+        return c.cid != 'subprocess';
     },
     isResizable: function () {
         return true;
@@ -181,6 +186,21 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
             group: 'Layout',
             ctype: 'number',
             setFn: 'setY'
+        },
+        {
+            name:'triggeredByEvent',
+            group:'SubProcess',
+            ctype:'boolean'
+        },
+        {
+            name:'async',
+            group:'Activiti Extend',
+            ctype:'boolean'
+        },
+        {
+            name:'exclusive',
+            group:'Activiti Extend',
+            ctype:'boolean'
         }
     ]
 });
@@ -201,34 +221,7 @@ xds.flow.SubProcess = Ext.extend(od.flow.SubProcess, {
     }
 });
 
-Ext.reg('xdflowsubprocess', xds.flow.SubProcess);
-
-xds.types.flow.EventSubProcess = Ext.extend(xds.types.flow.SubProcess, {
-    cid: 'flowevtsubprocess',
-    iconCls: 'icon-flow-evtsubprocess',
-    defaultName: "&lt;EventSubProcess&gt;",
-    text: "事件子流程",
-    dtype: "xdflowevtsubprocess",
-    xtype: 'flowevtsubprocess',
-    naming: "EventSubProcess"
-});
-xds.flow.EventSubProcess = Ext.extend(od.flow.EventSubProcess, {
-    isContainer: true,
-    createFilm: function () {
-
-    },
-    afterRender: function () {
-        xds.flow.EventSubProcess.superclass.afterRender.call(this);
-        var v = this.viewerNode;
-        if (v && this.shape) {
-            this.shape.forEach(function (i) {
-                i.vn = v;
-            });
-        }
-    }
-});
-
-Ext.reg('xdflowevtsubprocess', xds.flow.EventSubProcess);
+Ext.reg('xdsubprocess', xds.flow.SubProcess);
 
 xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
     transformGroup: "state",
@@ -287,13 +280,13 @@ Ext.ns('xds.flow.start');
 Ext.ns('xds.types.flow.start');
 
 xds.types.flow.start.None = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'startnone',
+    cid: 'nonestart',
     iconCls: 'icon-flow-start-none',
     category: "启动事件(StartEvents)",
     defaultName: "&lt;NoneStart&gt;",
     text: "空事件",
-    dtype: "startnone",
-    xtype: 'startnone',
+    dtype: "nonestart",
+    xtype: 'nonestart',
     naming: "NoneStart",
     transformGroup: "state",
     connectable: true,
@@ -312,12 +305,12 @@ xds.types.flow.start.None = Ext.extend(xds.types.flow.ShapeBase, {
 });
 
 xds.types.flow.start.Message = Ext.extend(xds.types.flow.start.None, {
-    cid: 'startmsg',
+    cid: 'msgstart',
     iconCls: 'icon-flow-start-msg',
     defaultName: "&lt;MessageStart&gt;",
     text: "消息事件",
-    dtype: "startmsg",
-    xtype: 'startmsg',
+    dtype: "msgstart",
+    xtype: 'msgstart',
     naming: "MessageStart",
     xdConfigs: [
         {
@@ -329,12 +322,12 @@ xds.types.flow.start.Message = Ext.extend(xds.types.flow.start.None, {
 });
 
 xds.types.flow.start.Error = Ext.extend(xds.types.flow.start.None, {
-    cid: 'starterror',
+    cid: 'errorstart',
     iconCls: 'icon-flow-start-error',
     defaultName: "&lt;ErrorStart&gt;",
     text: "异常事件",
-    dtype: "starterror",
-    xtype: 'starterror',
+    dtype: "errorstart",
+    xtype: 'errorstart',
     naming: "ErrorStart",
     xdConfigs: [
         {
@@ -346,12 +339,12 @@ xds.types.flow.start.Error = Ext.extend(xds.types.flow.start.None, {
 });
 
 xds.types.flow.start.Timer = Ext.extend(xds.types.flow.start.None, {
-    cid: 'starttimer',
+    cid: 'timerstart',
     iconCls: 'icon-flow-start-timer',
     defaultName: "&lt;TimerStart&gt;",
     text: "定时器事件",
-    dtype: "starttimer",
-    xtype: 'starttimer',
+    dtype: "timerstart",
+    xtype: 'timerstart',
     naming: "TimerStart",
     xdConfigs: [
         {
@@ -415,7 +408,19 @@ xds.types.flow.boundary.BoundaryBase = Ext.extend(xds.types.flow.ShapeBase, {
     isBoundary: true,
     isValidChild: function (ct) {
         return ct.isTask || ct.isContainer;
-    }
+    },
+    xdConfigs:[
+        {
+            name:'cancelActivity',
+            group:'BoundaryEvents',
+            ctype:'boolean'
+        },
+        {
+            name:'attachedToRef',
+            group:'BoundaryEvents',
+            ctype:'string'
+        }
+    ]
 });
 
 xds.types.flow.boundary.Timer = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -854,7 +859,7 @@ xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
             group: 'Listener',
             ctype: 'string',
             editor: 'options',
-            options: ['Java class', 'Expression', 'Delegate expression']
+            options: ['class', 'expression', 'delegateExpression']
         },
         {
             name: 'listener',
@@ -949,7 +954,7 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
             ctype: 'string'
         },{
             name:'routerDir',
-            group:'Connection',
+            group:'Layout',
             ctype:'string',
             editor:'options',
             options:['H','V']

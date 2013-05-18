@@ -15,7 +15,6 @@ import java.util.List;
  * Time: 下午4:21
  */
 public class TpltParse implements BpmnXMLConstants {
-
     private String jsonDef;
     protected BpmnModel bpmnModel;
     protected List<ProcessDefinitionEntity> processDefinitions = new ArrayList<ProcessDefinitionEntity>();
@@ -27,14 +26,7 @@ public class TpltParse implements BpmnXMLConstants {
     public TpltParse execute() {
         try {
             BpmnJSONConverter converter = new BpmnJSONConverter();
-
             bpmnModel = converter.convertToBpmnModel(this.jsonDef);
-
-//            createImports();
-//            createItemDefinitions();
-//            createMessages();
-//            createOperations();
-//            transformProcessDefinitions();
         } catch (Exception e) {
             if (e instanceof ActivitiException) {
                 throw (ActivitiException) e;
