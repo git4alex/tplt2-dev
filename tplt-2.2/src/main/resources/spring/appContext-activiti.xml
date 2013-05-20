@@ -8,11 +8,10 @@
         <property name="transactionManager" ref="txManager"/>
         <property name="databaseSchemaUpdate" value="true"/>
 
-        <property name="customPreDeployers">
-            <list>
-                <bean class="org.delta.activiti.TpltDeployer"/>
-            </list>
-        </property>
+        <property name="bpmnDeployer" ref = "tpltDeployer"/>
+        <property name="bpmnParseFactory" ref="tpltParseFactory"/>
+
+        <property name="repositoryService" ref="tpltRepositoryServiceImpl"/>
     </bean>
 
     <bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">

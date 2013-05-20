@@ -3,7 +3,6 @@ package org.delta.activiti.parser;
 import org.activiti.bpmn.converter.util.BpmnXMLUtil;
 import org.activiti.bpmn.model.BaseElement;
 import org.activiti.bpmn.model.BpmnModel;
-import org.activiti.bpmn.model.Process;
 import org.activiti.bpmn.model.UserTask;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -26,7 +25,6 @@ public class UserTaskParser extends BpmnJsonParser {
 
     @Override
     public UserTask doParse(Map jsonMap, BaseElement parent, BpmnModel bpmnModel) {
-        Process currentProcess = (Process) parent;
         UserTask task = new UserTask();
         String dueDate = MapUtils.getString(jsonMap, ATTRIBUTE_TASK_USER_DUEDATE);
         task.setDueDate(dueDate);
@@ -53,7 +51,6 @@ public class UserTaskParser extends BpmnJsonParser {
             }
         }
 
-        currentProcess.addFlowElement(task);
         return task;
     }
 }

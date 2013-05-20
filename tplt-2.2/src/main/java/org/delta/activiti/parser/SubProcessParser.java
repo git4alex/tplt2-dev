@@ -24,7 +24,7 @@ public class SubProcessParser extends BpmnJsonParser {
         Process currentProcess = (Process) parent;
 
         SubProcess subProcess = null;
-        boolean triggerByEvent = MapUtils.getBoolean(jsonMap, ATTRIBUTE_TRIGGERED_BY);
+        boolean triggerByEvent = MapUtils.getBoolean(jsonMap, ATTRIBUTE_TRIGGERED_BY,false);
         if (triggerByEvent) {
             subProcess = new EventSubProcess();
         } else {
@@ -36,7 +36,6 @@ public class SubProcessParser extends BpmnJsonParser {
             subProcess.setDefaultFlow(defaultFlow);
         }
 
-        currentProcess.addFlowElement(subProcess);
         jsonMap.put("parent", subProcess);
 
         return subProcess;

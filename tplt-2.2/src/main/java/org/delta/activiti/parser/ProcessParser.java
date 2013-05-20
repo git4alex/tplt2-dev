@@ -25,14 +25,10 @@ public class ProcessParser extends BpmnJsonParser {
 
     @Override
     public Process doParse(Map jsonMap, BaseElement parent,BpmnModel bpmnModel) {
-        String id = MapUtils.getString(jsonMap,ATTRIBUTE_ID);
-        Assert.isNull(id,"process id must not be null");
-
         Process process = new Process();
-        process.setId(id);
 
         String name = MapUtils.getString(jsonMap,ATTRIBUTE_NAME);
-        Assert.isNull(id,"process name must not be null");
+        Assert.notNull(name,"process name must not be null");
         process.setName(name);
 
         boolean executable = MapUtils.getBoolean(jsonMap,ATTRIBUTE_PROCESS_EXECUTABLE,false);

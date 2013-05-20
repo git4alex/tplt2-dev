@@ -12,14 +12,24 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
     hiddenInToolbox: true,
     initConfig: function () {
         this.config.layout = 'flow';
+        this.userConfig = this.userConfig || {};
+        if (this.userConfig.id) {
+        } else {
+            this.userConfig.id = this.nextId();
+            this.userConfig.name = this.userConfig.id;
+            this.userConfig.isExecutable = true;
+        }
     },
-    getDefaultInternals: function () {
-        return {cid: 'process',
-            userConfig: {
-                layout: 'flow'
-            }
-        };
-    },
+//    getDefaultInternals: function () {
+//        var id = this.nextId();
+//        return {cid: 'process',
+//            userConfig: {
+//                layout: 'flow',
+//                id:this.nextId(),
+//                name:this.id
+//            }
+//        };
+//    },
     isValidParent: function (c) {
         return !c.isBoundary;
     },
@@ -250,12 +260,12 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
         if (fcn.hasChildNodes()) {
             for (var b = 0, e; e = fcn.childNodes[b]; b++) {
                 if (e.component.isConnection) {
-                    var sid = e.component.getConfigValue('startId');
-                    var eid = e.component.getConfigValue('endId');
+                    var sid = e.component.getConfigValue('sourceRef');
+                    var eid = e.component.getConfigValue('targetRef');
                     if (sid == oldId) {
-                        e.component.setConfig('startId', v);
+                        e.component.setConfig('sourceRef', v);
                     } else if (eid == oldId) {
-                        e.component.setConfig('endId', v);
+                        e.component.setConfig('targetRef', v);
                     }
                 }
             }
@@ -584,7 +594,7 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
             ctype: 'boolean'
         },
         {
-            name: 'sequential',
+            name: 'isSequential',
             group: 'MultiInstance',
             ctype: 'boolean'
         },
@@ -617,12 +627,12 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
 });
 
 xds.types.flow.UserTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowusertask',
+    cid: 'usertask',
     iconCls: 'icon-flow-task-user',
     defaultName: "&lt;UserTask&gt;",
     text: "用户任务",
-    dtype: "flowusertask",
-    xtype: 'flowusertask',
+    dtype: "usertask",
+    xtype: 'usertask',
     naming: "UserTask",
     xdConfigs: [
         {
@@ -659,12 +669,12 @@ xds.types.flow.UserTask = Ext.extend(xds.types.flow.TaskBase, {
 });
 
 xds.types.flow.ServiceTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowservicetask',
+    cid: 'servicetask',
     iconCls: 'icon-flow-task-service',
     defaultName: "&lt;ServiceTask&gt;",
     text: "服务任务",
-    dtype: "flowservicetask",
-    xtype: 'flowservicetask',
+    dtype: "servicetask",
+    xtype: 'servicetask',
     naming: "ServiceTask",
     xdConfigs: [
         {
@@ -688,12 +698,12 @@ xds.types.flow.ServiceTask = Ext.extend(xds.types.flow.TaskBase, {
 });
 
 xds.types.flow.ScriptTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowscripttask',
+    cid: 'scripttask',
     iconCls: 'icon-flow-task-script',
     defaultName: "&lt;ScriptTask&gt;",
     text: "脚本任务",
-    dtype: "xdflowscripttask",
-    xtype: 'flowscripttask',
+    dtype: "scripttask",
+    xtype: 'scripttask',
     naming: "ScriptTask",
     xdConfigs: [
         {
@@ -721,18 +731,13 @@ xds.types.flow.ScriptTask = Ext.extend(xds.types.flow.TaskBase, {
     ]
 });
 
-xds.flow.ScriptTask = Ext.extend(od.flow.ScriptTask, {
-
-});
-Ext.reg('xdflowscripttask', xds.flow.ScriptTask);
-
 xds.types.flow.MailTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowmailtask',
+    cid: 'mailtask',
     iconCls: 'icon-flow-task-email',
     defaultName: "&lt;MailTask&gt;",
     text: "邮件任务",
-    dtype: "xdflowmailtask",
-    xtype: 'flowmailtask',
+    dtype: "mailtask",
+    xtype: 'mailtask',
     naming: "MailTask",
     xdConfigs: [
         {
@@ -778,25 +783,15 @@ xds.types.flow.MailTask = Ext.extend(xds.types.flow.TaskBase, {
     ]
 });
 
-xds.flow.MailTask = Ext.extend(od.flow.MailTask, {
-
-});
-Ext.reg('xdflowmailtask', xds.flow.MailTask);
-
 xds.types.flow.ManualTask = Ext.extend(xds.types.flow.TaskBase, {
-    cid: 'flowmanualtask',
+    cid: 'manualtask',
     iconCls: 'icon-flow-task-manual',
     defaultName: "&lt;ManualTask&gt;",
     text: "人工任务",
-    dtype: "xdflowmanualtask",
-    xtype: 'flowmanualtask',
+    dtype: "manualtask",
+    xtype: 'manualtask',
     naming: "ManualTask"
 });
-
-xds.flow.ManualTask = Ext.extend(od.flow.ManualTask, {
-
-});
-Ext.reg('xdflowmanualtask', xds.flow.ManualTask);
 
 xds.types.flow.Gateway = Ext.extend(xds.types.flow.ShapeBase, {
     cid: 'flowgateway',
@@ -921,11 +916,11 @@ xds.types.flow.TaskListener = Ext.extend(xds.types.flow.ListenerBase, {
 });
 
 xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
-    cid: 'flowconnection',
+    cid: 'sequenceflow',
     iconCls: 'icon-flow-connection',
     defaultName: "&lt;Connection&gt;",
-    xtype: 'flowconnection',
-    dtype: 'xdflowconnection',
+    xtype: 'sequenceflow',
+    dtype: 'xdsequenceflow',
     naming: "Connection",
     isVisual: false,
     isConnection: true,
@@ -959,12 +954,17 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
             ctype: 'string'
         },
         {
-            name: 'startId',
+            name: 'sourceRef',
             group: 'Connection',
             ctype: 'string'
         },
         {
-            name: 'endId',
+            name: 'targetRef',
+            group: 'Connection',
+            ctype: 'string'
+        },
+        {
+            name: 'conditionExpression',
             group: 'Connection',
             ctype: 'string'
         },{
@@ -989,10 +989,10 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
         return null;
     },
     getStartNode: function () {
-        return this.getNodeByIdProperty(this.startId);
+        return this.getNodeByIdProperty(this.sourceRef);
     },
     getEndNode: function () {
-        return this.getNodeByIdProperty(this.endId);
+        return this.getNodeByIdProperty(this.targetRef);
     },
     toggleHilight: function (a) {
         if (a) {
@@ -1047,4 +1047,4 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
     }
 });
 
-Ext.reg('xdflowconnection', xds.flow.Connection);
+Ext.reg('xdsequenceflow', xds.flow.Connection);

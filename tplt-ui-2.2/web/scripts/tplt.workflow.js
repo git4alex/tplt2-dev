@@ -606,11 +606,11 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
     getSequentialPath: function () {
         var x = this.x, h = this.y + this.height / 2;
         var ret = [];
-        if (this.sequential) {
+        if (this.isSequential) {
             ret = ['M', x - 6, h - 10, 'L', x + 6, h - 10,
                 'M', x - 6, h - 7, 'L', x + 6, h - 7,
                 'M', x - 6, h - 4, 'L', x + 6, h - 4];
-        } else if (this.sequential === false) {
+        } else if (this.isSequential === false) {
             ret = ['M', x - 3, h - 12, 'L', x - 3, h - 2,
                 'M', x, h - 12, 'L', x, h - 2,
                 'M', x + 3, h - 12, 'L', x + 3, h - 2];
@@ -660,32 +660,32 @@ od.flow.UserTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-user.png'
 });
 
-Ext.reg('flowusertask', od.flow.UserTask);
+Ext.reg('usertask', od.flow.UserTask);
 
 od.flow.ServiceTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-gear.png'
 });
 
-Ext.reg('flowservicetask', od.flow.ServiceTask);
+Ext.reg('servicetask', od.flow.ServiceTask);
 
 
 od.flow.ScriptTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-script.png'
 });
 
-Ext.reg('flowscripttask', od.flow.ScriptTask);
+Ext.reg('scripttask', od.flow.ScriptTask);
 
 od.flow.MailTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-email.png'
 });
 
-Ext.reg('flowmailtask', od.flow.MailTask);
+Ext.reg('mailtask', od.flow.MailTask);
 
 od.flow.ManualTask = Ext.extend(od.flow.TaskBase, {
     iconUrl: '/tplt/images/workflow-xds/icon-hand.png'
 });
 
-Ext.reg('flowmanualtask', od.flow.ManualTask);
+Ext.reg('manualtask', od.flow.ManualTask);
 
 od.flow.Gateway = Ext.extend(od.flow.Shape, {
     width: 32,
@@ -800,17 +800,17 @@ od.flow.Connection = Ext.extend(Ext.Component, {
         }
     },
     getStartNode: function () {
-        return Ext.get(this.startId);
+        return Ext.get(this.sourceRef);
     },
     getEndNode: function () {
-        return Ext.get(this.endId);
+        return Ext.get(this.targetRef);
     },
     getDefAttr: function () {
         return {'stroke-width': 2, 'stroke-linejoin': 'round', 'arrow-end': 'block-wide-long'};
     }
 });
 
-Ext.reg("flowconnection", od.flow.Connection);
+Ext.reg("sequenceflow", od.flow.Connection);
 
 od.flow.Project = Ext.extend(xds.Project, {
     open: function (data) {
@@ -1126,8 +1126,8 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         if (this.conTarget) {
             var df = new xds.types.flow.Connection().getSpec();
             df.userConfig = {};
-            df.userConfig.startId = this.cmp.config.id || this.cmp.id;
-            df.userConfig.endId = this.conTarget.config.id || this.conTarget.id;
+            df.userConfig.sourceRef = this.cmp.config.id || this.cmp.id;
+            df.userConfig.targetRef = this.conTarget.config.id || this.conTarget.id;
             xds.fireEvent("componentevent", {
                 type: "new",
                 parentId: this.conTarget.owner.node.id,
@@ -1155,8 +1155,8 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     onEndConStart: function (b, c, a) {
         if (this.conTarget) {
             xds.canvas.beginUpdate();
-            this.cmp.setConfig("startId", this.conTarget.node.id);
-            xds.props.setValue("startId", this.conTarget.node.id);
+            this.cmp.setConfig("sourceRef", this.conTarget.node.id);
+            xds.props.setValue("sourceRef", this.conTarget.node.id);
             xds.canvas.endUpdate(true);
             delete this.conTarget;
         }
@@ -1181,8 +1181,8 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
     onEndConEnd: function (b, c, a) {
         if (this.conTarget) {
             xds.canvas.beginUpdate();
-            this.cmp.setConfig("endId", this.conTarget.node.id);
-            xds.props.setValue("endId", this.conTarget.node.id);
+            this.cmp.setConfig("targetRef", this.conTarget.node.id);
+            xds.props.setValue("targetRef", this.conTarget.node.id);
             xds.canvas.endUpdate(true);
 
             delete this.conTarget;
@@ -1370,7 +1370,72 @@ od.flow.Inspector = Ext.extend(xds.Inspector, {
     }
 });
 
+od.flow.actions = {
+    open:new Ext.Action({
+        iconCls: "icon-project-open",
+        text: "打开",
+        tooltip: "Open Project",
+        handler:function(){
+
+        }
+    }),
+    bpmn20:new Ext.Action({
+        iconCls:'icon-page-code',
+        text:"BPMN2.0",
+        tooltip: "show bpmn2.0 xml",
+        handler:function(){
+            var c = xds.inspector.root.firstChild.component;
+            var j = c.getJsonConfig(true, true);
+
+            Ext.Ajax.request({
+                url: '/workflow/bpmn20',
+                method: 'POST',
+                jsonData:{def:Ext.encode(j)},
+                success: function (response) {
+                    var result = Ext.decode(response.responseText);
+                    if (result.success) {
+                        var win = new Ext.Window({
+                            modal: true,
+                            title: "BPMN2.0 XML",
+                            width: 900,
+                            height: 600,
+                            bodyStyle: 'background-color:#ffffff;',
+                            autoScroll: true,
+                            fbar: [
+                                {text: 'Cancel', ref: '../btnCancel', handler: function (btn) {
+                                    btn.refOwner.close();
+                                }}
+                            ]
+                        });
+                        win.show();
+                        win.body.update("<pre class='brush:xml' style='font-size:12px;font-family:\"consolas\",\"courier new\";'>" + result.message + "</pre>");
+
+                        SyntaxHighlighter.highlight({toolbar: false});
+                    } else {
+                        Ext.Msg.alert('提示', result.msg);
+                    }
+                }
+            });
+        }
+    })
+};
+
 od.flow.Designer = Ext.extend(xds.Designer, {
+    createTbar:function(){
+        this.tbar = new Ext.Toolbar({
+            items: ["-",
+                xds.actions.newAction,
+                od.flow.actions.open,
+                xds.actions.saveAction,
+                "-",
+                xds.actions.undo,
+                xds.actions.redo,
+                "-",
+                od.flow.actions.bpmn20,
+                xds.actions.rtConfig
+            ]
+        });
+    },
     createInspector: function () {
         return new od.flow.Inspector({
             id: "structure",

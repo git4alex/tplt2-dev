@@ -1,7 +1,6 @@
 package org.delta.activiti.parser;
 
 import org.activiti.bpmn.model.*;
-import org.activiti.bpmn.model.Process;
 import org.apache.commons.collections.MapUtils;
 import org.delta.activiti.BpmnJsonParser;
 import org.springframework.util.Assert;
@@ -21,8 +20,6 @@ public class StartEventParser extends BpmnJsonParser {
 
     @Override
     public StartEvent doParse(Map jsonMap, BaseElement parent, BpmnModel bpmnModel) {
-        Process currentProcess = (Process) parent;
-
         String xtype = MapUtils.getString(jsonMap, "xtype");
         StartEvent startEvent = new StartEvent();
 
@@ -40,11 +37,11 @@ public class StartEventParser extends BpmnJsonParser {
             String expression = MapUtils.getString(jsonMap, "expression");
             Assert.notNull(expression, "'expression' is required for a timer event");
 
-            if ("timerDate".equalsIgnoreCase(timerType)) {
+            if (ATTRIBUTE_TIMER_DATE.equalsIgnoreCase(timerType)) {
                 ed.setTimeDate(expression);
-            } else if ("timerDuration".equalsIgnoreCase(timerType)) {
+            } else if (ATTRIBUTE_TIMER_DURATION.equalsIgnoreCase(timerType)) {
                 ed.setTimeDuration(expression);
-            } else if ("timerCycle".equalsIgnoreCase(timerType)) {
+            } else if (ATTRIBUTE_TIMER_CYCLE.equalsIgnoreCase(timerType)) {
                 ed.setTimeCycle(expression);
             }
 
@@ -67,9 +64,6 @@ public class StartEventParser extends BpmnJsonParser {
                 bpmnModel.addProblem("Invalid 'messageRef': no message with id '" + ed.getMessageRef() + "' found.", startEvent);
             }
         }
-
-        currentProcess.addFlowElement(startEvent);
-
         return startEvent;
     }
 }

@@ -21,19 +21,21 @@ import java.util.Map;
  * Date: 13-5-12
  * Time: 上午9:39
  */
-public class BpmnJSONConverter implements BpmnXMLConstants {
+public class BpmnJsonConverter implements BpmnXMLConstants {
     private Map<String, BpmnJsonParser> parserMap = new HashMap<String, BpmnJsonParser>();
 
-    public BpmnJSONConverter(){
-        addPaser(new ProcessParser());
-        addPaser(new SubProcessParser());
-        addPaser(new StartEventParser());
-        addPaser(new UserTaskParser());
-        addPaser(new ServiceTaskParser());
-        addPaser(new ScriptTaskPaser());
+    public BpmnJsonConverter(){
+        addParser(new ProcessParser());
+        addParser(new SubProcessParser());
+        addParser(new StartEventParser());
+        addParser(new EndEventParser());
+        addParser(new UserTaskParser());
+        addParser(new ServiceTaskParser());
+        addParser(new ScriptTaskPaser());
+        addParser(new SequenceFlowParser());
     }
 
-    private void addPaser(BpmnJsonParser parser){
+    private void addParser(BpmnJsonParser parser){
         String[] xtypes = parser.getXtypes();
         if(!ArrayUtils.isEmpty(xtypes)){
             for(String xtype:xtypes){

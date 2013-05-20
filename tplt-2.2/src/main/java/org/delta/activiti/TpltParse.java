@@ -1,37 +1,49 @@
 package org.delta.activiti;
 
-import org.activiti.bpmn.constants.BpmnXMLConstants;
-import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.bpmn.model.parse.Problem;
 import org.activiti.engine.ActivitiException;
-import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.activiti.engine.impl.bpmn.parser.BpmnParse;
+import org.activiti.engine.impl.bpmn.parser.BpmnParser;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * User: Alex
  * Date: 13-5-11
  * Time: 下午4:21
  */
-public class TpltParse implements BpmnXMLConstants {
-    private String jsonDef;
-    protected BpmnModel bpmnModel;
-    protected List<ProcessDefinitionEntity> processDefinitions = new ArrayList<ProcessDefinitionEntity>();
+public class TpltParse extends BpmnParse {
+    public TpltParse(BpmnParser parser) {
+        super(parser);
+    }
 
-    public TpltParse(String jsonDef){
-        this.jsonDef = jsonDef;
+    private String inputStream2String(InputStream is) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        int i = -1;
+        while ((i = is.read()) != -1) {
+            baos.write(i);
+        }
+        return baos.toString();
     }
 
     public TpltParse execute() {
         try {
-            BpmnJSONConverter converter = new BpmnJSONConverter();
-            bpmnModel = converter.convertToBpmnModel(this.jsonDef);
+            BpmnJsonConverter converter = new BpmnJsonConverter();
+            String jsonDef = inputStream2String(streamSource.getInputStream());
+            bpmnModel = converter.convertToBpmnModel(jsonDef);
+
+            createImports();
+            createItemDefinitions();
+            createMessages();
+            createOperations();
+            transformProcessDefinitions();
         } catch (Exception e) {
             if (e instanceof ActivitiException) {
                 throw (ActivitiException) e;
             } else {
-                throw new ActivitiException("Error parsing JSON", e);
+                throw new ActivitiException("Error parsing JSON:"+e.getMessage(), e);
             }
         }
 
@@ -45,9 +57,5 @@ public class TpltParse implements BpmnXMLConstants {
         }
 
         return this;
-    }
-
-    public List<ProcessDefinitionEntity> getProcessDefinitions() {
-        return processDefinitions;
     }
 }

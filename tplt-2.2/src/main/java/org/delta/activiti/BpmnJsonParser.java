@@ -24,7 +24,10 @@ public abstract class BpmnJsonParser implements BpmnXMLConstants {
         BaseElement parent = (BaseElement) MapUtils.getObject(jsonMap, "parent");
 
         BaseElement el = doParse(jsonMap, parent, bpmnModel);
-        el.setId(MapUtils.getString(jsonMap,ATTRIBUTE_ID));
+
+        String id = MapUtils.getString(jsonMap, ATTRIBUTE_ID);
+        Assert.notNull(id, "'id' is requided for:" + el.toString());
+        el.setId(id);
 
         if (el instanceof HasExecutionListeners) {
             List execListeners = (List) MapUtils.getObject(jsonMap, "executionListener");
@@ -36,34 +39,46 @@ public abstract class BpmnJsonParser implements BpmnXMLConstants {
             }
         }
 
-        if(el instanceof FlowElement){
-            ((FlowElement) el).setName(MapUtils.getString(jsonMap,ATTRIBUTE_NAME));
+        if (el instanceof FlowElement) {
+            ((FlowElement) el).setName(MapUtils.getString(jsonMap, ATTRIBUTE_NAME));
+            if(parent instanceof FlowElementsContainer){
+                ((FlowElementsContainer) parent).addFlowElement((FlowElement)el);
+            }
         }
 
-        if(el instanceof Activity){
-            if(jsonMap.containsKey(ATTRIBUTE_ACTIVITY_ASYNCHRONOUS)){
+        if (el instanceof Activity) {
+            if (jsonMap.containsKey(ATTRIBUTE_ACTIVITY_ASYNCHRONOUS)) {
                 boolean async = MapUtils.getBoolean(jsonMap, ATTRIBUTE_ACTIVITY_ASYNCHRONOUS, false);
                 ((Activity) el).setAsynchronous(async);
             }
 
-            if(jsonMap.containsKey(ATTRIBUTE_ACTIVITY_EXCLUSIVE)){
+            if (jsonMap.containsKey(ATTRIBUTE_ACTIVITY_EXCLUSIVE)) {
                 boolean exclusive = MapUtils.getBoolean(jsonMap, ATTRIBUTE_ACTIVITY_EXCLUSIVE, false);
                 ((Activity) el).setNotExclusive(!exclusive);
             }
 
-            MultiInstanceLoopCharacteristics multiInstanceDef = new MultiInstanceLoopCharacteristics();
-            if(jsonMap.containsKey(ATTRIBUTE_MULTIINSTANCE_SEQUENTIAL)){
-                boolean sequential = MapUtils.getBoolean(jsonMap,ATTRIBUTE_MULTIINSTANCE_SEQUENTIAL);
+            String collection = MapUtils.getString(jsonMap, ATTRIBUTE_MULTIINSTANCE_COLLECTION);
+            String elementVariable = MapUtils.getString(jsonMap, ATTRIBUTE_MULTIINSTANCE_VARIABLE);
+            String loopCardinality = MapUtils.getString(jsonMap, ELEMENT_MULTIINSTANCE_CARDINALITY);
+            String complateCondition = MapUtils.getString(jsonMap, ELEMENT_MULTIINSTANCE_CONDITION);
+            String inputDataItem = MapUtils.getString(jsonMap, ELEMENT_MULTIINSTANCE_DATAITEM);
+            if (StringUtils.isNotBlank(collection)
+                    || StringUtils.isNotBlank(elementVariable)
+                    || StringUtils.isNotBlank(loopCardinality)
+                    || StringUtils.isNotBlank(complateCondition)
+                    || StringUtils.isNotBlank(inputDataItem)) {
+
+                MultiInstanceLoopCharacteristics multiInstanceDef = new MultiInstanceLoopCharacteristics();
+                boolean sequential = MapUtils.getBoolean(jsonMap, ATTRIBUTE_MULTIINSTANCE_SEQUENTIAL, false);
                 multiInstanceDef.setSequential(sequential);
+                multiInstanceDef.setInputDataItem(collection);
+                multiInstanceDef.setElementVariable(elementVariable);
+                multiInstanceDef.setLoopCardinality(loopCardinality);
+                multiInstanceDef.setCompletionCondition(complateCondition);
+                multiInstanceDef.setInputDataItem(inputDataItem);
+
+                ((Activity) el).setLoopCharacteristics(multiInstanceDef);
             }
-
-            multiInstanceDef.setInputDataItem(MapUtils.getString(jsonMap,ATTRIBUTE_MULTIINSTANCE_COLLECTION));
-            multiInstanceDef.setElementVariable(MapUtils.getString(jsonMap,ATTRIBUTE_MULTIINSTANCE_VARIABLE));
-            multiInstanceDef.setLoopCardinality(MapUtils.getString(jsonMap,ELEMENT_MULTIINSTANCE_CARDINALITY));
-            multiInstanceDef.setCompletionCondition(MapUtils.getString(jsonMap,ELEMENT_MULTIINSTANCE_CONDITION));
-            multiInstanceDef.setInputDataItem(MapUtils.getString(jsonMap,ELEMENT_MULTIINSTANCE_DATAITEM));
-
-            ((Activity) el).setLoopCharacteristics(multiInstanceDef);
         }
 
         return el;

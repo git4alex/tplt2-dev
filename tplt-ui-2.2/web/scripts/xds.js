@@ -4637,21 +4637,7 @@ xds.Designer = Ext.extend(Ext.Panel, {
             }
         };
 
-        this.tbar = new Ext.Toolbar({
-            items: ["-",
-                xds.actions.newAction,
-                xds.actions.openAction,
-                xds.actions.saveAction,
-                xds.actions.saveAsAction,
-                "-",
-                xds.actions.undo,
-                xds.actions.redo,
-                "-",
-                xds.actions.preview,
-                xds.actions.xdsConfig,
-                xds.actions.rtConfig
-            ]
-        });
+        this.createTbar();
 //        var tbox = new xds.Toolbox({
 //            title:'工具箱'
 //        });
@@ -4767,6 +4753,23 @@ xds.Designer = Ext.extend(Ext.Panel, {
         xds.fireEvent("init");
 
         xds.Designer.superclass.initComponent.call(this);
+    },
+    createTbar:function(){
+        this.tbar = new Ext.Toolbar({
+            items: ["-",
+                xds.actions.newAction,
+                xds.actions.openAction,
+                xds.actions.saveAction,
+                xds.actions.saveAsAction,
+                "-",
+                xds.actions.undo,
+                xds.actions.redo,
+                "-",
+                xds.actions.preview,
+                xds.actions.xdsConfig,
+                xds.actions.rtConfig
+            ]
+        });
     },
     createInspector: function () {
         return new xds.Inspector({
