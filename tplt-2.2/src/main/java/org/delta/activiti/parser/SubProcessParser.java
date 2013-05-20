@@ -5,7 +5,6 @@ import org.activiti.bpmn.model.Process;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.delta.activiti.BpmnJsonParser;
-import org.springframework.util.Assert;
 
 import java.util.Map;
 
@@ -31,20 +30,6 @@ public class SubProcessParser extends BpmnJsonParser {
         } else {
             subProcess = new SubProcess();
         }
-
-        String id = MapUtils.getString(jsonMap, ATTRIBUTE_ID);
-        Assert.isNull(id, "id is required for subprocess");
-        subProcess.setId(id);
-
-        String name = MapUtils.getString(jsonMap, ATTRIBUTE_NAME);
-        Assert.isNull(name, "name is required for subprocess");
-        subProcess.setName(name);
-
-        boolean async = MapUtils.getBoolean(jsonMap, ATTRIBUTE_ACTIVITY_ASYNCHRONOUS, false);
-        subProcess.setAsynchronous(async);
-
-        boolean exclusive = MapUtils.getBoolean(jsonMap, ATTRIBUTE_ACTIVITY_EXCLUSIVE, false);
-        subProcess.setNotExclusive(!exclusive);
 
         String defaultFlow = MapUtils.getString(jsonMap, ATTRIBUTE_DEFAULT);
         if (StringUtils.isNotBlank(defaultFlow)) {

@@ -607,6 +607,11 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
             name: 'complateCondition',
             group: 'MultiInstance',
             ctype: 'string'
+        },
+        {
+            name: 'inputDataItem',
+            group: 'MultiInstance',
+            ctype: 'string'
         }
     ]
 });
@@ -702,6 +707,16 @@ xds.types.flow.ScriptTask = Ext.extend(xds.types.flow.TaskBase, {
             name: 'script',
             group: 'General',
             ctype: 'text'
+        },
+        {
+            name: 'resultVariable',
+            group: 'General',
+            ctype: 'string'
+        },
+        {
+            name: 'autoStoreVariables',
+            group: 'General',
+            ctype: 'boolean'
         }
     ]
 });

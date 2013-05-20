@@ -8,9 +8,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.delta.activiti.parser.ProcessParser;
-import org.delta.activiti.parser.StartEventParser;
-import org.delta.activiti.parser.SubProcessParser;
+import org.delta.activiti.parser.*;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -30,6 +28,9 @@ public class BpmnJSONConverter implements BpmnXMLConstants {
         addPaser(new ProcessParser());
         addPaser(new SubProcessParser());
         addPaser(new StartEventParser());
+        addPaser(new UserTaskParser());
+        addPaser(new ServiceTaskParser());
+        addPaser(new ScriptTaskPaser());
     }
 
     private void addPaser(BpmnJsonParser parser){
