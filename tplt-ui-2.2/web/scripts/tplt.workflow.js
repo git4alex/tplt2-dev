@@ -168,6 +168,7 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
                 this.drawText(p);
                 this.shape = p.setFinish().attr({cursor: 'default'});
                 this.el = Ext.get(this.positionShape.node);
+                this.el.id = this.getId();
                 this.paper = p;
             }
         }
@@ -272,8 +273,8 @@ od.flow.SubProcess = Ext.extend(od.flow.ShapeContainer, {
     drawShape: function (p) {
         var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white'});
-        if(this.triggeredByEvent){
-            this.positionShape.attr({'stroke-dasharray':'-'});
+        if (this.triggeredByEvent) {
+            this.positionShape.attr({'stroke-dasharray': '-'});
         }
     }
 });
@@ -288,6 +289,7 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
                 this.drawShape(p);
                 this.drawText(p);
                 this.shape = p.setFinish().attr({cursor: 'default'});
+                this.positionShape.node.id = this.getId();
                 this.el = Ext.get(this.positionShape.node);
             }
         }
@@ -706,8 +708,8 @@ od.flow.Gateway = Ext.extend(od.flow.Shape, {
         var dy = this.y - this.height / 2 - this.positionShape.attr('y');
         this.shape.transform(['t' + dx + ',' + dy + 'r45']);
     },
-    getBox:function(){
-        return {x:this.x,y:this.y,width:this.width+8,height:this.height+8};
+    getBox: function () {
+        return {x: this.x, y: this.y, width: this.width + 8, height: this.height + 8};
     }
 });
 
@@ -759,6 +761,7 @@ od.flow.Connection = Ext.extend(Ext.Component, {
     isConnection: true,
     routerDir: 'H',
     onRender: function (ct, pos) {
+        this.rendered = false;
         this.startNode = this.getStartNode();
         if (this.startNode) {
             this.startNode.getOutputs().add(this);
@@ -780,13 +783,16 @@ od.flow.Connection = Ext.extend(Ext.Component, {
     doRender: function () {
         var p = this.ownerCt.paper;
         var sb = this.startNode.getBox(), eb = this.endNode.getBox();
-        var path = od.flow.getConPath(sb, eb,this.routerDir);
+        var path = od.flow.getConPath(sb, eb, this.routerDir);
         this.shape = p.path(path).attr(this.getDefAttr());
         if (this.viewerNode) {
             this.shape.vn = this.viewerNode;
         }
         this.el = Ext.get(this.shape.node);
+        this.el.id = this.getId();
         this.drawText();
+
+        this.rendered = true;
     },
     drawText: function () {
         if (this.name) {
@@ -800,10 +806,10 @@ od.flow.Connection = Ext.extend(Ext.Component, {
         }
     },
     getStartNode: function () {
-        return Ext.get(this.sourceRef);
+        return Ext.getCmp(this.sourceRef);
     },
     getEndNode: function () {
-        return Ext.get(this.targetRef);
+        return Ext.getCmp(this.targetRef);
     },
     getDefAttr: function () {
         return {'stroke-width': 2, 'stroke-linejoin': 'round', 'arrow-end': 'block-wide-long'};
@@ -820,17 +826,13 @@ od.flow.Project = Ext.extend(xds.Project, {
             root.removeChild(root.firstChild);
         }
         var d = data || this.getDefaultCfg();
-        var defaultNode;
         var comps = d.cn || [];
         for (var i = 0, comp; comp = comps[i]; i++) {
-            var n = xds.inspector.restore(comp, root);
-            if (comp.userConfig && comp.userConfig.id == data.userConfig.defaultComponent) {
-                defaultNode = n;
-            }
+            xds.inspector.restore(comp, root);
         }
 
         root.endUpdate();
-        defaultNode = defaultNode || root.firstChild;
+        var defaultNode = root.firstChild;
         if (defaultNode) {
             defaultNode.getOwnerTree().expandPath(defaultNode.getPath());
             defaultNode.select();
@@ -845,22 +847,30 @@ od.flow.Project = Ext.extend(xds.Project, {
         ]};
     },
     save: function () {
-        var c = xds.inspector.root.firstChild.component;
-        var data = {};
+        var c = xds.flow.process.viewerNode.component;
         var i = c.getInternals(true, true), j = c.getJsonConfig(true, true);
-        data.id = j.id;
-        data.name = j.name;
-        data.src = Ext.encode(i);
-        data.def = Ext.encode(j);
+        if (!od.flow.model) {
+            od.flow.model = {};
+        }
+        var m = od.flow.model;
+        if (m) {
+            m.key = j.id;
+            m.name = j.name;
+            m.category = j.category;
+            m.src = Ext.encode(i);
+            m.json = Ext.encode(j);
+            m.svg = xds.flow.process.el.dom.parentNode.innerHTML;
+        }
 
         Ext.Ajax.request({
-            url: '/workflow/defination',
-            method: 'POST',
-            jsonData: data,
+            url: '/workflow/model' + (m.id ? '/' + m.id : ''),
+            method: m.id ? 'PUT' : 'POST',
+            jsonData: m,
             success: function (response, conn) {
                 var result = Ext.decode(response.responseText);
                 if (result.success) {
                     xds.project.setDirty(false);
+                    od.flow.model = result.data.model;
                 } else {
                     Ext.Msg.alert('提示', result.msg);
                 }
@@ -1149,7 +1159,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(sb, ec.endNode.getBox(),ec.routerDir);
+        var path = od.flow.getConPath(sb, ec.endNode.getBox(), ec.routerDir);
         ec.shape.attr({path: path});
     },
     onEndConStart: function (b, c, a) {
@@ -1175,7 +1185,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(ec.startNode.getBox(), eb,ec.routerDir);
+        var path = od.flow.getConPath(ec.startNode.getBox(), eb, ec.routerDir);
         ec.shape.attr({path: path});
     },
     onEndConEnd: function (b, c, a) {
@@ -1370,27 +1380,376 @@ od.flow.Inspector = Ext.extend(xds.Inspector, {
     }
 });
 
+//od.flow.MWindow = Ext.extend(Ext.Window, {
+//    iconCls: "icon-project",
+//    title: '打开流程',
+//    width: 800,
+//    height: 600,
+//    layout: "fit",
+//    plain: true,
+//    buttonAlign: 'left',
+//    initComponent: function () {
+//        var store = new Ext.data.JsonStore({
+//            method: 'GET',
+//            url: 'workflow/model',
+//            autoLoad: true,
+//            autoDestroy: true,
+//            idProperty: 'id',
+//            root: 'root',
+//            fields: ['id', 'key','version','lastUpdateTime',
+//                {
+//                    name: 'text',
+//                    mapping: 'name'
+//                },
+//                {
+//                    name: 'category',
+//                    convert: function (v) {
+//                        return Ext.isEmpty(v) ? 'Default' : v;
+//                    }
+//                }
+//            ]
+//        });
+//        this.items = [this.view = new od.flow.MView({
+//            style: "background:#fff;",
+//            autoScroll: true,
+//            region: "center",
+//            categoryName: "category",
+//            store: store,
+//            singleSelect: true,
+//            trackOver: true,
+//            overClass: "x-tile-over"
+//        })];
+//        this.fbar = [
+//            {
+//                text: '删除',
+//                disabled: true,
+//                handler: this.onDelete,
+//                scope: this
+//            },
+//            '->',
+//            {
+//                text: "打开",
+//                disabled: true,
+//                handler: this.onAccept,
+//                scope: this
+//            },
+//            {
+//                text: "取消",
+//                handler: this.close,
+//                scope: this
+//            }
+//        ];
+//        this.view.on("selectionchange", this.onOpenViewSelect, this);
+//        this.view.on('dblclick', this.onDblClick, this);
+//        od.flow.MWindow.superclass.initComponent.call(this);
+//    },
+//    onDblClick: function (view, idx, node, evt) {
+//        var record = view.getRecord(node);
+//        if (record) {
+//            this.selectedId = record.data.id;
+//        }
+//        this.onAccept();
+//    },
+//    onOpenViewSelect: function () {
+//        var a = this.view.getSelectedRecords()[0];
+//        if (a) {
+//            this.buttons[0].enable();
+//            this.buttons[2].enable();
+//            try {
+//                this.selectedId = a.data.id;
+//            } catch (e) {
+//            }
+//        } else {
+//            this.buttons[0].disable();
+//            this.buttons[2].disable();
+//            delete this.selectedId;
+//        }
+//    },
+//    onAccept: function () {
+//        var win = this;
+//        Ext.Ajax.request({
+//            url: 'workflow/model/' + this.selectedId,
+//            method: 'GET',
+//            success: function (resp) {
+//                var ret = Ext.decode(resp.responseText);
+//                if (!Ext.isEmpty(ret)) {
+//                    var data = {cn:[Ext.decode(ret.data.src)]};
+//                    var model = ret.data.model;
+//                    if (xds.project) {
+//                        xds.project.close(function () {
+//                            new od.flow.Project().open(data);
+//                            od.flow.model = model;
+//                        });
+//                    }
+//                    win.close();
+//                }
+//            }
+//        });
+//    },
+//    onDelete: function () {
+//        var a = this.view.getSelectedRecords()[0];
+//        var mid = a.data.id;
+//        var view = this.view;
+//
+//        Ext.Msg.confirm("Delete Module", "确认要删除模块" + a.data.text + "?", function (a) {
+//            if (a == "yes") {
+//                Ext.Ajax.request({
+//                    url: 'workflow/model/' + mid,
+//                    method: 'DELETE',
+//                    success: function () {
+//                        view.getStore().reload();
+//                    }
+//                });
+//            }
+//        });
+//    }
+//});
+
 od.flow.actions = {
-    open:new Ext.Action({
+    open: new Ext.Action({
         iconCls: "icon-project-open",
         text: "打开",
         tooltip: "Open Project",
-        handler:function(){
+        handler: function () {
+            Ext.create({
+                "xtype": "window",
+                "width": 968,
+                "height": 491,
+                "title": "打开流程",
+                "constrain": true,
+                "layout": "border",
+                "modal": true,
+                "buttonAlign": "left",
+                "fbar": {
+                    "xtype": "toolbar",
+                    "items": [
+                        {
+                            "xtype": "button",
+                            "text": "删除",
+                            "ref": "../btnDel",
+                            "disabled": true,
+                            "listeners": {
+                                "click": function (btn, evt) {
+                                    var s = btn.refOwner.grid.getSelectionModel().getSelected();
+                                    Ext.Msg.confirm("提示", "确认要删除流程" + s.data.name + "?", function (a) {
+                                        if (a == "yes") {
+                                            Ext.Ajax.request({
+                                                url: 'workflow/model/' + s.id,
+                                                method: 'DELETE',
+                                                success: function () {
+                                                    btn.refOwner.grid.getStore().reload();
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        },
+                        {
+                            "xtype": "tbfill"
+                        },
+                        {
+                            "xtype": "button",
+                            "text": "打开",
+                            "ref": "../btnAccept",
+                            "disabled": true,
+                            "listeners": {
+                                "click": function (btn, evt) {
+                                    var win = btn.refOwner;
+                                    var s = win.grid.getSelectionModel().getSelected();
+                                    win.openModel(s.id);
+                                }
+                            }
+                        },
+                        {
+                            "xtype": "button",
+                            "text": "取消",
+                            "ref": "../btnCancel",
+                            "listeners": {
+                                "click": function (btn, evt) {
+                                    if (btn.refOwner) {
+                                        btn.refOwner.close();
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                "items": [
+                    {
+                        "xtype": "grid",
+                        "store": {
+                            "xtype": "jsongroupstore",
+                            "storeId": "MyStore",
+                            "groupField": "category",
+                            "groupDir": "DESC",
+                            "idProperty": "id",
+                            "root": "root",
+                            "autoLoad": true,
+                            "restful": true,
+                            "url": "/workflow/model",
+                            "fields": [
+                                {
+                                    "xtype": "datafield",
+                                    "name": "key",
+                                    "type": "string"
+                                },
+                                {
+                                    "xtype": "datafield",
+                                    "name": "name",
+                                    "type": "string"
+                                },
+                                {
+                                    "xtype": "datafield",
+                                    "name": "version",
+                                    "type": "string"
+                                },
+                                {
+                                    "xtype": "datafield",
+                                    "name": "category",
+                                    "type": "string"
+                                },
+                                {
+                                    "xtype": "datafield",
+                                    "name": "lastUpdateTime",
+                                    "type": "date",
+                                    "dateFormat": "time"
+                                }
+                            ]
+                        },
+                        "border": false,
+                        "region": "west",
+                        "useGroupView": true,
+                        "hideGroupedColumn": true,
+                        "width": "400",
+                        "split": true,
+                        "cls": "tplt-border-right",
+                        "ref": "grid",
+                        "listeners": {
+                            "rowselect": function (grid, rowIndex, record) {
+                                var win = grid.refOwner;
+                                win.btnDel.enable();
+                                win.btnAccept.enable();
 
+                                Ext.Ajax.request({
+                                    url: 'workflow/model/' + record.id + '/json',
+                                    method: 'GET',
+                                    success: function (resp) {
+                                        var ret = Ext.decode(resp.responseText);
+                                        if (ret.success) {
+                                            var cfg = Ext.decode(ret.message);
+                                            if (cfg) {
+                                                win.view.removeAll(true);
+                                                win.view.add(Ext.create(cfg));
+                                                win.view.doLayout();
+                                            }
+                                        }
+                                    }
+                                });
+                            },
+                            "rowdblclick": function (grid, rowIndex, event) {
+                                var id = grid.getSelectionModel().getSelected().id;
+                                grid.refOwner.openModel(id);
+                            }
+                        },
+                        "columns": [
+                            {
+                                "xtype": "gridcolumn",
+                                "header": "编码",
+                                "sortable": false,
+                                "resizable": true,
+                                "width": 80,
+                                "menuDisabled": true,
+                                "dataIndex": "key"
+                            },
+                            {
+                                "xtype": "gridcolumn",
+                                "header": "名称",
+                                "sortable": false,
+                                "resizable": true,
+                                "width": 140,
+                                "menuDisabled": true,
+                                "dataIndex": "name"
+                            },
+                            {
+                                "xtype": "gridcolumn",
+                                "header": "版本",
+                                "sortable": false,
+                                "resizable": false,
+                                "width": 60,
+                                "menuDisabled": true,
+                                "dataIndex": "version"
+                            },
+                            {
+                                "xtype": "gridcolumn",
+                                "header": "category",
+                                "sortable": false,
+                                "resizable": true,
+                                "width": 60,
+                                "menuDisabled": true,
+                                "dataIndex": "category",
+                                "hidden": true
+                            },
+                            {
+                                "xtype": "datecolumn",
+                                "header": "更新时间",
+                                "sortable": true,
+                                "resizable": false,
+                                "width": 100,
+                                "format": "Y-m-d",
+                                "menuDisabled": true,
+                                "dataIndex": "lastUpdateTime"
+                            }
+                        ]
+                    },
+                    {
+                        "xtype": "panel",
+                        "border": false,
+                        "region": "center",
+                        "width": 200,
+                        "cls": "tplt-border-left",
+                        "ref": "view",
+                        layout:'fit'
+                    }
+                ],
+                openModel: function (id) {
+                    var me = this;
+                    Ext.Ajax.request({
+                        url: 'workflow/model/' + id,
+                        method: 'GET',
+                        success: function (resp) {
+                            var ret = Ext.decode(resp.responseText);
+                            if (!Ext.isEmpty(ret)) {
+                                var data = {
+                                    cn: [Ext.decode(ret.data.src)]
+                                };
+                                var model = ret.data.model;
+                                if (xds.project) {
+                                    xds.project.close(function () {
+                                        new od.flow.Project().open(data);
+                                        od.flow.model = model;
+                                    });
+                                }
+                                me.close();
+                            }
+                        }
+                    });
+                }
+            }).show();
         }
     }),
-    bpmn20:new Ext.Action({
-        iconCls:'icon-page-code',
-        text:"BPMN2.0",
+    bpmn20: new Ext.Action({
+        iconCls: 'icon-page-code',
+        text: "BPMN2.0",
         tooltip: "show bpmn2.0 xml",
-        handler:function(){
+        handler: function () {
             var c = xds.inspector.root.firstChild.component;
             var j = c.getJsonConfig(true, true);
 
             Ext.Ajax.request({
                 url: '/workflow/bpmn20',
                 method: 'POST',
-                jsonData:{def:Ext.encode(j)},
+                jsonData: {def: Ext.encode(j)},
                 success: function (response) {
                     var result = Ext.decode(response.responseText);
                     if (result.success) {
@@ -1421,7 +1780,7 @@ od.flow.actions = {
 };
 
 od.flow.Designer = Ext.extend(xds.Designer, {
-    createTbar:function(){
+    createTbar: function () {
         this.tbar = new Ext.Toolbar({
             items: ["-",
                 xds.actions.newAction,

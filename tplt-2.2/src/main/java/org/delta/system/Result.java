@@ -50,7 +50,7 @@ public class Result extends ValueMap {
         return ret;
     }
 
-    public static Result list(List<ValueMap> list){
+    public static Result list(List list){
         Result ret = new Result();
         if(list instanceof Page){
             Page page = (Page) list;
