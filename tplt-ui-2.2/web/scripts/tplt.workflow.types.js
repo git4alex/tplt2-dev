@@ -67,9 +67,9 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
             ctype: 'string'
         },
         {
-            name:'isExecutable',
-            group:'Process',
-            ctype:'boolean'
+            name: 'isExecutable',
+            group: 'Process',
+            ctype: 'boolean'
         },
         {
             name: 'nameSpace',
@@ -198,19 +198,19 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
             setFn: 'setY'
         },
         {
-            name:'triggeredByEvent',
-            group:'SubProcess',
-            ctype:'boolean'
+            name: 'triggeredByEvent',
+            group: 'SubProcess',
+            ctype: 'boolean'
         },
         {
-            name:'async',
-            group:'Activiti Extend',
-            ctype:'boolean'
+            name: 'async',
+            group: 'Activiti Extend',
+            ctype: 'boolean'
         },
         {
-            name:'exclusive',
-            group:'Activiti Extend',
-            ctype:'boolean'
+            name: 'exclusive',
+            group: 'Activiti Extend',
+            ctype: 'boolean'
         }
     ]
 });
@@ -419,16 +419,16 @@ xds.types.flow.boundary.BoundaryBase = Ext.extend(xds.types.flow.ShapeBase, {
     isValidChild: function (ct) {
         return ct.isTask || ct.isContainer;
     },
-    xdConfigs:[
+    xdConfigs: [
         {
-            name:'cancelActivity',
-            group:'BoundaryEvents',
-            ctype:'boolean'
+            name: 'cancelActivity',
+            group: 'BoundaryEvents',
+            ctype: 'boolean'
         },
         {
-            name:'attachedToRef',
-            group:'BoundaryEvents',
-            ctype:'string'
+            name: 'attachedToRef',
+            group: 'BoundaryEvents',
+            ctype: 'string'
         }
     ]
 });
@@ -794,61 +794,45 @@ xds.types.flow.ManualTask = Ext.extend(xds.types.flow.TaskBase, {
 });
 
 xds.types.flow.Gateway = Ext.extend(xds.types.flow.ShapeBase, {
-    cid: 'flowgateway',
+    cid: 'gateway',
     iconCls: 'icon-flow-gateway',
     category: "分支(Gateway)",
     defaultName: "&lt;Gateway&gt;",
     text: "分支",
-    dtype: "xdflowgateway",
-    xtype: 'flowgateway',
+    dtype: "gateway",
+    xtype: 'gateway',
     naming: "Gateway"
 });
 
-xds.flow.Gateway = Ext.extend(od.flow.Gateway, {});
-
-Ext.reg('xdflowgateway', xds.flow.Gateway);
-
 xds.types.flow.GatewayAnd = Ext.extend(xds.types.flow.Gateway, {
-    cid: 'flowgatewayand',
+    cid: 'gatewayand',
     iconCls: 'icon-flow-gatewayand',
     defaultName: "&lt;GatewayAnd&gt;",
     text: "分支(并行)",
-    dtype: "xdflowgatewayand",
-    xtype: 'flowgatewayand',
+    dtype: "gatewayand",
+    xtype: 'gatewayand',
     naming: "GatewayAnd"
 });
 
-xds.flow.GatewayAnd = Ext.extend(od.flow.GatewayAnd, {});
-
-Ext.reg('xdflowgatewayand', xds.flow.GatewayAnd);
-
 xds.types.flow.GatewayOr = Ext.extend(xds.types.flow.Gateway, {
-    cid: 'flowgatewayor',
+    cid: 'gatewayor',
     iconCls: 'icon-flow-gatewayor',
     defaultName: "&lt;GatewayOr&gt;",
     text: "分支(包容)",
-    dtype: "xdflowgatewayor",
-    xtype: 'flowgatewayor',
+    dtype: "gatewayor",
+    xtype: 'gatewayor',
     naming: "GatewayOr"
 });
 
-xds.flow.GatewayOr = Ext.extend(od.flow.GatewayOr, {});
-
-Ext.reg('xdflowgatewayor', xds.flow.GatewayOr);
-
 xds.types.flow.GatewayXor = Ext.extend(xds.types.flow.Gateway, {
-    cid: 'flowgatewayxor',
+    cid: 'gatewayxor',
     iconCls: 'icon-flow-gatewayxor',
     defaultName: "&lt;GatewayXor&gt;",
     text: "分支(排他)",
-    dtype: "xdflowgatewayxor",
-    xtype: 'flowgatewayxor',
+    dtype: "gatewayxor",
+    xtype: 'gatewayxor',
     naming: "GatewayXor"
 });
-
-xds.flow.GatewayXor = Ext.extend(od.flow.GatewayXor, {});
-
-Ext.reg('xdflowgatewayxor', xds.flow.GatewayXor);
 
 xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
     defaultName: "&lt;Listener&gt;",
@@ -936,10 +920,10 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
             cmp.toggleHilight(a);
         }
     },
-    onFilmDblClick:function(){
-        var d = this.getConfigValue('routerDir','H') == 'H'?'V':'H';
-        this.setConfig('routerDir',d);
-        xds.props.setValue('routerDir',d);
+    onFilmDblClick: function () {
+        var d = this.getConfigValue('routerDir', 'H') == 'H' ? 'V' : 'H';
+        this.setConfig('routerDir', d);
+        xds.props.setValue('routerDir', d);
         xds.fireEvent("componentchanged");
     },
     xdConfigs: [
@@ -967,12 +951,20 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
             name: 'conditionExpression',
             group: 'Connection',
             ctype: 'string'
-        },{
-            name:'routerDir',
-            group:'Layout',
-            ctype:'string',
-            editor:'options',
-            options:['H','V']
+        },
+        {
+            name: 'routerDir',
+            group: 'Layout',
+            ctype: 'string',
+            editor: 'options',
+            options: ['H', 'V']
+        },
+        {
+            name: 'routerType',
+            group: 'Layout',
+            ctype: 'string',
+            editor: 'options',
+            options: ['Z', 'L']
         }
     ]
 });
@@ -996,16 +988,14 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
     },
     toggleHilight: function (a) {
         if (a) {
-            this.shape.attr({'stroke-width': 3});
             var p = this.shape.paper;
             var path = this.shape.attr('path');
             var startPoint = Raphael.getPointAtLength(path, 0);
             var endPoint = Raphael.getPointAtLength(path, Raphael.getTotalLength(path));
-            this.startHandler = p.circle(startPoint.x, startPoint.y, 4).attr({fill: 'red', 'stroke-width': 2});
-            this.endHandler = p.circle(endPoint.x, endPoint.y, 4).attr({fill: 'red', 'stroke-width': 2});
+            this.startHandler = p.circle(startPoint.x, startPoint.y, 4).attr({fill: 'red', 'stroke-width': 2, cursor: 'move'});
+            this.endHandler = p.circle(endPoint.x, endPoint.y, 4).attr({fill: 'red', 'stroke-width': 2, cursor: 'move'});
             this.startHandler.vn = this.endHandler.vn = this.viewerNode;
         } else {
-            this.shape.attr({'stroke-width': 2});
             if (this.startHandler) {
                 this.startHandler.remove();
                 delete this.startHandler;
@@ -1017,32 +1007,59 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
         }
     },
     doRender: function (ct, pos) {
-        xds.flow.Connection.superclass.doRender.call(this, ct, pos);
+        var p = this.ownerCt.paper;
+        var sb = this.startNode.getBox(), eb = this.endNode.getBox();
+        var path = od.flow.getConPath(sb, eb, this.routerDir,this.routerType);
+        this.shape = p.path(path).attr(this.getDefAttr());
+        this.el = Ext.get(this.shape.node);
+        this.drawText();
+
+        this.rendered = true;
+
+        if (this.viewerNode) {
+            this.shape.vn = this.viewerNode;
+            if (this.text) {
+                this.text.vn = this.viewerNode;
+            }
+        }
         if (this.startNode) {
             this.startNode.on('move', this.updatePath, this);
         }
         if (this.endNode) {
             this.endNode.on('move', this.updatePath, this);
         }
+
         if (this.viewerNode.isSelected()) {
             this.toggleHilight(true);
         }
     },
-    updatePath: function () {
+    updatePath: function (sb, eb) {
+        sb = sb || this.startNode.getBox();
+        eb = eb || this.endNode.getBox();
         if (this.shape) {
-            var sb = this.startNode.getBox(), eb = this.endNode.getBox();
-            var path = od.flow.getConPath(sb, eb,this.routerDir).join(',');
+            var path = od.flow.getConPath(sb, eb, this.routerDir,this.routerType).join(',');
             this.shape.attr({path: path});
             this.updateText();
+            this.updateHandlers();
         }
     },
     updateText: function () {
         if (this.text) {
-            var p = this.ownerCt.paper;
             var tp = this.shape.attr('path');
             var pt = Raphael.getPointAtLength(tp, Raphael.getTotalLength(tp) / 2);
             var dx = pt.alpha == 90 ? 10 : 0, dy = pt.alpha == 180 ? 10 : 0;
             this.text.attr({x: pt.x - dx, y: pt.y - dy, transform: 'r' + (pt.alpha + 180)});
+        }
+    },
+    updateHandlers: function () {
+        var tp = this.shape.attr('path'), pt;
+        if (this.startHandler) {
+            pt = Raphael.getPointAtLength(tp, 0);
+            this.startHandler.attr({cx: pt.x, cy: pt.y});
+        }
+        if (this.endHandler) {
+            pt = Raphael.getPointAtLength(tp, Raphael.getTotalLength(tp));
+            this.endHandler.attr({cx: pt.x, cy: pt.y});
         }
     }
 });

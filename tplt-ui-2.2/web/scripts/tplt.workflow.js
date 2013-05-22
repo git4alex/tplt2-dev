@@ -1,7 +1,8 @@
 Ext.ns("od.flow");
 
-od.flow.getConPath = function (bb1, bb2, d) {
+od.flow.getConPath = function (bb1, bb2, d, t) {
     d = d || 'H';
+    t = t || 'Z';
     bb1.x -= bb1.width / 2;
     bb1.y -= bb1.height / 2;
     bb2.x -= bb2.width / 2;
@@ -26,92 +27,189 @@ od.flow.getConPath = function (bb1, bb2, d) {
     var area;
     if (el.x > sr.x) {
         if (eb.y < st.y) {
+            area = 'rtt';
+        } else if (eb.y < sc.y) {
             area = 'rt';
         } else if (et.y > sb.y) {
+            area = 'rbb';
+        } else if (et.y > sc.y) {
             area = 'rb';
         } else {
-            area = 'r'
+            area = 'r';
         }
     } else if (er.x < sl.x) {
         if (eb.y < st.y) {
+            area = 'ltt';
+        } else if (eb.y < sc.y) {
             area = 'lt';
         } else if (et.y > sb.y) {
+            area = 'lbb';
+        } else if (et.y > sc.y) {
             area = 'lb';
         } else {
-            area = 'l'
+            area = 'l';
         }
     } else if (eb.y < st.y) {
-        area = 't';
+        if (er.x < st.x) {
+            area = 'tl';
+        } else if (el.x > st.x) {
+            area = 'tr';
+        } else {
+            area = 't';
+        }
     } else if (et.y > sb.y) {
-        area = 'b';
+        if (er.x < sb.x) {
+            area = 'bl';
+        } else if (el.x > sb.x) {
+            area = 'br';
+        } else {
+            area = 'b';
+        }
     } else {
         area = 'c';
     }
 
-    var r = 0;
-    var dx = ec.x - sc.x,
-        dy = ec.y - sc.y;
-    if (!dx && !dy) {
-        r = 0;
-    } else {
-        r = (180 + Math.atan2(-dy, -dx) * 180 / Math.PI + 360) % 360;
-    }
-
-    var rl = { ps: sr, pe: el, p1: {x: sr.x + (el.x - sr.x) / 2, y: sr.y}, p2: {x: sr.x + (el.x - sr.x) / 2, y: el.y}},
+    var rl = {ps: sr, pe: el, p1: {x: sr.x + (el.x - sr.x) / 2, y: sr.y}, p2: {x: sr.x + (el.x - sr.x) / 2, y: el.y}},
         bt = {ps: sb, pe: et, p1: {x: sb.x, y: sb.y + (et.y - sb.y) / 2}, p2: {x: et.x, y: sb.y + (et.y - sb.y) / 2}},
         lr = {ps: sl, pe: er, p1: {x: er.x + (sl.x - er.x) / 2, y: sl.y}, p2: {x: er.x + (sl.x - er.x) / 2, y: er.y}},
-        tb = {ps: st, pe: eb, p1: {x: st.x, y: eb.y + (st.y - eb.y) / 2}, p2: {x: eb.x, y: eb.y + (st.y - eb.y) / 2}};
+        tb = {ps: st, pe: eb, p1: {x: st.x, y: eb.y + (st.y - eb.y) / 2}, p2: {x: eb.x, y: eb.y + (st.y - eb.y) / 2}},
 
+        rb = {ps: sr, pe: eb, p1: {x: eb.x, y: sr.y}},
+        rt = {ps: sr, pe: et, p1: {x: et.x, y: sr.y}},
+        bl = {ps: sb, pe: el, p1: {x: sb.x, y: el.y}},
+        br = {ps: sb, pe: er, p1: {x: sb.x, y: er.y}},
+        lt = {ps: sl, pe: et, p1: {x: et.x, y: sl.y}},
+        lb = {ps: sl, pe: eb, p1: {x: eb.x, y: sl.y}},
+        tl = {ps: st, pe: el, p1: {x: st.x, y: el.y}},
+        tr = {ps: st, pe: er, p1: {x: st.x, y: er.y}};
     var ret;
     switch (area) {
+        case 'rt':
+            if (t == 'L') {
+                ret = rb;
+                break;
+            }
+        case 'rb':
+            if (t == 'L') {
+                ret = rt;
+                break;
+            }
         case 'r':
             ret = rl;
             break;
+        case 'bl':
+            if (t == 'L') {
+                ret = br;
+                break;
+            }
+        case 'br':
+            if (t == 'L') {
+                ret = bl;
+                break;
+            }
         case 'b':
             ret = bt;
             break;
+        case 'lt':
+            if (t == 'L') {
+                ret = lb;
+                break;
+            }
+        case 'lb':
+            if (t == 'L') {
+                ret = lt;
+                break;
+            }
         case 'l':
             ret = lr;
             break;
+        case 'tl':
+            if (t == 'L') {
+                ret = tr;
+                break;
+            }
+        case 'tr':
+            if (t == 'L') {
+                ret = tl;
+                break;
+            }
         case 't':
             ret = tb;
             break;
-        case 'rt':
+        case 'rtt':
             if (d == 'H') {
-                ret = rl;
+                if (t == 'L') {
+                    ret = rb;
+                } else {
+                    ret = rl;
+                }
             } else {
-                ret = tb;
+                if (t == 'L') {
+                    ret = tl;
+                } else {
+                    ret = tb;
+                }
             }
             break;
-        case 'rb':
+        case 'rbb':
             if (d == 'H') {
-                ret = rl;
+                if (t == 'L') {
+                    ret = rt;
+                } else {
+                    ret = rl;
+                }
             } else {
-                ret = bt;
+                if (t == 'L') {
+                    ret = bl;
+                } else {
+                    ret = bt;
+                }
             }
             break;
-        case 'lt':
+        case 'ltt':
             if (d == 'H') {
-                ret = lr;
+                if (t == 'L') {
+                    ret = lb;
+                } else {
+                    ret = lr;
+                }
             } else {
-                ret = tb;
+                if (t == 'L') {
+                    ret = tr;
+                } else {
+                    ret = tb;
+                }
             }
             break;
-        case 'lb':
+        case 'lbb':
             if (d == 'H') {
-                ret = lr;
+                if (t == 'L') {
+                    ret = lt;
+                } else {
+                    ret = lr;
+                }
             } else {
-                ret = bt;
+                if (t == 'L') {
+                    ret = br;
+                } else {
+                    ret = bt;
+                }
             }
             break;
         default:
             ret = rl;
     }
 
-    return ['M', ret.ps.x.toFixed(0), ret.ps.y.toFixed(0),
-        'L', ret.p1.x.toFixed(0), ret.p1.y.toFixed(0),
-        ret.p2.x.toFixed(0), ret.p2.y.toFixed(0),
-        ret.pe.x.toFixed(0), ret.pe.y.toFixed(0)];
+    var tmp = ['M', ret.ps.x.toFixed(0), ret.ps.y.toFixed(0),
+        'L', ret.p1.x.toFixed(0), ret.p1.y.toFixed(0)];
+    if (ret.p2) {
+        tmp.push(ret.p2.x.toFixed(0));
+        tmp.push(ret.p2.y.toFixed(0));
+    }
+
+    tmp.push(ret.pe.x.toFixed(0));
+    tmp.push(ret.pe.y.toFixed(0));
+    return tmp;
 };
 
 od.flow.FlowLayout = Ext.extend(Ext.layout.ContainerLayout, {
@@ -143,6 +241,23 @@ od.flow.Process = Ext.extend(Ext.Container, {
 
     onResize: function (w, h) {
         this.paper.setSize(w, h);
+    },
+    adjustView: function () {
+        var cb = {x: 10000, y: 10000, x2: 0, y2: 0};
+        if (this.items) {
+            this.items.each(function (item) {
+                if (item.positionShape) {
+                    var bb = item.positionShape.getBBox();
+                    cb.x = Math.min(cb.x, bb.x);
+                    cb.y = Math.min(cb.y, bb.y);
+                    cb.x2 = Math.max(cb.x2, bb.x2);
+                    cb.y2 = Math.max(cb.y2, bb.y2);
+                }
+
+            });
+        }
+
+        this.paper.setViewBox(cb.x - 20, cb.y - 20, cb.x2 - cb.x + 40, cb.y2 - cb.y + 40, true);
     }
 });
 Ext.reg('process', od.flow.Process);
@@ -713,7 +828,7 @@ od.flow.Gateway = Ext.extend(od.flow.Shape, {
     }
 });
 
-Ext.reg('flowgateway', od.flow.Gateway);
+Ext.reg('gateway', od.flow.Gateway);
 
 od.flow.GatewayAnd = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
@@ -726,7 +841,7 @@ od.flow.GatewayAnd = Ext.extend(od.flow.Gateway, {
     }
 });
 
-Ext.reg('flowgatewayand', od.flow.GatewayAnd);
+Ext.reg('gatewayand', od.flow.GatewayAnd);
 
 od.flow.GatewayOr = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
@@ -736,20 +851,20 @@ od.flow.GatewayOr = Ext.extend(od.flow.Gateway, {
     }
 });
 
-Ext.reg('flowgatewayor', od.flow.GatewayOr);
+Ext.reg('gatewayor', od.flow.GatewayOr);
 
 od.flow.GatewayXor = Ext.extend(od.flow.Gateway, {
     drawShape: function (p) {
         var x = this.x - this.width / 2, y = this.y - this.height / 2;
         this.positionShape = p.rect(x, y, this.width, this.height, 5).attr({fill: 'white'});
-        p.path(['M', x + 5, this.y + 16,
-            'L', x + 27, y + 16,
-            'M', x + 16, y + 5,
-            'L', x + 16, y + 27].join(',')).attr({'stroke-width': 4});
+        p.path(['M', this.x, this.y - 12,
+            'L', this.x, this.y + 12,
+            'M', this.x - 12, this.y,
+            'L', this.x + 12, this.y].join(',')).attr({'stroke-width': 4});
     }
 });
 
-Ext.reg('flowgatewayxor', od.flow.GatewayXor);
+Ext.reg('gatewayxor', od.flow.GatewayXor);
 
 od.flow.Listener = Ext.extend(Ext.util.Observable, {
 
@@ -760,6 +875,7 @@ Ext.reg('flowlistener', od.flow.Listener);
 od.flow.Connection = Ext.extend(Ext.Component, {
     isConnection: true,
     routerDir: 'H',
+    routerType: 'Z',
     onRender: function (ct, pos) {
         this.rendered = false;
         this.startNode = this.getStartNode();
@@ -783,13 +899,10 @@ od.flow.Connection = Ext.extend(Ext.Component, {
     doRender: function () {
         var p = this.ownerCt.paper;
         var sb = this.startNode.getBox(), eb = this.endNode.getBox();
-        var path = od.flow.getConPath(sb, eb, this.routerDir);
+        var path = od.flow.getConPath(sb, eb, this.routerDir,this.routerType);
         this.shape = p.path(path).attr(this.getDefAttr());
-        if (this.viewerNode) {
-            this.shape.vn = this.viewerNode;
-        }
+        this.shape.id = this.getId();
         this.el = Ext.get(this.shape.node);
-        this.el.id = this.getId();
         this.drawText();
 
         this.rendered = true;
@@ -800,9 +913,12 @@ od.flow.Connection = Ext.extend(Ext.Component, {
             var tp = this.shape.attr('path');
             var pt = Raphael.getPointAtLength(tp, Raphael.getTotalLength(tp) / 2);
             var dx = pt.alpha == 90 ? 10 : 0, dy = pt.alpha == 180 ? 10 : 0;
-            this.text = p.text(pt.x - dx, pt.y - dy, this.name);
-            this.text.attr({'font-size': 12, 'font-family': 'sans-serif', transform: 'r' + (pt.alpha + 180)});
-            this.text.vn = this.viewerNode;
+            this.text = p.text(pt.x - dx, pt.y - dy, this.name).attr({
+                'font-size': 12,
+                'font-family': 'sans-serif',
+                transform: 'r' + (pt.alpha + 180),
+                cursor: 'default'
+            });
         }
     },
     getStartNode: function () {
@@ -1011,6 +1127,10 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
                     c.endHandler.remove();
                     delete c.endHandler;
                     ret = true;
+                } else if (c.dragHandler && c.dragHandler.isPointInside(pt.left, pt.top)) {
+                    this.dragMode = 'Ost';
+                    this.waiting = true;
+                    ret = true;
                 }
             } else if (this.node == xds.inspector.root.firstChild) {
                 this.dragMode = 'Select';
@@ -1159,8 +1279,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(sb, ec.endNode.getBox(), ec.routerDir);
-        ec.shape.attr({path: path});
+        ec.updatePath(sb);
     },
     onEndConStart: function (b, c, a) {
         if (this.conTarget) {
@@ -1185,8 +1304,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
         } else {
             delete this.conTarget;
         }
-        var path = od.flow.getConPath(ec.startNode.getBox(), eb, ec.routerDir);
-        ec.shape.attr({path: path});
+        ec.updatePath(null, eb);
     },
     onEndConEnd: function (b, c, a) {
         if (this.conTarget) {
@@ -1380,131 +1498,6 @@ od.flow.Inspector = Ext.extend(xds.Inspector, {
     }
 });
 
-//od.flow.MWindow = Ext.extend(Ext.Window, {
-//    iconCls: "icon-project",
-//    title: '打开流程',
-//    width: 800,
-//    height: 600,
-//    layout: "fit",
-//    plain: true,
-//    buttonAlign: 'left',
-//    initComponent: function () {
-//        var store = new Ext.data.JsonStore({
-//            method: 'GET',
-//            url: 'workflow/model',
-//            autoLoad: true,
-//            autoDestroy: true,
-//            idProperty: 'id',
-//            root: 'root',
-//            fields: ['id', 'key','version','lastUpdateTime',
-//                {
-//                    name: 'text',
-//                    mapping: 'name'
-//                },
-//                {
-//                    name: 'category',
-//                    convert: function (v) {
-//                        return Ext.isEmpty(v) ? 'Default' : v;
-//                    }
-//                }
-//            ]
-//        });
-//        this.items = [this.view = new od.flow.MView({
-//            style: "background:#fff;",
-//            autoScroll: true,
-//            region: "center",
-//            categoryName: "category",
-//            store: store,
-//            singleSelect: true,
-//            trackOver: true,
-//            overClass: "x-tile-over"
-//        })];
-//        this.fbar = [
-//            {
-//                text: '删除',
-//                disabled: true,
-//                handler: this.onDelete,
-//                scope: this
-//            },
-//            '->',
-//            {
-//                text: "打开",
-//                disabled: true,
-//                handler: this.onAccept,
-//                scope: this
-//            },
-//            {
-//                text: "取消",
-//                handler: this.close,
-//                scope: this
-//            }
-//        ];
-//        this.view.on("selectionchange", this.onOpenViewSelect, this);
-//        this.view.on('dblclick', this.onDblClick, this);
-//        od.flow.MWindow.superclass.initComponent.call(this);
-//    },
-//    onDblClick: function (view, idx, node, evt) {
-//        var record = view.getRecord(node);
-//        if (record) {
-//            this.selectedId = record.data.id;
-//        }
-//        this.onAccept();
-//    },
-//    onOpenViewSelect: function () {
-//        var a = this.view.getSelectedRecords()[0];
-//        if (a) {
-//            this.buttons[0].enable();
-//            this.buttons[2].enable();
-//            try {
-//                this.selectedId = a.data.id;
-//            } catch (e) {
-//            }
-//        } else {
-//            this.buttons[0].disable();
-//            this.buttons[2].disable();
-//            delete this.selectedId;
-//        }
-//    },
-//    onAccept: function () {
-//        var win = this;
-//        Ext.Ajax.request({
-//            url: 'workflow/model/' + this.selectedId,
-//            method: 'GET',
-//            success: function (resp) {
-//                var ret = Ext.decode(resp.responseText);
-//                if (!Ext.isEmpty(ret)) {
-//                    var data = {cn:[Ext.decode(ret.data.src)]};
-//                    var model = ret.data.model;
-//                    if (xds.project) {
-//                        xds.project.close(function () {
-//                            new od.flow.Project().open(data);
-//                            od.flow.model = model;
-//                        });
-//                    }
-//                    win.close();
-//                }
-//            }
-//        });
-//    },
-//    onDelete: function () {
-//        var a = this.view.getSelectedRecords()[0];
-//        var mid = a.data.id;
-//        var view = this.view;
-//
-//        Ext.Msg.confirm("Delete Module", "确认要删除模块" + a.data.text + "?", function (a) {
-//            if (a == "yes") {
-//                Ext.Ajax.request({
-//                    url: 'workflow/model/' + mid,
-//                    method: 'DELETE',
-//                    success: function () {
-//                        view.getStore().reload();
-//                    }
-//                });
-//            }
-//        });
-//    }
-//});
-
 od.flow.actions = {
     open: new Ext.Action({
         iconCls: "icon-project-open",
@@ -1640,8 +1633,13 @@ od.flow.actions = {
                                             var cfg = Ext.decode(ret.message);
                                             if (cfg) {
                                                 win.view.removeAll(true);
-                                                win.view.add(Ext.create(cfg));
+                                                var p = Ext.create(cfg);
+//                                                p.on('afterlayout',function(me){
+//                                                    me.paper.setViewBox(0,0,me.getWidth(),me.getHeight(),true);
+//                                                });
+                                                win.view.add(p);
                                                 win.view.doLayout();
+                                                p.adjustView();
                                             }
                                         }
                                     }
@@ -1709,7 +1707,7 @@ od.flow.actions = {
                         "width": 200,
                         "cls": "tplt-border-left",
                         "ref": "view",
-                        layout:'fit'
+                        layout: 'fit'
                     }
                 ],
                 openModel: function (id) {
