@@ -2410,14 +2410,13 @@ xds.Canvas = Ext.extend(Ext.Panel, {
                 alignment: "l-l?",
                 completeOnEnter: true,
                 autoSize: "width",
-                zIndex: 60000,
+//                zIndex: 60000,
                 shadow: "drop",
-                shadowOffset: 3,
-                cls: "x-small-editor",
+                shadowOffset: 1,
+//                cls: "x-small-editor",
                 field: {
                     selectOnFocus: true
                 },
-                ignoreNoChange: false,
                 doAutoSize: function () {
                     if (typeof this.requestedWidth == "number") {
                         this.setSize(this.requestedWidth);
@@ -2948,6 +2947,9 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
         g.remove();
         var b = this.restore(e, a.parent, a.before);
         if (c !== false) {
+            if(!b.rendered){
+                b.parentNode.expand();
+            }
             b.select();
             xds.fireEvent("componentchanged");
         }

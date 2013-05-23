@@ -240,8 +240,8 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
     onFilmDblClick:function(e){
         var ec = this.getExtComponent();
         if(ec && ec.textShape){
-            var textEl = Ext.fly(ec.textShape.node);
-            xds.canvas.startEdit(this, textEl, this.getConfigObject('name'));
+            var textEl = Ext.get(ec.textShape.node);
+            xds.canvas.startEdit(this, textEl, this.getConfigObject('name'),textEl.getWidth()+8);
         }
     },
     onSelectChange: function (b) {

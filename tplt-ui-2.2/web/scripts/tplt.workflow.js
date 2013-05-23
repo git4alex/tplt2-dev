@@ -683,6 +683,14 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
             delete this.boundaryEvents;
         }
     },
+    toggleHilight: function (b) {
+        od.flow.TaskBase.superclass.toggleHilight.call(this, b);
+        if (b && this.boundarys) {
+            this.boundarys.each(function (item) {
+                item.shape.toFront();
+            });
+        }
+    },
     drawShape: function (p) {
         this.paper = p;
         var x = this.x - this.width / 2, y = this.y - this.height / 2;
@@ -694,8 +702,8 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
         return '315-#fff-#ffffbb';
     },
     afterRender: function () {
-        od.flow.TaskBase.superclass.afterRender.call(this);
         this.drawBoundaryEvents(this.paper);
+        od.flow.TaskBase.superclass.afterRender.call(this);
     },
     drawBoundaryEvents: function (p) {
         if (!Ext.isEmpty(this.boundarys)) {
@@ -899,7 +907,7 @@ od.flow.Connection = Ext.extend(Ext.Component, {
     doRender: function () {
         var p = this.ownerCt.paper;
         var sb = this.startNode.getBox(), eb = this.endNode.getBox();
-        var path = od.flow.getConPath(sb, eb, this.routerDir,this.routerType);
+        var path = od.flow.getConPath(sb, eb, this.routerDir, this.routerType);
         this.shape = p.path(path).attr(this.getDefAttr());
         this.shape.id = this.getId();
         this.el = Ext.get(this.shape.node);
@@ -1736,11 +1744,11 @@ od.flow.actions = {
             }).show();
         }
     }),
-    deploy:new Ext.Action({
-        iconCls:'icon-database-go',
-        text:'部署',
-        tooltip:'deploy',
-        handler:function(){
+    deploy: new Ext.Action({
+        iconCls: 'icon-database-go',
+        text: '部署',
+        tooltip: 'deploy',
+        handler: function () {
 
         }
     }),
@@ -1786,8 +1794,8 @@ od.flow.actions = {
 };
 
 od.flow.Designer = Ext.extend(xds.Designer, {
-    title:'流程编辑',
-    iconCls:'icon-flow-process',
+    title: '流程编辑',
+    iconCls: 'icon-flow-process',
     createTbar: function () {
         this.tbar = new Ext.Toolbar({
             items: ["-",
