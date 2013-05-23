@@ -185,7 +185,7 @@ xds.types.BaseType = Ext.extend(Ext.util.Observable, {
         if (!this.node) {
             var cfg = this.getConfig();
             var attrs = {
-                id: this.id,
+                id: cfg.id || this.id,
                 text: this.getNodeText(),
                 iconCls: this.iconCls
             };

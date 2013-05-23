@@ -20,16 +20,6 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
             this.userConfig.isExecutable = true;
         }
     },
-//    getDefaultInternals: function () {
-//        var id = this.nextId();
-//        return {cid: 'process',
-//            userConfig: {
-//                layout: 'flow',
-//                id:this.nextId(),
-//                name:this.id
-//            }
-//        };
-//    },
     isValidParent: function (c) {
         return !c.isBoundary;
     },
@@ -247,6 +237,13 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
             this.userConfig.name = this.userConfig.id;
         }
     },
+    onFilmDblClick:function(e){
+        var ec = this.getExtComponent();
+        if(ec && ec.textShape){
+            var textEl = Ext.fly(ec.textShape.node);
+            xds.canvas.startEdit(this, textEl, this.getConfigObject('name'));
+        }
+    },
     onSelectChange: function (b) {
         var cmp = this.getExtComponent();
         if (cmp) {
@@ -282,6 +279,16 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
             name: 'name',
             group: 'Basic',
             ctype: 'string'
+        },
+        {
+            name: 'x',
+            group: 'Layout',
+            ctype: 'number'
+        },
+        {
+            name: 'y',
+            group: 'Layout',
+            ctype: 'number'
         }
     ]
 });
@@ -297,9 +304,8 @@ xds.types.flow.start.None = Ext.extend(xds.types.flow.ShapeBase, {
     text: "空事件",
     dtype: "nonestart",
     xtype: 'nonestart',
-    naming: "NoneStart",
-    transformGroup: "state",
-    connectable: true,
+    naming: "StartEvent",
+    transformGroup: "start",
     xdConfigs: [
         {
             name: 'formKey',
@@ -321,7 +327,6 @@ xds.types.flow.start.Message = Ext.extend(xds.types.flow.start.None, {
     text: "消息事件",
     dtype: "msgstart",
     xtype: 'msgstart',
-    naming: "MessageStart",
     xdConfigs: [
         {
             name: 'messageRef',
@@ -338,7 +343,6 @@ xds.types.flow.start.Error = Ext.extend(xds.types.flow.start.None, {
     text: "异常事件",
     dtype: "errorstart",
     xtype: 'errorstart',
-    naming: "ErrorStart",
     xdConfigs: [
         {
             name: 'errorRef',
@@ -355,7 +359,6 @@ xds.types.flow.start.Timer = Ext.extend(xds.types.flow.start.None, {
     text: "定时器事件",
     dtype: "timerstart",
     xtype: 'timerstart',
-    naming: "TimerStart",
     xdConfigs: [
         {
             name: 'type',
@@ -383,9 +386,8 @@ xds.types.flow.end.None = Ext.extend(xds.types.flow.ShapeBase, {
     text: "空事件",
     dtype: "xdnoneend",
     xtype: 'noneend',
-    naming: "NoneEnd",
-    transformGroup: "state",
-    connectable: true
+    naming: "EndEvent",
+    transformGroup: "end"
 });
 
 xds.flow.end.None = Ext.extend(od.flow.end.None, {});
@@ -397,8 +399,7 @@ xds.types.flow.end.Error = Ext.extend(xds.types.flow.end.None, {
     defaultName: "&lt;ErrorEnd&gt;",
     text: "异常事件",
     dtype: "errorend",
-    xtype: 'errorend',
-    naming: "ErrorEnd"
+    xtype: 'errorend'
 });
 
 xds.types.flow.end.Cancel = Ext.extend(xds.types.flow.end.None, {
@@ -407,14 +408,14 @@ xds.types.flow.end.Cancel = Ext.extend(xds.types.flow.end.None, {
     defaultName: "&lt;CancelEnd&gt;",
     text: "取消事件",
     dtype: "cancelend",
-    xtype: 'cancelend',
-    naming: "CancelEnd"
+    xtype: 'cancelend'
 });
 
 Ext.ns('xds.flow.boundary');
 Ext.ns('xds.types.flow.boundary');
 xds.types.flow.boundary.BoundaryBase = Ext.extend(xds.types.flow.ShapeBase, {
     category: "边界事件(BoundaryEvents)",
+    transformGroup: 'boundary',
     isBoundary: true,
     isValidChild: function (ct) {
         return ct.isTask || ct.isContainer;
@@ -440,7 +441,7 @@ xds.types.flow.boundary.Timer = Ext.extend(xds.types.flow.boundary.BoundaryBase,
     text: "定时器事件",
     dtype: "boundarytimer",
     xtype: 'boundarytimer',
-    naming: "Timer"
+    naming: "BoundaryEvent"
 });
 
 xds.types.flow.boundary.Error = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -449,8 +450,7 @@ xds.types.flow.boundary.Error = Ext.extend(xds.types.flow.boundary.BoundaryBase,
     defaultName: "&lt;Error&gt;",
     text: "异常事件",
     dtype: "boundaryerror",
-    xtype: 'boundaryerror',
-    naming: "Error"
+    xtype: 'boundaryerror'
 });
 
 xds.types.flow.boundary.Signal = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -459,8 +459,7 @@ xds.types.flow.boundary.Signal = Ext.extend(xds.types.flow.boundary.BoundaryBase
     defaultName: "&lt;Signal&gt;",
     text: "信号事件",
     dtype: "boundarysignal",
-    xtype: 'boundarysignal',
-    naming: "Signal"
+    xtype: 'boundarysignal'
 });
 
 xds.types.flow.boundary.Message = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -469,8 +468,7 @@ xds.types.flow.boundary.Message = Ext.extend(xds.types.flow.boundary.BoundaryBas
     defaultName: "&lt;Message&gt;",
     text: "消息事件",
     dtype: "boundarymsg",
-    xtype: 'boundarymsg',
-    naming: "Message"
+    xtype: 'boundarymsg'
 });
 
 xds.types.flow.boundary.Cancel = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -479,8 +477,7 @@ xds.types.flow.boundary.Cancel = Ext.extend(xds.types.flow.boundary.BoundaryBase
     defaultName: "&lt;Cancel&gt;",
     text: "取消事件",
     dtype: "boundarycancel",
-    xtype: 'boundarycancel',
-    naming: "Cancel"
+    xtype: 'boundarycancel'
 });
 
 Ext.ns('xds.types.flow.inter');
@@ -492,8 +489,8 @@ xds.types.flow.inter.None = Ext.extend(xds.types.flow.ShapeBase, {
     text: "空抛出事件",
     dtype: "internone",
     xtype: 'internone',
-    naming: "None",
-    transformGroup: 'state',
+    naming: "InterEvent",
+    transformGroup: 'inter',
     connectable: true
 });
 
@@ -503,8 +500,7 @@ xds.types.flow.inter.Timer = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Timer&gt;",
     text: "定时器事件",
     dtype: "intertimer",
-    xtype: 'intertimer',
-    naming: "Timer"
+    xtype: 'intertimer'
 });
 xds.types.flow.inter.Message = Ext.extend(xds.types.flow.inter.None, {
     cid: 'intermsg',
@@ -512,8 +508,7 @@ xds.types.flow.inter.Message = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Message&gt;",
     text: "消息事件",
     dtype: "intermsg",
-    xtype: 'intermsg',
-    naming: "Message"
+    xtype: 'intermsg'
 });
 xds.types.flow.inter.SignalCatch = Ext.extend(xds.types.flow.inter.None, {
     cid: 'intersignalcatch',
@@ -521,8 +516,7 @@ xds.types.flow.inter.SignalCatch = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Signal&gt;",
     text: "信号(捕获)事件",
     dtype: "intersignalcatch",
-    xtype: 'intersignalcatch',
-    naming: "Signal"
+    xtype: 'intersignalcatch'
 });
 xds.types.flow.inter.SignalThrow = Ext.extend(xds.types.flow.inter.None, {
     cid: 'intersignalthrow',
@@ -530,8 +524,7 @@ xds.types.flow.inter.SignalThrow = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Signal&gt;",
     text: "信号(抛出)事件",
     dtype: "intersignalthrow",
-    xtype: 'intersignalthrow',
-    naming: "Signal"
+    xtype: 'intersignalthrow'
 });
 
 xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
@@ -539,6 +532,8 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
     category: "任务(Task)",
     minWidth: 100,
     minHeight: 60,
+    naming: 'Task',
+    transformGroup: 'task',
     isResizable: function () {
         return true;
     },
@@ -551,14 +546,8 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
         this.config.height = 60;
     },
     getNode: function () {
-        if (!this.node) {
-            this.node = new Ext.tree.TreeNode({
-                id: this.id,
-                text: this.getNodeText(),
-                iconCls: this.iconCls
-            });
-            this.node.component = this;
-        }
+        xds.types.flow.TaskBase.superclass.getNode.call(this);
+        this.node.leaf = false;
         return this.node;
     },
     getReferenceForConfig: function (b, a) {
@@ -633,7 +622,6 @@ xds.types.flow.UserTask = Ext.extend(xds.types.flow.TaskBase, {
     text: "用户任务",
     dtype: "usertask",
     xtype: 'usertask',
-    naming: "UserTask",
     xdConfigs: [
         {
             name: 'assignee',
@@ -675,7 +663,6 @@ xds.types.flow.ServiceTask = Ext.extend(xds.types.flow.TaskBase, {
     text: "服务任务",
     dtype: "servicetask",
     xtype: 'servicetask',
-    naming: "ServiceTask",
     xdConfigs: [
         {
             name: 'type',
@@ -704,7 +691,6 @@ xds.types.flow.ScriptTask = Ext.extend(xds.types.flow.TaskBase, {
     text: "脚本任务",
     dtype: "scripttask",
     xtype: 'scripttask',
-    naming: "ScriptTask",
     xdConfigs: [
         {
             name: 'scriptLanguage',
@@ -738,7 +724,6 @@ xds.types.flow.MailTask = Ext.extend(xds.types.flow.TaskBase, {
     text: "邮件任务",
     dtype: "mailtask",
     xtype: 'mailtask',
-    naming: "MailTask",
     xdConfigs: [
         {
             name: 'to',
@@ -789,8 +774,7 @@ xds.types.flow.ManualTask = Ext.extend(xds.types.flow.TaskBase, {
     defaultName: "&lt;ManualTask&gt;",
     text: "人工任务",
     dtype: "manualtask",
-    xtype: 'manualtask',
-    naming: "ManualTask"
+    xtype: 'manualtask'
 });
 
 xds.types.flow.Gateway = Ext.extend(xds.types.flow.ShapeBase, {
@@ -801,7 +785,8 @@ xds.types.flow.Gateway = Ext.extend(xds.types.flow.ShapeBase, {
     text: "分支",
     dtype: "gateway",
     xtype: 'gateway',
-    naming: "Gateway"
+    naming: "Gateway",
+    transformGroup: 'gateway'
 });
 
 xds.types.flow.GatewayAnd = Ext.extend(xds.types.flow.Gateway, {
@@ -810,8 +795,7 @@ xds.types.flow.GatewayAnd = Ext.extend(xds.types.flow.Gateway, {
     defaultName: "&lt;GatewayAnd&gt;",
     text: "分支(并行)",
     dtype: "gatewayand",
-    xtype: 'gatewayand',
-    naming: "GatewayAnd"
+    xtype: 'gatewayand'
 });
 
 xds.types.flow.GatewayOr = Ext.extend(xds.types.flow.Gateway, {
@@ -820,8 +804,7 @@ xds.types.flow.GatewayOr = Ext.extend(xds.types.flow.Gateway, {
     defaultName: "&lt;GatewayOr&gt;",
     text: "分支(包容)",
     dtype: "gatewayor",
-    xtype: 'gatewayor',
-    naming: "GatewayOr"
+    xtype: 'gatewayor'
 });
 
 xds.types.flow.GatewayXor = Ext.extend(xds.types.flow.Gateway, {
@@ -830,8 +813,7 @@ xds.types.flow.GatewayXor = Ext.extend(xds.types.flow.Gateway, {
     defaultName: "&lt;GatewayXor&gt;",
     text: "分支(排他)",
     dtype: "gatewayxor",
-    xtype: 'gatewayxor',
-    naming: "GatewayXor"
+    xtype: 'gatewayxor'
 });
 
 xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
@@ -1009,7 +991,7 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
     doRender: function (ct, pos) {
         var p = this.ownerCt.paper;
         var sb = this.startNode.getBox(), eb = this.endNode.getBox();
-        var path = od.flow.getConPath(sb, eb, this.routerDir,this.routerType);
+        var path = od.flow.getConPath(sb, eb, this.routerDir, this.routerType);
         this.shape = p.path(path).attr(this.getDefAttr());
         this.el = Ext.get(this.shape.node);
         this.drawText();
@@ -1037,7 +1019,7 @@ xds.flow.Connection = Ext.extend(od.flow.Connection, {
         sb = sb || this.startNode.getBox();
         eb = eb || this.endNode.getBox();
         if (this.shape) {
-            var path = od.flow.getConPath(sb, eb, this.routerDir,this.routerType).join(',');
+            var path = od.flow.getConPath(sb, eb, this.routerDir, this.routerType).join(',');
             this.shape.attr({path: path});
             this.updateText();
             this.updateHandlers();

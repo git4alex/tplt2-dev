@@ -2945,8 +2945,8 @@ xds.Inspector = Ext.extend(Ext.tree.TreePanel, {
         if (e.name === h.defaultName) {
             e.name = j.prototype.defaultName;
         }
-        var b = this.restore(e, a.parent, a.before);
         g.remove();
+        var b = this.restore(e, a.parent, a.before);
         if (c !== false) {
             b.select();
             xds.fireEvent("componentchanged");
@@ -3883,8 +3883,8 @@ xds.Layouts = {
                     var c = d.getLayoutTarget().translatePoints(xds.canvas.lastDropPoint);
                     c.left = xds.canvas.dragTracker.snap(c.left, b.component.snapToGrid);
                     c.top = xds.canvas.dragTracker.snap(c.top, b.component.snapToGrid);
-                    a.component.config.x = c.left;
-                    a.component.config.y = c.top;
+                    a.component.setConfig('x', c.left);
+                    a.component.setConfig('y', c.top);
                 }
             }
         }

@@ -412,7 +412,7 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     drawShape: Ext.emptyFn,
     drawText: function (p) {
         if (this.name) {
-            p.text(this.x, this.y + 28, this.name).attr({'font-size': 12, 'font-family': 'sans-serif'});
+            this.textShape = p.text(this.x, this.y + 28, this.name).attr({'font-size': 12, 'font-family': 'sans-serif'});
         }
     },
     afterRender: function () {
@@ -1736,6 +1736,14 @@ od.flow.actions = {
             }).show();
         }
     }),
+    deploy:new Ext.Action({
+        iconCls:'icon-database-go',
+        text:'部署',
+        tooltip:'deploy',
+        handler:function(){
+
+        }
+    }),
     bpmn20: new Ext.Action({
         iconCls: 'icon-page-code',
         text: "BPMN2.0",
@@ -1778,12 +1786,15 @@ od.flow.actions = {
 };
 
 od.flow.Designer = Ext.extend(xds.Designer, {
+    title:'流程编辑',
+    iconCls:'icon-flow-process',
     createTbar: function () {
         this.tbar = new Ext.Toolbar({
             items: ["-",
                 xds.actions.newAction,
                 od.flow.actions.open,
                 xds.actions.saveAction,
+                od.flow.actions.deploy,
                 "-",
                 xds.actions.undo,
                 xds.actions.redo,

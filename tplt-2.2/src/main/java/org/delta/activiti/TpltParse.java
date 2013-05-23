@@ -5,9 +5,7 @@ import org.activiti.engine.ActivitiException;
 import org.activiti.engine.impl.bpmn.parser.BpmnParse;
 import org.activiti.engine.impl.bpmn.parser.BpmnParser;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * User: Alex
@@ -20,12 +18,20 @@ public class TpltParse extends BpmnParse {
     }
 
     private String inputStream2String(InputStream is) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        int i = -1;
-        while ((i = is.read()) != -1) {
-            baos.write(i);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is,"utf-8"));
+        StringBuilder out = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            out.append(line);
         }
-        return baos.toString();
+        return out.toString();
+
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//        int i = -1;
+//        while ((i = is.read()) != -1) {
+//            baos.write(i);
+//        }
+//        return baos.toString();
     }
 
     public TpltParse execute() {

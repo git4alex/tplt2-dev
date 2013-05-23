@@ -33,6 +33,7 @@ public class BpmnJsonConverter implements BpmnXMLConstants {
         addParser(new ServiceTaskParser());
         addParser(new ScriptTaskPaser());
         addParser(new SequenceFlowParser());
+        addParser(new GatewayParser());
     }
 
     private void addParser(BpmnJsonParser parser){
@@ -42,7 +43,6 @@ public class BpmnJsonConverter implements BpmnXMLConstants {
                 parserMap.put(xtype,parser);
             }
         }
-
     }
 
     public BpmnModel convertToBpmnModel(String jsonDef){

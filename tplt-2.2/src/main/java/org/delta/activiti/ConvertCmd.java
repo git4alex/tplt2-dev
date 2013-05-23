@@ -9,8 +9,10 @@ import org.activiti.engine.impl.context.Context;
 import org.activiti.engine.impl.interceptor.Command;
 import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.impl.persistence.entity.DeploymentEntity;
+import org.delta.core.exception.BusinessException;
 
 import java.io.ByteArrayInputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * User: Alex
@@ -19,19 +21,25 @@ import java.io.ByteArrayInputStream;
  */
 public class ConvertCmd implements Command {
     private String jsonDef;
-    public ConvertCmd(String jsonDef){
+
+    public ConvertCmd(String jsonDef) {
         this.jsonDef = jsonDef;
     }
+
     @Override
     public Object execute(CommandContext commandContext) {
-        BpmnDeployer deployer = Context.getProcessEngineConfiguration().getBpmnDeployer();
-        BpmnParser parser = deployer.getBpmnParser();
-        BpmnParse bpmnParse = parser.createParse()
-                .sourceInputStream(new ByteArrayInputStream(jsonDef.getBytes()))
-                .deployment(new DeploymentEntity());
-        bpmnParse.execute();
-        BpmnModel bm = bpmnParse.getBpmnModel();
-        BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
-        return new String(xmlConverter.convertToXML(bm));
+        try {
+            BpmnDeployer deployer = Context.getProcessEngineConfiguration().getBpmnDeployer();
+            BpmnParser parser = deployer.getBpmnParser();
+            BpmnParse bpmnParse = parser.createParse()
+                    .sourceInputStream(new ByteArrayInputStream(jsonDef.getBytes("utf-8")))
+                    .deployment(new DeploymentEntity());
+            bpmnParse.execute();
+            BpmnModel bm = bpmnParse.getBpmnModel();
+            BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
+            return new String(xmlConverter.convertToXML(bm),"utf-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new BusinessException(e.getMessage(), e);
+        }
     }
 }
