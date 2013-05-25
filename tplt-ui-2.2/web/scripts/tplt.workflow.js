@@ -310,7 +310,12 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
         return this.ownerCt.el;
     },
     onLayout: function () {
-        this.positionShape.toBack();
+        this.shape.toFront();
+        if (this.items) {
+            this.items.each(function (item) {
+                item.toFront();
+            });
+        }
     },
     getInputs: function () {
         if (!this.inputs) {
@@ -366,9 +371,9 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
     createFilm: function () {
 
     },
-    toggleHilight: function (a) {
+    toggleHilight: function (b) {
         if (this.positionShape) {
-            if (a) {
+            if (b) {
                 this.positionShape.attr({fill: 'eee'});
             } else {
                 this.positionShape.attr({fill: 'fff'});
@@ -378,10 +383,11 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
 });
 
 od.flow.SubProcess = Ext.extend(od.flow.ShapeContainer, {
+    triggeredByEvent:false,
     drawText: function (p) {
         if (this.name) {
             var x = this.x - this.width / 2, y = this.y - this.height / 2;
-            p.text(x + 12, y + 12, this.name)
+            this.textShape = p.text(x + 12, y + 12, this.name)
                 .attr({'text-anchor': 'start', 'font-size': 12, 'font-family': 'sans-serif'});
         }
     },
@@ -390,6 +396,14 @@ od.flow.SubProcess = Ext.extend(od.flow.ShapeContainer, {
         this.positionShape = p.rect(x, y, this.width, this.height, 6).attr({fill: 'white'});
         if (this.triggeredByEvent) {
             this.positionShape.attr({'stroke-dasharray': '-'});
+        }
+    },
+    onLayout: function () {
+        od.flow.SubProcess.superclass.onLayout.call(this);
+        if (this.boundarys) {
+            this.boundarys.each(function (item) {
+                item.shape.toFront();
+            });
         }
     }
 });
@@ -431,7 +445,6 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
         if (this.shape) {
             if (a) {
                 this.positionShape.attr({fill: 'eee'});
-                this.shape.toFront();
             } else {
                 this.positionShape.attr({fill: this.getColor()});
             }
@@ -485,6 +498,11 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     },
     createFilm: function () {
 
+    },
+    toFront:function(){
+        if(this.shape){
+            this.shape.toFront();
+        }
     }
 });
 
@@ -683,10 +701,10 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
             delete this.boundaryEvents;
         }
     },
-    toggleHilight: function (b) {
-        od.flow.TaskBase.superclass.toggleHilight.call(this, b);
-        if (b && this.boundarys) {
-            this.boundarys.each(function (item) {
+    toFront:function(){
+        od.flow.TaskBase.superclass.toFront.call(this);
+        if(this.boundarys){
+            this.boundarys.each(function(item){
                 item.shape.toFront();
             });
         }
@@ -878,7 +896,8 @@ od.flow.Listener = Ext.extend(Ext.util.Observable, {
 
 });
 
-Ext.reg('flowlistener', od.flow.Listener);
+Ext.reg('executionListener', od.flow.Listener);
+Ext.reg('tasklistener', od.flow.Listener);
 
 od.flow.Connection = Ext.extend(Ext.Component, {
     isConnection: true,
@@ -1060,6 +1079,7 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
         var ret = od.flow.Canvas.superclass.getContextMenuItems.call(this, t, c);
         if (t) {
             var cmp = t.component;
+            var parentId = cmp.getConfigValue('id');
             if (cmp.cid == 'process') {
                 return[new Ext.menu.Item({
                     text: '添加执行监听器',
@@ -1067,8 +1087,8 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
                     handler: function () {
                         xds.fireEvent("componentevent", {
                             type: "new",
-                            parentId: cmp.id,
-                            spec: {cid: 'flowexeclistener'}
+                            parentId: parentId,
+                            spec: {cid: 'executionListener'}
                         });
                     }
                 })];
@@ -1082,22 +1102,22 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
                     handler: function () {
                         xds.fireEvent("componentevent", {
                             type: "new",
-                            parentId: cmp.id,
-                            spec: {cid: 'flowexeclistener'}
+                            parentId: parentId,
+                            spec: {cid: 'executionListener'}
                         });
                     }
                 }));
             }
 
-            if (cmp.cid == 'flowusertask') {
+            if (cmp.cid == 'usertask') {
                 ret.push(new Ext.menu.Item({
                     text: '添加任务监听器',
                     iconCls: 'icon-flow-task-listener-blue',
                     handler: function () {
                         xds.fireEvent("componentevent", {
                             type: "new",
-                            parentId: cmp.id,
-                            spec: {cid: 'flowtasklistener'}
+                            parentId: parentId,
+                            spec: {cid: 'tasklistener'}
                         });
                     }
                 }))
@@ -1163,9 +1183,9 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
             this.dragRegion = new Ext.lib.Region(0, 0, 0, 0);
         } else {
             if (this.dragMode == 'Absolute') {
+                var ec = this.cmp.getExtComponent();
                 if (this.cmp.isContainer) {
                     if (Ext.isEmpty(this.selecteds)) {
-                        var ec = this.cmp.getExtComponent();
                         if (ec.items) {
                             this.selecteds.push(this.cmp.node);
                             ec.items.each(function (c) {
@@ -1175,6 +1195,8 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
                             }, this);
                         }
                     }
+                }else{
+                    ec.toFront();
                 }
             }
             od.flow.Canvas.DragTracker.superclass.onStart.call(this, e);
@@ -1781,7 +1803,7 @@ od.flow.actions = {
                             ]
                         });
                         win.show();
-                        win.body.update("<pre class='brush:xml' style='font-size:12px;font-family:\"consolas\",\"courier new\";'>" + result.message + "</pre>");
+                        win.body.update('<script type="syntaxhighlighter" class="brush: xml"><![CDATA[' + result.message + ']]></script>');
 
                         SyntaxHighlighter.highlight({toolbar: false});
                     } else {

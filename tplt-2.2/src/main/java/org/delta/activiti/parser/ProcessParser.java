@@ -46,6 +46,11 @@ public class ProcessParser extends BpmnJsonParser {
             process.setCandidateStarterUsers(candidateGroups);
         }
 
+        String targetNamespace = MapUtils.getString(jsonMap,TARGET_NAMESPACE_ATTRIBUTE);
+        if(StringUtils.isNotBlank(targetNamespace)){
+            bpmnModel.setTargetNamespace(targetNamespace);
+        }
+
         if(process.isExecutable()){
             bpmnModel.getProcesses().add(process);
         }

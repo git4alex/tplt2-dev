@@ -41,7 +41,7 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
         var c = xds.types.flow.Process.superclass.getReferenceForConfig.call(this, b, a);
         if (b.isListener) {
             c.type = "array";
-            c.ref = "flowListeners";
+            c.ref = "listeners";
         }
         return c;
     },
@@ -62,7 +62,7 @@ xds.types.flow.Process = Ext.extend(xds.types.BaseType, {
             ctype: 'boolean'
         },
         {
-            name: 'nameSpace',
+            name: 'targetNamespace',
             group: 'Process',
             ctype: 'string'
         },
@@ -115,11 +115,18 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
             this.userConfig.name = this.userConfig.id;
         }
     },
+    onFilmDblClick:function(e){
+        var ec = this.getExtComponent();
+        if(ec && ec.textShape){
+            var textEl = Ext.get(ec.textShape.node);
+            xds.canvas.startEdit(this, textEl, this.getConfigObject('name'),textEl.getWidth()+8);
+        }
+    },
     getReferenceForConfig: function (b, a) {
         var c = xds.types.flow.SubProcess.superclass.getReferenceForConfig.call(this, b, a);
         if (b.isListener) {
             c.type = "array";
-            c.ref = "flowListeners";
+            c.ref = "listeners";
         } else if (b.isBoundary) {
             c.type = 'array';
             c.ref = "boundaryEvents";
@@ -131,6 +138,12 @@ xds.types.flow.SubProcess = Ext.extend(xds.types.BaseType, {
     },
     isResizable: function () {
         return true;
+    },
+    onSelectChange:function(b){
+        var ec = this.getExtComponent();
+        if(ec){
+            ec.toggleHilight(b);
+        }
     },
     setX: function (n, x) {
         var ox = this.getConfigValue('x');
@@ -279,7 +292,17 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
             name: 'name',
             group: 'Basic',
             ctype: 'string'
-        },
+        }
+    ]
+});
+
+xds.types.flow.EventBase = Ext.extend(xds.types.flow.ShapeBase, {
+    getJsonConfig:function(ics,fs){
+        var ret = xds.types.flow.EventBase.superclass.getJsonConfig.call(this,ics,fs);
+        ret.eventType = this.eventType;
+        return ret;
+    },
+    xdConfigs:[
         {
             name: 'x',
             group: 'Layout',
@@ -296,7 +319,7 @@ xds.types.flow.ShapeBase = Ext.extend(xds.types.BaseType, {
 Ext.ns('xds.flow.start');
 Ext.ns('xds.types.flow.start');
 
-xds.types.flow.start.None = Ext.extend(xds.types.flow.ShapeBase, {
+xds.types.flow.start.None = Ext.extend(xds.types.flow.EventBase, {
     cid: 'nonestart',
     iconCls: 'icon-flow-start-none',
     category: "启动事件(StartEvents)",
@@ -327,6 +350,7 @@ xds.types.flow.start.Message = Ext.extend(xds.types.flow.start.None, {
     text: "消息事件",
     dtype: "msgstart",
     xtype: 'msgstart',
+    eventType:'message',
     xdConfigs: [
         {
             name: 'messageRef',
@@ -343,6 +367,7 @@ xds.types.flow.start.Error = Ext.extend(xds.types.flow.start.None, {
     text: "异常事件",
     dtype: "errorstart",
     xtype: 'errorstart',
+    eventType:'error',
     xdConfigs: [
         {
             name: 'errorRef',
@@ -359,6 +384,7 @@ xds.types.flow.start.Timer = Ext.extend(xds.types.flow.start.None, {
     text: "定时器事件",
     dtype: "timerstart",
     xtype: 'timerstart',
+    eventType:'timer',
     xdConfigs: [
         {
             name: 'type',
@@ -378,7 +404,7 @@ xds.types.flow.start.Timer = Ext.extend(xds.types.flow.start.None, {
 Ext.ns('xds.flow.end');
 Ext.ns('xds.types.flow.end');
 
-xds.types.flow.end.None = Ext.extend(xds.types.flow.ShapeBase, {
+xds.types.flow.end.None = Ext.extend(xds.types.flow.EventBase, {
     cid: 'noneend',
     iconCls: 'icon-flow-end-none',
     category: "结束事件(EndEvents)",
@@ -399,7 +425,15 @@ xds.types.flow.end.Error = Ext.extend(xds.types.flow.end.None, {
     defaultName: "&lt;ErrorEnd&gt;",
     text: "异常事件",
     dtype: "errorend",
-    xtype: 'errorend'
+    xtype: 'errorend',
+    eventType:'error',
+    xdConfigs: [
+        {
+            name: 'errorRef',
+            group: 'Exception',
+            ctype: 'string'
+        }
+    ]
 });
 
 xds.types.flow.end.Cancel = Ext.extend(xds.types.flow.end.None, {
@@ -408,7 +442,8 @@ xds.types.flow.end.Cancel = Ext.extend(xds.types.flow.end.None, {
     defaultName: "&lt;CancelEnd&gt;",
     text: "取消事件",
     dtype: "cancelend",
-    xtype: 'cancelend'
+    xtype: 'cancelend',
+    eventType:'cancel'
 });
 
 Ext.ns('xds.flow.boundary');
@@ -417,6 +452,11 @@ xds.types.flow.boundary.BoundaryBase = Ext.extend(xds.types.flow.ShapeBase, {
     category: "边界事件(BoundaryEvents)",
     transformGroup: 'boundary',
     isBoundary: true,
+    getJsonConfig:function(ics,fs){
+        var ret = xds.types.flow.boundary.BoundaryBase.superclass.getJsonConfig.call(this,ics,fs);
+        ret.eventType = this.eventType;
+        return ret;
+    },
     isValidChild: function (ct) {
         return ct.isTask || ct.isContainer;
     },
@@ -425,11 +465,6 @@ xds.types.flow.boundary.BoundaryBase = Ext.extend(xds.types.flow.ShapeBase, {
             name: 'cancelActivity',
             group: 'BoundaryEvents',
             ctype: 'boolean'
-        },
-        {
-            name: 'attachedToRef',
-            group: 'BoundaryEvents',
-            ctype: 'string'
         }
     ]
 });
@@ -441,7 +476,22 @@ xds.types.flow.boundary.Timer = Ext.extend(xds.types.flow.boundary.BoundaryBase,
     text: "定时器事件",
     dtype: "boundarytimer",
     xtype: 'boundarytimer',
-    naming: "BoundaryEvent"
+    naming: "BoundaryEvent",
+    eventType:'timer',
+    xdConfigs: [
+        {
+            name: 'type',
+            group: 'Timer',
+            ctype: 'string',
+            editor: 'options',
+            options: ['timeDate', 'timeDuration', 'timeCycle']
+        },
+        {
+            name: 'expression',
+            group: 'Timer',
+            ctype: 'string'
+        }
+    ]
 });
 
 xds.types.flow.boundary.Error = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -450,7 +500,15 @@ xds.types.flow.boundary.Error = Ext.extend(xds.types.flow.boundary.BoundaryBase,
     defaultName: "&lt;Error&gt;",
     text: "异常事件",
     dtype: "boundaryerror",
-    xtype: 'boundaryerror'
+    xtype: 'boundaryerror',
+    eventType:'error',
+    xdConfigs: [
+        {
+            name: 'errorRef',
+            group: 'Exception',
+            ctype: 'string'
+        }
+    ]
 });
 
 xds.types.flow.boundary.Signal = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -459,7 +517,20 @@ xds.types.flow.boundary.Signal = Ext.extend(xds.types.flow.boundary.BoundaryBase
     defaultName: "&lt;Signal&gt;",
     text: "信号事件",
     dtype: "boundarysignal",
-    xtype: 'boundarysignal'
+    xtype: 'boundarysignal',
+    eventType:'signal',
+    xdConfigs: [
+        {
+            name: 'signalRef',
+            group: 'SignalEvent',
+            ctype: 'string'
+        },
+        {
+            name: 'async',
+            group: 'SignalEvent',
+            ctype: 'boolean'
+        }
+    ]
 });
 
 xds.types.flow.boundary.Message = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -468,7 +539,15 @@ xds.types.flow.boundary.Message = Ext.extend(xds.types.flow.boundary.BoundaryBas
     defaultName: "&lt;Message&gt;",
     text: "消息事件",
     dtype: "boundarymsg",
-    xtype: 'boundarymsg'
+    xtype: 'boundarymsg',
+    eventType:'message',
+    xdConfigs: [
+        {
+            name: 'messageRef',
+            group: 'MsgEvent',
+            ctype: 'string'
+        }
+    ]
 });
 
 xds.types.flow.boundary.Cancel = Ext.extend(xds.types.flow.boundary.BoundaryBase, {
@@ -477,11 +556,12 @@ xds.types.flow.boundary.Cancel = Ext.extend(xds.types.flow.boundary.BoundaryBase
     defaultName: "&lt;Cancel&gt;",
     text: "取消事件",
     dtype: "boundarycancel",
-    xtype: 'boundarycancel'
+    xtype: 'boundarycancel',
+    eventType:'cancel'
 });
 
 Ext.ns('xds.types.flow.inter');
-xds.types.flow.inter.None = Ext.extend(xds.types.flow.ShapeBase, {
+xds.types.flow.inter.None = Ext.extend(xds.types.flow.EventBase, {
     cid: 'internone',
     iconCls: 'icon-flow-inter-none',
     category: "中间事件(IntermediateEvents)",
@@ -490,8 +570,7 @@ xds.types.flow.inter.None = Ext.extend(xds.types.flow.ShapeBase, {
     dtype: "internone",
     xtype: 'internone',
     naming: "InterEvent",
-    transformGroup: 'inter',
-    connectable: true
+    transformGroup: 'inter'
 });
 
 xds.types.flow.inter.Timer = Ext.extend(xds.types.flow.inter.None, {
@@ -500,7 +579,22 @@ xds.types.flow.inter.Timer = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Timer&gt;",
     text: "定时器事件",
     dtype: "intertimer",
-    xtype: 'intertimer'
+    xtype: 'intertimer',
+    eventType:'timer',
+    xdConfigs: [
+        {
+            name: 'type',
+            group: 'Timer',
+            ctype: 'string',
+            editor: 'options',
+            options: ['timeDate', 'timeDuration', 'timeCycle']
+        },
+        {
+            name: 'expression',
+            group: 'Timer',
+            ctype: 'string'
+        }
+    ]
 });
 xds.types.flow.inter.Message = Ext.extend(xds.types.flow.inter.None, {
     cid: 'intermsg',
@@ -508,7 +602,15 @@ xds.types.flow.inter.Message = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Message&gt;",
     text: "消息事件",
     dtype: "intermsg",
-    xtype: 'intermsg'
+    xtype: 'intermsg',
+    eventType:'message',
+    xdConfigs: [
+        {
+            name: 'messageRef',
+            group: 'MsgEvent',
+            ctype: 'string'
+        }
+    ]
 });
 xds.types.flow.inter.SignalCatch = Ext.extend(xds.types.flow.inter.None, {
     cid: 'intersignalcatch',
@@ -516,7 +618,20 @@ xds.types.flow.inter.SignalCatch = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Signal&gt;",
     text: "信号(捕获)事件",
     dtype: "intersignalcatch",
-    xtype: 'intersignalcatch'
+    xtype: 'intersignalcatch',
+    eventType:'signal',
+    xdConfigs: [
+        {
+            name: 'signalRef',
+            group: 'SignalEvent',
+            ctype: 'string'
+        },
+        {
+            name: 'async',
+            group: 'SignalEvent',
+            ctype: 'boolean'
+        }
+    ]
 });
 xds.types.flow.inter.SignalThrow = Ext.extend(xds.types.flow.inter.None, {
     cid: 'intersignalthrow',
@@ -524,7 +639,20 @@ xds.types.flow.inter.SignalThrow = Ext.extend(xds.types.flow.inter.None, {
     defaultName: "&lt;Signal&gt;",
     text: "信号(抛出)事件",
     dtype: "intersignalthrow",
-    xtype: 'intersignalthrow'
+    xtype: 'intersignalthrow',
+    eventType:'signal',
+    xdConfigs: [
+        {
+            name: 'signalRef',
+            group: 'SignalEvent',
+            ctype: 'string'
+        },
+        {
+            name: 'async',
+            group: 'SignalEvent',
+            ctype: 'boolean'
+        }
+    ]
 });
 
 xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
@@ -554,7 +682,7 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
         var c = xds.types.flow.TaskBase.superclass.getReferenceForConfig.call(this, b, a);
         if (b.isListener) {
             c.type = "array";
-            c.ref = "flowListeners";
+            c.ref = "listeners";
         } else if (b.isBoundary) {
             c.type = 'array';
             c.ref = "boundaryEvents";
@@ -611,6 +739,16 @@ xds.types.flow.TaskBase = Ext.extend(xds.types.flow.ShapeBase, {
             name: 'inputDataItem',
             group: 'MultiInstance',
             ctype: 'string'
+        },
+        {
+            name: 'x',
+            group: 'Layout',
+            ctype: 'number'
+        },
+        {
+            name: 'y',
+            group: 'Layout',
+            ctype: 'number'
         }
     ]
 });
@@ -786,7 +924,19 @@ xds.types.flow.Gateway = Ext.extend(xds.types.flow.ShapeBase, {
     dtype: "gateway",
     xtype: 'gateway',
     naming: "Gateway",
-    transformGroup: 'gateway'
+    transformGroup: 'gateway',
+    xdConfigs:[
+        {
+            name: 'x',
+            group: 'Layout',
+            ctype: 'number'
+        },
+        {
+            name: 'y',
+            group: 'Layout',
+            ctype: 'number'
+        }
+    ]
 });
 
 xds.types.flow.GatewayAnd = Ext.extend(xds.types.flow.Gateway, {
@@ -838,7 +988,7 @@ xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
             options: ['class', 'expression', 'delegateExpression']
         },
         {
-            name: 'listener',
+            name: 'expression',
             group: 'Listener',
             ctype: 'string'
         },
@@ -852,8 +1002,8 @@ xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
 
 xds.types.flow.ExecListener = Ext.extend(xds.types.flow.ListenerBase, {
     iconCls: 'icon-flow-exec-listener',
-    cid: 'flowexeclistener',
-    xtype: 'flowexeclistener',
+    cid: 'executionListener',
+    xtype: 'executionListener',
     xdConfigs: [
         {
             name: 'event',
@@ -867,8 +1017,8 @@ xds.types.flow.ExecListener = Ext.extend(xds.types.flow.ListenerBase, {
 
 xds.types.flow.TaskListener = Ext.extend(xds.types.flow.ListenerBase, {
     iconCls: 'icon-flow-task-listener',
-    cid: 'flowtasklistener',
-    xtype: 'flowtasklistener',
+    cid: 'tasklistener',
+    xtype: 'tasklistener',
     xdConfigs: [
         {
             name: 'event',

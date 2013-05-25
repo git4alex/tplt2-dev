@@ -2047,7 +2047,7 @@ xds.actions = {
                     var s = js_beautify(resp.responseText, {
                         opt_keep_array_indentation: false
                     });
-                    win.body.update("<pre class='brush:js' style='font-size:12px;font-family:\"consolas\",\"courier new\",\"segoe ui\";'>" + s + "</pre>");
+                    win.body.update('<script type="syntaxhighlighter" class="brush: js"><![CDATA[' + s + ']]></script>');
 
                     SyntaxHighlighter.highlight({toolbar: false});
                 },

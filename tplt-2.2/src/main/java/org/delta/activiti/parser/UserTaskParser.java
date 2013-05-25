@@ -43,14 +43,16 @@ public class UserTaskParser extends BpmnJsonParser {
             task.getCandidateUsers().addAll(BpmnXMLUtil.parseDelimitedList(candidateGroups));
         }
 
-        List taskListeners = (List) MapUtils.getObject(jsonMap, "taskListeners");
+        List taskListeners = (List) MapUtils.getObject(jsonMap, "listeners");
         if (CollectionUtils.isNotEmpty(taskListeners)) {
             for (Object item : taskListeners) {
-                Map itemMap = (Map) item;
-                task.getTaskListeners().add(parseListener(itemMap));
+                Map mapItem = (Map) item;
+                String xtype = MapUtils.getString(mapItem,"xtype");
+                if(ELEMENT_TASK_LISTENER.equalsIgnoreCase(xtype)){
+                    task.getTaskListeners().add(parseListener(mapItem));
+                }
             }
         }
-
         return task;
     }
 }
