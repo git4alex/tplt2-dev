@@ -979,6 +979,13 @@ xds.types.flow.ListenerBase = Ext.extend(xds.types.BaseType, {
             this.userConfig.id = this.nextId();
         }
     },
+    getJsonConfig:function(ics,fs){
+        var ret = xds.types.flow.ListenerBase.superclass.getJsonConfig.call(this,ics,fs);
+        if(!Ext.isEmpty(ret.fields)){
+            ret.fields = Ext.decode('['+ret.fields+']');
+        }
+        return ret;
+    },
     xdConfigs: [
         {
             name: 'type',
@@ -1057,6 +1064,19 @@ xds.types.flow.Connection = Ext.extend(xds.types.BaseType, {
         this.setConfig('routerDir', d);
         xds.props.setValue('routerDir', d);
         xds.fireEvent("componentchanged");
+    },
+    getNode: function () {
+        xds.types.flow.Connection.superclass.getNode.call(this);
+        this.node.leaf = false;
+        return this.node;
+    },
+    getReferenceForConfig: function (b, a) {
+        var c = xds.types.flow.Connection.superclass.getReferenceForConfig.call(this, b, a);
+        if (b.isListener) {
+            c.type = "array";
+            c.ref = "listeners";
+        }
+        return c;
     },
     xdConfigs: [
         {

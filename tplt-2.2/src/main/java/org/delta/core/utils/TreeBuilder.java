@@ -49,7 +49,7 @@ public abstract class TreeBuilder {
         ValueMap ret = createNode(data);
         String id = getId(data);
         List<ValueMap> children = getChildrenByParentId(id);
-        ret.put("leaf", true);
+        ret.put("loaded", true);
         if (children.size() > 0) {
             List<ValueMap> childNodes = new ArrayList<ValueMap>();
             for (ValueMap item : children) {
@@ -57,7 +57,7 @@ public abstract class TreeBuilder {
             }
 
             ret.put("children", childNodes);
-            ret.put("leaf", false);
+            ret.put("loaded", false);
         }
         return ret;
     }

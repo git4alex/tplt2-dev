@@ -1080,33 +1080,24 @@ od.flow.Canvas = Ext.extend(xds.Canvas, {
         if (t) {
             var cmp = t.component;
             var parentId = cmp.getConfigValue('id');
-            if (cmp.cid == 'process') {
-                return[new Ext.menu.Item({
-                    text: '添加执行监听器',
-                    iconCls: 'icon-flow-exec-listener-blue',
-                    handler: function () {
-                        xds.fireEvent("componentevent", {
-                            type: "new",
-                            parentId: parentId,
-                            spec: {cid: 'executionListener'}
-                        });
-                    }
-                })];
-            }
+            var elItem = new Ext.menu.Item({
+                text: '添加执行监听器',
+                iconCls: 'icon-flow-exec-listener-blue',
+                handler: function () {
+                    xds.fireEvent("componentevent", {
+                        type: "new",
+                        parentId: parentId,
+                        spec: {cid: 'executionListener'}
+                    });
+                }
+            });
 
-            if (cmp.isTask) {
-                ret.push(new Ext.menu.Separator());
-                ret.push(new Ext.menu.Item({
-                    text: '添加执行监听器',
-                    iconCls: 'icon-flow-exec-listener-blue',
-                    handler: function () {
-                        xds.fireEvent("componentevent", {
-                            type: "new",
-                            parentId: parentId,
-                            spec: {cid: 'executionListener'}
-                        });
-                    }
-                }));
+            if (cmp.cid == 'process') {
+                return[elItem];
+            }
+            ret.push(new Ext.menu.Separator());
+            if (cmp.isConnection || cmp.isTask || cmp.cid == 'subprocess') {
+                ret.push(elItem);
             }
 
             if (cmp.cid == 'usertask') {
@@ -1664,9 +1655,6 @@ od.flow.actions = {
                                             if (cfg) {
                                                 win.view.removeAll(true);
                                                 var p = Ext.create(cfg);
-//                                                p.on('afterlayout',function(me){
-//                                                    me.paper.setViewBox(0,0,me.getWidth(),me.getHeight(),true);
-//                                                });
                                                 win.view.add(p);
                                                 win.view.doLayout();
                                                 p.adjustView();
@@ -1771,12 +1759,22 @@ od.flow.actions = {
         text: '部署',
         tooltip: 'deploy',
         handler: function () {
-
+            var id = od.flow.model.id;
+            Ext.Ajax.request({
+                url:'/workflow/model/'+id+'/deploy',
+                method:'POST',
+                success:function(response){
+                    var result = Ext.decode(response.responseText);
+                    if(result.success){
+                        Ext.Msg.alert('提示','部署完成');
+                    }
+                }
+            });
         }
     }),
     bpmn20: new Ext.Action({
         iconCls: 'icon-page-code',
-        text: "BPMN2.0",
+        text: "XML",
         tooltip: "show bpmn2.0 xml",
         handler: function () {
             var c = xds.inspector.root.firstChild.component;
@@ -1792,12 +1790,12 @@ od.flow.actions = {
                         var win = new Ext.Window({
                             modal: true,
                             title: "BPMN2.0 XML",
-                            width: 900,
+                            width: 960,
                             height: 600,
                             bodyStyle: 'background-color:#ffffff;',
                             autoScroll: true,
                             fbar: [
-                                {text: 'Cancel', ref: '../btnCancel', handler: function (btn) {
+                                {text: '关闭', ref: '../btnCancel', handler: function (btn) {
                                     btn.refOwner.close();
                                 }}
                             ]
@@ -1816,7 +1814,7 @@ od.flow.actions = {
 };
 
 od.flow.Designer = Ext.extend(xds.Designer, {
-    title: '流程编辑',
+    title: '流程建模',
     iconCls: 'icon-flow-process',
     createTbar: function () {
         this.tbar = new Ext.Toolbar({
@@ -1842,7 +1840,7 @@ od.flow.Designer = Ext.extend(xds.Designer, {
             height: 300,
             minHeight: 120,
             autoScroll: true,
-            title: "组件",
+            title: "结构",
             trackMouseOver: false,
             animate: false,
             enableDD: true,

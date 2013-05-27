@@ -151,8 +151,10 @@ public abstract class BpmnJsonParser implements BpmnXMLConstants {
             return ed;
         } else if ("error".equalsIgnoreCase(eventType)) {
             ErrorEventDefinition ed = new ErrorEventDefinition();
-            String errorCode = MapUtils.getString(jsonMap, ATTRIBUTE_ERROR_REF);
-            ed.setErrorCode(errorCode);
+            String errorRef = MapUtils.getString(jsonMap, ATTRIBUTE_ERROR_REF);
+            Assert.hasText(errorRef,"'errorRef' is required for an error event");
+
+            ed.setErrorCode(errorRef);
 
             if (event instanceof BoundaryEvent) {
                 ((BoundaryEvent) event).setCancelActivity(false);
@@ -164,13 +166,6 @@ public abstract class BpmnJsonParser implements BpmnXMLConstants {
             String msgRef = MapUtils.getString(jsonMap, ATTRIBUTE_MESSAGE_REF);
             Assert.notNull(msgRef, "'msgref' is required for a message event");
             ed.setMessageRef(msgRef);
-
-//            if (!bpmnModel.containsMessageId(ed.getMessageRef())) {
-//                Message message = new Message();
-//                message.setId(msgRef);
-//                message.setName(msgRef);
-//                bpmnModel.addMessage(message);
-//            }
 
             return ed;
         } else if ("signal".equalsIgnoreCase(eventType)) {
@@ -217,7 +212,7 @@ public abstract class BpmnJsonParser implements BpmnXMLConstants {
     protected FieldExtension parseField(Map jsonMap) {
         FieldExtension fe = new FieldExtension();
         String name = MapUtils.getString(jsonMap, ATTRIBUTE_FIELD_NAME);
-        Assert.isNull(name, "'name' is required for feild extension");
+        Assert.notNull(name, "'name' is required for feild extension");
         fe.setFieldName(name);
 
         String valueString = MapUtils.getString(jsonMap, ATTRIBUTE_FIELD_STRING);

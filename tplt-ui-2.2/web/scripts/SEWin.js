@@ -118,7 +118,7 @@ od.SEWindow = Ext.extend(Ext.Window, {
                     storeId: "MyStore",
                     root: 'root',
                     idProperty: 'id',
-                    url: "fieldMetadata",
+                    url: "entity/field",
                     restful: true,
                     requestMethod: 'GET',
                     fields: ['code', 'name', 'dataType', 'id', 'bizTypeCode','mandatory']
@@ -198,7 +198,7 @@ od.SEWindow = Ext.extend(Ext.Window, {
                         if (node) {
                             var pGrid = Ext.getCmp('pGrid');
                             me.entityId = node.attributes.code;
-                            pGrid.getStore().load({params: {entityId: node.id}, marsk: true});
+                            pGrid.getStore().load({params: {entityCode: node.attributes.code}, marsk: true});
                         }
                     },
                     "beforerender": function (tree) {

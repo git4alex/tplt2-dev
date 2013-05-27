@@ -69,7 +69,6 @@ public class TreeEntityService extends EntityService {
         }
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
-        String tableName = metadata.getTableName();
 
         final String pkCode = metadata.getPkCode();
         final String pidCode = config.getPidCode();

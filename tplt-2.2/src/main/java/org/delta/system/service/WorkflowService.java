@@ -1,6 +1,6 @@
 package org.delta.system.service;
 
-import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.RepositoryService;
 import org.activiti.engine.repository.Model;
 import org.apache.commons.collections.MapUtils;
 import org.delta.core.exception.BusinessException;
@@ -19,10 +19,10 @@ import java.util.Map;
 @Service
 public class WorkflowService {
     @Resource
-    private ProcessEngine engine;
+    private RepositoryService repositoryService;
 
     public ValueMap createModel(Map<String, Object> data) {
-        Model model = engine.getRepositoryService().newModel();
+        Model model = repositoryService.newModel();
         saveDataInModel(model, data);
         ValueMap ret = new ValueMap();
         ret.put("model", model);
@@ -30,7 +30,7 @@ public class WorkflowService {
     }
 
     public ValueMap updateModel(String id, Map<String, Object> data) {
-        Model model = engine.getRepositoryService().getModel(id);
+        Model model = repositoryService.getModel(id);
         saveDataInModel(model, data);
         ValueMap ret = new ValueMap();
         ret.put("model", model);
@@ -44,10 +44,10 @@ public class WorkflowService {
         model.setName(name);
         model.setKey(key);
         model.setCategory(category);
-        engine.getRepositoryService().saveModel(model);
+        repositoryService.saveModel(model);
 
         String src = MapUtils.getString(data, "src");
-        engine.getRepositoryService().addModelEditorSource(model.getId(), src.getBytes());
+        repositoryService.addModelEditorSource(model.getId(), src.getBytes());
         String json = MapUtils.getString(data, "json");
         String svg = MapUtils.getString(data, "svg");
 
@@ -58,7 +58,7 @@ public class WorkflowService {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutput out = new ObjectOutputStream(bos);
             out.writeObject(srcExt);
-            engine.getRepositoryService().addModelEditorSourceExtra(model.getId(), bos.toByteArray());
+            repositoryService.addModelEditorSourceExtra(model.getId(), bos.toByteArray());
             out.close();
             bos.close();
         } catch (IOException ex) {
@@ -70,12 +70,8 @@ public class WorkflowService {
         return getModelSrcExt(id,"json");
     }
 
-    public String getModelSvg(String id){
-        return getModelSrcExt(id,"svg");
-    }
-
     private String getModelSrcExt(String id,String key){
-        byte[] ba = engine.getRepositoryService().getModelEditorSourceExtra(id);
+        byte[] ba = repositoryService.getModelEditorSourceExtra(id);
 
         try {
             ByteArrayInputStream bis = new ByteArrayInputStream(ba);
