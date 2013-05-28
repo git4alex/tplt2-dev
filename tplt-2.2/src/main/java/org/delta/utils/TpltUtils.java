@@ -174,6 +174,10 @@ public class TpltUtils {
                 ret.asc(f);
             }
         }
+
+        parameter.remove("sort");
+        parameter.remove("dir");
+
         return ret;
     }
 

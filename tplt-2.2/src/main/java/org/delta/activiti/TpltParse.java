@@ -17,7 +17,7 @@ public class TpltParse extends BpmnParse {
         super(parser);
     }
 
-    private String inputStream2String(InputStream is) throws IOException {
+    private String readInputStream(InputStream is) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is,"utf-8"));
         StringBuilder out = new StringBuilder();
         String line;
@@ -25,19 +25,12 @@ public class TpltParse extends BpmnParse {
             out.append(line);
         }
         return out.toString();
-
-//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        int i = -1;
-//        while ((i = is.read()) != -1) {
-//            baos.write(i);
-//        }
-//        return baos.toString();
     }
 
     public TpltParse execute() {
         try {
             BpmnJsonConverter converter = new BpmnJsonConverter();
-            String jsonDef = inputStream2String(streamSource.getInputStream());
+            String jsonDef = readInputStream(streamSource.getInputStream());
             bpmnModel = converter.convertToBpmnModel(jsonDef);
 
             createImports();

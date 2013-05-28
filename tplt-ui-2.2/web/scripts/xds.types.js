@@ -537,7 +537,7 @@ xds.types.Fn = Ext.extend(xds.types.BaseType,{
         this.config.isFn = true;
     },
     isValidChild:function(ct){
-        return !(ct && ct.isRef);
+        return ct && !ct.isRef;
     },
     isValidParent:function(c){
         return false;
@@ -2787,7 +2787,7 @@ xds.types.GridPanel = Ext.extend(xds.types.Panel, {
         return !this.isFit() && !this.isAnchored();
     },
     isValidParent:function(c){
-        return !this.isRef && (c.cid == 'toolbar' || c.isColumn || c.isStore);
+        return !this.isRef && (c.cid == 'toolbar' || c.isColumn || c.isStore || c.cid == 'fn');
     },
     xdConfigs: [{
         name: "autoExpandColumn",

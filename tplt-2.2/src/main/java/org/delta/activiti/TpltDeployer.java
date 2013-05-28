@@ -15,10 +15,11 @@ import org.springframework.stereotype.Component;
 public class TpltDeployer extends BpmnDeployer {
     private static final Logger logger = Logger.getLogger(TpltDeployer.class);
 
-    public static final String TPLT_PROCESS_DEF="_tplt_process_def";
-    public static final String TPLT_PROCESS_SRC="_tplt_process_src";
+    public static final String TPLT_PROCESS_DEF = "_tplt_process_def";
+    public static final String TPLT_PROCESS_SRC = "_tplt_process_src";
+    public static final String TPLT_PROCESS_BPMN = "_tplt_process_bpmn";
 
-    protected boolean isBpmnResource (String resName){
+    protected boolean isBpmnResource(String resName) {
         return TPLT_PROCESS_DEF.equalsIgnoreCase(resName);
     }
 }

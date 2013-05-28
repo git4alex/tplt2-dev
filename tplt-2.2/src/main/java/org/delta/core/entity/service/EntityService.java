@@ -361,7 +361,6 @@ public class EntityService {//TODO:增加数据库方言支持
         }
         Filter filter = null;
 
-        // 去掉重复项
         ValueMap tempWhere = new ValueMap();
         for (Object fm : filterMapList) {
             tempWhere.put(ObjectUtils.toString(fm), fm);
@@ -375,7 +374,7 @@ public class EntityService {//TODO:增加数据库方言支持
                 String operate = MapUtils.getString(filterMap, OPERATOR_KEY);
                 Object value = MapUtils.getObject(filterMap, VALUE_KEY);
 
-                if (StringUtils.isBlank(field) || StringUtils.isBlank(operate) || field.equalsIgnoreCase("_dc")) {
+                if (StringUtils.isBlank(field) || StringUtils.isBlank(operate)) {
                     continue;
                 }
 

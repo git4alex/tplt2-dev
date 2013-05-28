@@ -241,6 +241,7 @@ od.flow.Process = Ext.extend(Ext.Container, {
 
     onResize: function (w, h) {
         this.paper.setSize(w, h);
+        //this.adjustView();
     },
     adjustView: function () {
         var cb = {x: 10000, y: 10000, x2: 0, y2: 0};
@@ -253,11 +254,13 @@ od.flow.Process = Ext.extend(Ext.Container, {
                     cb.x2 = Math.max(cb.x2, bb.x2);
                     cb.y2 = Math.max(cb.y2, bb.y2);
                 }
-
             });
         }
 
-        this.paper.setViewBox(cb.x - 20, cb.y - 20, cb.x2 - cb.x + 40, cb.y2 - cb.y + 40, true);
+        this.paper.setViewBox(Math.min(cb.x - 20, 0),
+            Math.min(cb.y - 20, 0),
+            Math.max(cb.x2 - cb.x + 60, this.paper.width),
+            Math.max(cb.y2 - cb.y + 60, this.paper.height), true);
     }
 });
 Ext.reg('process', od.flow.Process);
@@ -383,7 +386,7 @@ od.flow.ShapeContainer = Ext.extend(Ext.Container, {
 });
 
 od.flow.SubProcess = Ext.extend(od.flow.ShapeContainer, {
-    triggeredByEvent:false,
+    triggeredByEvent: false,
     drawText: function (p) {
         if (this.name) {
             var x = this.x - this.width / 2, y = this.y - this.height / 2;
@@ -499,8 +502,8 @@ od.flow.Shape = Ext.extend(Ext.BoxComponent, {
     createFilm: function () {
 
     },
-    toFront:function(){
-        if(this.shape){
+    toFront: function () {
+        if (this.shape) {
             this.shape.toFront();
         }
     }
@@ -701,10 +704,10 @@ od.flow.TaskBase = Ext.extend(od.flow.Shape, {
             delete this.boundaryEvents;
         }
     },
-    toFront:function(){
+    toFront: function () {
         od.flow.TaskBase.superclass.toFront.call(this);
-        if(this.boundarys){
-            this.boundarys.each(function(item){
+        if (this.boundarys) {
+            this.boundarys.each(function (item) {
                 item.shape.toFront();
             });
         }
@@ -1186,7 +1189,7 @@ od.flow.Canvas.DragTracker = Ext.extend(xds.Canvas.DragTracker, {
                             }, this);
                         }
                     }
-                }else{
+                } else {
                     ec.toFront();
                 }
             }
@@ -1761,12 +1764,12 @@ od.flow.actions = {
         handler: function () {
             var id = od.flow.model.id;
             Ext.Ajax.request({
-                url:'/workflow/model/'+id+'/deploy',
-                method:'POST',
-                success:function(response){
+                url: '/workflow/deployment/' + id,
+                method: 'POST',
+                success: function (response) {
                     var result = Ext.decode(response.responseText);
-                    if(result.success){
-                        Ext.Msg.alert('提示','部署完成');
+                    if (result.success) {
+                        Ext.Msg.alert('提示', '部署完成');
                     }
                 }
             });
