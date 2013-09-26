@@ -58,7 +58,7 @@ public class MetadataProvider {
             if (metadata == null) {
                 throw new BusinessException("未找到实体元数据。code:" + code);
             }
-            if (CollectionUtils.isEmpty(metadata.getFieldList())) {
+            if (CollectionUtils.isEmpty(metadata.getFields())) {
                 logger.warn("实体属性为空。code:" + code);
             }
 

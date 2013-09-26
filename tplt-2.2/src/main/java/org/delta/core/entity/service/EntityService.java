@@ -80,7 +80,7 @@ public class EntityService {//TODO:增加数据库方言支持
 
         QueryParam qp = new QueryParam(metadata.getTableName());
         qp.setFilter(filter);
-        for (FieldMetadata fieldMetadata : metadata.getFieldList()) {
+        for (FieldMetadata fieldMetadata : metadata.getFields()) {
             String fieldCode = fieldMetadata.getCode();
             String delCode = metadata.getDelCode();
             if (!StringUtils.equalsIgnoreCase(fieldCode, delCode)) {
@@ -124,7 +124,7 @@ public class EntityService {//TODO:增加数据库方言支持
         Assert.isTrue(StringUtils.isNotBlank(entityCode), "创建实体时实体编码不能为空");
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
         eventManager.fire(metadata.getCode(), EntityEvent.PRE_CREATE, entityMap);
-        List<FieldMetadata> fieldList = metadata.getFieldList();
+        List<FieldMetadata> fieldList = metadata.getFields();
         for (FieldMetadata fm : fieldList) {
             if (DataType.DATATYPE_IMAGE == fm.getFieldDataType()) {
                 String id = MapUtils.getString(entityMap, fm.getCode());
@@ -171,7 +171,7 @@ public class EntityService {//TODO:增加数据库方言支持
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
 
         eventManager.fire(metadata.getCode(), EntityEvent.PRE_UPDATE, value);
-        List<FieldMetadata> fieldList = metadata.getFieldList();
+        List<FieldMetadata> fieldList = metadata.getFields();
         for (FieldMetadata fieldMetadata : fieldList) {
             if (DataType.DATATYPE_IMAGE == fieldMetadata.getFieldDataType()) {
                 String imgId = MapUtils.getString(value, fieldMetadata.getCode());
@@ -305,7 +305,7 @@ public class EntityService {//TODO:增加数据库方言支持
         filter.setField2ColumnMap(metadata.getFieldColumnMap());
 
         QueryParam qp = new QueryParam(metadata.getTableName());
-        for (FieldMetadata fm : metadata.getFieldList()) {
+        for (FieldMetadata fm : metadata.getFields()) {
             qp.addColumn(fm.getColumnName(), fm.getCode());
         }
         qp.setFilter(filter);
@@ -326,7 +326,7 @@ public class EntityService {//TODO:增加数据库方言支持
         filter.setField2ColumnMap(metadata.getFieldColumnMap());
 
         QueryParam qp = new QueryParam(metadata.getTableName());
-        for (FieldMetadata fm : metadata.getFieldList()) {
+        for (FieldMetadata fm : metadata.getFields()) {
             qp.addColumn(fm.getColumnName(), fm.getCode());
         }
         qp.setFilter(filter);
@@ -347,7 +347,7 @@ public class EntityService {//TODO:增加数据库方言支持
         filter.setField2ColumnMap(metadata.getFieldColumnMap());
 
         QueryParam qp = new QueryParam(metadata.getTableName());
-        for (FieldMetadata fm : metadata.getFieldList()) {
+        for (FieldMetadata fm : metadata.getFields()) {
             qp.addColumn(fm.getColumnName(), fm.getCode());
         }
         qp.setFilter(filter);

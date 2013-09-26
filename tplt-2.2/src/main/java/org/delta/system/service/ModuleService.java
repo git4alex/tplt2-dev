@@ -154,7 +154,7 @@ public class ModuleService {
         return ret;
     }
 
-    private Map getComponentConfig(String mid, String comId) {
+    public Map getComponentConfig(String mid, String comId) {
         try {
             ValueMap module = entityService.getById(SystemEntity.MODULE, mid);
             String config = MapUtils.getString(module, "config");

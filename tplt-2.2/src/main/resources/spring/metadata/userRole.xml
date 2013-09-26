@@ -5,10 +5,10 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<bean id="userRole" class="org.delta.core.metadata.EntityMetadata">
-		<property name="pkCode" value="id"/>
+		<!--<property name="pkCode" value="id"/>-->
 		<property name="name" value="用户角色"/>
 		<property name="tableName" value="SYS_USER_ROLE"/>
-		<property name="fieldList">
+		<property name="fields">
 			<list>
 				<bean class="org.delta.core.metadata.FieldMetadata">
 					<property name="name" value="主键"/>
@@ -23,7 +23,7 @@
 					<property name="code" value="userId"/>
 					<property name="columnName" value="user_id"/>
 					<property name="dataType" value="integer"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -31,7 +31,7 @@
 					<property name="code" value="roleId"/>
 					<property name="columnName" value="role_id"/>
 					<property name="dataType" value="integer"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -39,7 +39,7 @@
 					<property name="code" value="cdate"/>
 					<property name="columnName" value="cdate"/>
 					<property name="dataType" value="timestamp"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 			</list>

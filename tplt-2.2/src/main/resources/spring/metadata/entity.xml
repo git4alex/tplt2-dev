@@ -5,10 +5,10 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<bean id="entity" class="org.delta.core.metadata.EntityMetadata">
-		<property name="pkCode" value="id" />
+		<!--<property name="pkCode" value="id" />-->
 		<property name="name" value="实体元数据" />
 		<property name="tableName" value="MD_ENTITY" />
-		<property name="fieldList">
+		<property name="fields">
 			<list>
                 <bean class="org.delta.core.metadata.FieldMetadata">
                     <property name="name" value="ID"/>
@@ -25,7 +25,7 @@
                     <property name="columnName" value="code" />
                     <property name="dataType" value="string" />
                     <property name="length" value="64" />
-                    <property name="primaryKey" value="false" />
+                    <!--<property name="primaryKey" value="false" />-->
                     <property name="mandatory" value="false" />
                 </bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -33,7 +33,7 @@
 					<property name="code" value="pid" />
 					<property name="columnName" value="pid" />
 					<property name="dataType" value="integer" />
-					<property name="primaryKey" value="false" />
+					<!--<property name="primaryKey" value="false" />-->
 					<property name="mandatory" value="false" />
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -42,7 +42,7 @@
 					<property name="columnName" value="name" />
 					<property name="dataType" value="string" />
 					<property name="length" value="64" />
-					<property name="primaryKey" value="false" />
+					<!--<property name="primaryKey" value="false" />-->
 					<property name="mandatory" value="false" />
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -51,7 +51,7 @@
 					<property name="columnName" value="name" />
 					<property name="dataType" value="string" />
 					<property name="length" value="64" />
-					<property name="primaryKey" value="false" />
+					<!--<property name="primaryKey" value="false" />-->
 					<property name="mandatory" value="false" />
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -60,7 +60,7 @@
 					<property name="columnName" value="alias_code" />
 					<property name="dataType" value="string" />
 					<property name="length" value="64" />
-					<property name="primaryKey" value="false" />
+					<!--<property name="primaryKey" value="false" />-->
 					<property name="mandatory" value="false" />
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -69,7 +69,7 @@
 					<property name="columnName" value="table_name" />
 					<property name="dataType" value="string" />
 					<property name="length" value="64" />
-					<property name="primaryKey" value="false" />
+					<!--<property name="primaryKey" value="false" />-->
 					<property name="mandatory" value="false" />
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -78,7 +78,7 @@
 					<property name="columnName" value="del_field" />
 					<property name="dataType" value="string" />
 					<property name="length" value="64" />
-					<property name="primaryKey" value="false" />
+					<!--<property name="primaryKey" value="false" />-->
 					<property name="mandatory" value="false" />
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -86,7 +86,7 @@
 					<property name="code" value="seq" />
 					<property name="columnName" value="seq" />
 					<property name="dataType" value="integer" />
-					<property name="primaryKey" value="false" />
+					<!--<property name="primaryKey" value="false" />-->
 					<property name="mandatory" value="false" />
 				</bean>
                 <bean class="org.delta.core.metadata.FieldMetadata">
@@ -94,7 +94,7 @@
                     <property name="code" value="remark"/>
                     <property name="columnName" value="remark"/>
                     <property name="dataType" value="string"/>
-                    <property name="primaryKey" value="false"/>
+                    <!--<property name="primaryKey" value="false"/>-->
                     <property name="mandatory" value="false"/>
                 </bean>
 			</list>

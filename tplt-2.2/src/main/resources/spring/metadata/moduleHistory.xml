@@ -5,10 +5,10 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<bean id="moduleHistory" class="org.delta.core.metadata.EntityMetadata">
-		<property name="pkCode" value="id"/>
+		<!--<property name="pkCode" value="id"/>-->
 		<property name="name" value="模块历史"/>
 		<property name="tableName" value="SYS_MODULE_HISTORY"/>
-		<property name="fieldList">
+		<property name="fields">
 			<list>
 				<bean class="org.delta.core.metadata.FieldMetadata">
 					<property name="name" value="主键"/>
@@ -24,7 +24,7 @@
 					<property name="columnName" value="NAME"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="64"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -33,7 +33,7 @@
 					<property name="columnName" value="CONFIG"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="4000"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -42,7 +42,7 @@
 					<property name="columnName" value="MODULE_ID"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="128"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -51,7 +51,7 @@
 					<property name="columnName" value="CATEGORY"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="128"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -60,7 +60,7 @@
 					<property name="columnName" value="XDS_CONFIG"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="4000"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -69,7 +69,7 @@
 					<property name="columnName" value="AUTO_SAVE"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="64"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -77,7 +77,7 @@
 					<property name="code" value="updateTime"/>
 					<property name="columnName" value="UPDATE_TIME"/>
 					<property name="dataType" value="timestamp"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -85,7 +85,7 @@
 					<property name="code" value="dbId"/>
 					<property name="columnName" value="DB_ID"/>
 					<property name="dataType" value="integer"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 			</list>

@@ -12,12 +12,12 @@ import java.util.List;
 
 public class EntityMetadata {
     private Logger logger = Logger.getLogger(EntityMetadata.class);
-    private String pkCode;
+//    private String pkCode;
     private String name;
     private String code;
     private String tableName;
     private String deletedCode;
-    private List<FieldMetadata> fieldList = new ArrayList<FieldMetadata>();
+    private List<FieldMetadata> fields = new ArrayList<FieldMetadata>();
 
     public EntityMetadata() {
 
@@ -32,18 +32,16 @@ public class EntityMetadata {
 
     public void addField(FieldMetadata field) throws BusinessException {
         if (field.isPrimaryKey()) {
-            if (StringUtils.isNotBlank(pkCode)) {
-                throw new BusinessException("主键重复");
-            } else {
-                pkCode = field.getCode();
+            if(StringUtils.isNotBlank(getPkCode())){
+                throw new BusinessException("实体只能有一个主键");
             }
         }
 
-        fieldList.add(field);
+        fields.add(field);
     }
 
     public FieldMetadata getFieldMetadataByFieldCode(String fieldCode){
-        for(FieldMetadata fm:fieldList){
+        for(FieldMetadata fm: fields){
             if(fm.getCode().equalsIgnoreCase(fieldCode)){
                 return fm;
             }
@@ -52,7 +50,7 @@ public class EntityMetadata {
     }
 
     public FieldMetadata getFieldMetadataByTableColumn(String colName){
-        for(FieldMetadata fm:fieldList){
+        for(FieldMetadata fm: fields){
             if(fm.getColumnName().equalsIgnoreCase(colName)){
                 return fm;
             }
@@ -62,7 +60,7 @@ public class EntityMetadata {
 
     public List<String> getColumnNames() {
         List<String> fields = new ArrayList<String>();
-        for (FieldMetadata metadata : fieldList) {
+        for (FieldMetadata metadata : this.fields) {
             fields.add(metadata.getColumnName());
         }
 
@@ -71,7 +69,7 @@ public class EntityMetadata {
 
     public List<String> getFieldCodes() {
         List<String> codes = new ArrayList<String>();
-        for (FieldMetadata metadata : fieldList) {
+        for (FieldMetadata metadata : fields) {
             codes.add(metadata.getCode());
         }
 
@@ -80,7 +78,7 @@ public class EntityMetadata {
 
     public ValueMap getFieldColumnMap(){
         ValueMap ret = new ValueMap();
-        for(FieldMetadata fm:fieldList){
+        for(FieldMetadata fm: fields){
             ret.put(fm.getCode(),fm.getColumnName());
         }
         return ret;
@@ -94,17 +92,22 @@ public class EntityMetadata {
         this.code = code;
     }
 
-    public void setFieldList(List<FieldMetadata> fieldList) {
-        this.fieldList = fieldList;
+    public void setFields(List<FieldMetadata> fields) {
+        this.fields = fields;
     }
 
     public String getPkCode() {
-        return pkCode;
+        for(FieldMetadata fm:fields){
+            if(fm.isPrimaryKey()){
+                return fm.getCode();
+            }
+        }
+        return null;
     }
 
-    public void setPkCode(String pkCode) {
-        this.pkCode = pkCode;
-    }
+//    public void setPkCode(String pkCode) {
+//        this.pkCode = pkCode;
+//    }
 
     public String getName() {
         return name;
@@ -130,8 +133,8 @@ public class EntityMetadata {
         this.deletedCode = deletedCode;
     }
 
-    public List<FieldMetadata> getFieldList(){
-        return this.fieldList;
+    public List<FieldMetadata> getFields(){
+        return this.fields;
     }
 }
 

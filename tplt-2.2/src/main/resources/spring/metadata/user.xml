@@ -5,11 +5,11 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<bean id="user" class="org.delta.core.metadata.EntityMetadata">
-		<property name="pkCode" value="id"/>
+		<!--<property name="pkCode" value="id"/>-->
 		<property name="name" value="用户信息"/>
 		<property name="tableName" value="SYS_USER"/>
         <property name="deletedCode" value="deleted"/>
-		<property name="fieldList">
+		<property name="fields">
 			<list>
 				<bean class="org.delta.core.metadata.FieldMetadata">
 					<property name="name" value="主键"/>
@@ -25,7 +25,7 @@
 					<property name="columnName" value="login_name"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="32"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -34,7 +34,7 @@
 					<property name="columnName" value="password"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="32"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -43,7 +43,7 @@
 					<property name="columnName" value="user_name"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="32"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -51,7 +51,7 @@
 					<property name="code" value="lastLgoinDate"/>
 					<property name="columnName" value="last_login_date"/>
 					<property name="dataType" value="timestamp"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -59,7 +59,7 @@
 					<property name="code" value="state"/>
 					<property name="columnName" value="state"/>
 					<property name="dataType" value="integer"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 
@@ -69,7 +69,7 @@
 					<property name="columnName" value="photo"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="32"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -77,7 +77,7 @@
 					<property name="code" value="orgId"/>
 					<property name="columnName" value="org_Id"/>
 					<property name="dataType" value="integer"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -86,7 +86,7 @@
 					<property name="columnName" value="mobile"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="64"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -95,7 +95,7 @@
 					<property name="columnName" value="email"/>
 					<property name="dataType" value="string"/>
 					<property name="length" value="64"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="true"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -103,7 +103,7 @@
 					<property name="code" value="cdate"/>
 					<property name="columnName" value="cdate"/>
 					<property name="dataType" value="timestamp"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
 				<bean class="org.delta.core.metadata.FieldMetadata">
@@ -111,7 +111,7 @@
 					<property name="code" value="mdate"/>
 					<property name="columnName" value="mdate"/>
 					<property name="dataType" value="timestamp"/>
-					<property name="primaryKey" value="false"/>
+					<!--<property name="primaryKey" value="false"/>-->
 					<property name="mandatory" value="false"/>
 				</bean>
                 <bean class="org.delta.core.metadata.FieldMetadata">
@@ -119,7 +119,7 @@
                     <property name="code" value="deleted"/>
                     <property name="columnName" value="DELETED"/>
                     <property name="dataType" value="string"/>
-                    <property name="primaryKey" value="false"/>
+                    <!--<property name="primaryKey" value="false"/>-->
                     <property name="mandatory" value="false"/>
                 </bean>
 			</list>

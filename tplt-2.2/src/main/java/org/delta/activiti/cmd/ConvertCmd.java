@@ -1,4 +1,4 @@
-package org.delta.activiti;
+package org.delta.activiti.cmd;
 
 import org.activiti.bpmn.converter.BpmnXMLConverter;
 import org.activiti.bpmn.model.BpmnModel;

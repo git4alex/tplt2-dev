@@ -4,6 +4,7 @@ import org.delta.core.dao.Page;
 import org.delta.core.utils.ValueMap;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * User: Alex
@@ -43,7 +44,7 @@ public class Result extends ValueMap {
         return ret;
     }
 
-    public static Result data(ValueMap vm){
+    public static Result data(Map<String,Object> vm){
         Result ret = new Result();
         ret.put(SUCCESS,true);
         ret.put(DATA,vm);

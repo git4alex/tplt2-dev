@@ -11,6 +11,9 @@ import org.delta.core.entity.service.EntityService;
 import org.delta.core.exception.BusinessException;
 import org.delta.core.metadata.MetadataConst;
 import org.delta.core.utils.ValueMap;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
@@ -243,7 +246,7 @@ public class TpltUtils {
 //        if (!file.getName().endsWith("xls") && !file.getName().endsWith("xlsx")) {
 //            throw new BusinessException("要读取的文件非Excel文件");
 //        }
-//        List<FieldMetadata> fieldList = entityMetadata.getFieldList();
+//        List<FieldMetadata> fieldList = entityMetadata.getFields();
 //        for (FieldMetadata fieldMetadata : fieldList) {
 //            if (fieldMetadata.getCode().equals(entityMetadata.getPkCode())) {
 //                fieldList.remove(fieldMetadata);
@@ -395,5 +398,12 @@ public class TpltUtils {
         }
 
         return false;
+    }
+
+    public static String getAuthenticatedUserId(){
+        UserDetails ud = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Assert.notNull(ud,"authenticated user is null");
+
+        return ud.getUsername();
     }
 }

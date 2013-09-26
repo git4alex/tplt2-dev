@@ -9,7 +9,6 @@
         <property name="databaseSchemaUpdate" value="true"/>
         <property name="bpmnDeployer" ref="tpltDeployer"/>
         <property name="bpmnParseFactory" ref="tpltParseFactory"/>
-        <property name="repositoryService" ref="tpltRepositoryServiceImpl"/>
         <property name="customSessionFactories">
             <list>
                 <bean class="org.delta.activiti.identity.UserManagerFactory"/>
