@@ -40,11 +40,11 @@ public class SqlToken {
 
     private Filter op(String operator, Object value) {
         if (value == null) {
-            throw new DataAccessException("Filter的相等操作不能接受null值");
+            throw new DataAccessException("数据访问时过滤条件值为null");
         }
         this.filter.add(new SqlToken(TokenType.operator, operator));
         if (value instanceof DBFunction) {
-
+            //TODO:实现DBFunction支持
         } else {
             value = new SqlPlaceHolder(ObjectUtils.toString(this.value), value);
         }

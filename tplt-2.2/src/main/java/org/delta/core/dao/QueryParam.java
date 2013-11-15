@@ -5,6 +5,7 @@ import org.delta.core.dao.dialect.SqlServer2005Dialect;
 import org.delta.core.utils.ValueMap;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public class QueryParam extends SqlParam {
     private List<String[]> columns = new ArrayList<String[]>();
 
     public QueryParam(String tableName) {
+        Assert.hasLength(tableName,"查询时表名不能为空");
         this.tableName = tableName;
     }
 

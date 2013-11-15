@@ -184,14 +184,15 @@ od.AppView = function (app, cfg) {
 
 Ext.extend(od.AppView, Ext.Viewport, {
     showModule: function (module) {
-        this.clientArea.removeAll(true);
         var defComp = module.createDefaultComponent();
         if (!Ext.isEmpty(defComp)) {
             if (defComp.xtype == 'window') {
-                this.clientArea.add({region: 'center', xtype: 'panel', style: 'padding:4px;'});
-                this.clientArea.doLayout();
+//                this.clientArea.add({region: 'center', xtype: 'panel', style: 'padding:4px;'});
+//                this.clientArea.doLayout();
                 defComp.show();
+                return null;
             } else {
+                this.clientArea.removeAll(true);
                 Ext.apply(defComp, this.getModuleStyle());
                 this.clientArea.add(defComp);
                 this.clientArea.doLayout();

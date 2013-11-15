@@ -44,6 +44,7 @@ public class Filter extends SqlParam {
 
     public static SqlToken field(String columnName) {
         Assert.isTrue(StringUtils.hasText(columnName),"查询条件中字段名不能为空");
+
         Filter filter = new Filter();
         SqlToken ret = new SqlToken(SqlToken.TokenType.field, columnName);
         filter.add(ret);
@@ -152,7 +153,6 @@ public class Filter extends SqlParam {
     protected ValueMap getSqlParamValues(Dialect dialect) {
         ValueMap ret = new ValueMap();
 
-        ValueMap counter = new ValueMap();
         int i = 0;
         for (SqlToken token : this.tokens) {
             if (token instanceof SqlToken.InValueToken) {

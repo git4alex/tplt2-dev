@@ -1,7 +1,9 @@
 package org.delta.core.dao;
 
+import org.apache.commons.collections.MapUtils;
 import org.delta.core.dao.dialect.Dialect;
 import org.delta.core.exception.DataAccessException;
+import org.delta.core.utils.DbSchemaUtil;
 import org.delta.core.utils.ValueMap;
 import org.delta.core.utils.ValueMapUtil;
 import org.springframework.dao.DataRetrievalFailureException;
@@ -14,6 +16,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.File;
@@ -23,11 +26,15 @@ import java.io.InputStream;
 import java.sql.*;
 import java.util.List;
 
-
 @Repository("dao")
 public class Dao extends SimpleJdbcDaoSupport {
-    @Resource
     private Dialect dialect;
+
+    @PostConstruct
+    private void checkDbSchema(){
+        logger.info("check database schema.");
+        DbSchemaUtil.checkDatabaseSchema(this.getDataSource());
+    }
 
     @Resource
     public void setDs(DataSource ds) {
@@ -52,7 +59,9 @@ public class Dao extends SimpleJdbcDaoSupport {
 
         if (logger.isDebugEnabled()) {
             logger.debug("sql:" + sql);
-            logger.debug("params:" + paramValues);
+            if(MapUtils.isNotEmpty(paramValues)){
+                logger.debug("params:" + paramValues);
+            }
         }
         return ValueMapUtil.convertList(this.getSimpleJdbcTemplate().queryForList(sql, paramValues));
     }
@@ -65,7 +74,9 @@ public class Dao extends SimpleJdbcDaoSupport {
 
         if (logger.isDebugEnabled()) {
             logger.debug("sql:" + limitSql);
-            logger.debug("params:" + paramValues);
+            if(MapUtils.isNotEmpty(paramValues)){
+                logger.debug("params:" + paramValues);
+            }
         }
 
         List items = this.getSimpleJdbcTemplate().queryForList(limitSql, paramValues);
@@ -77,7 +88,9 @@ public class Dao extends SimpleJdbcDaoSupport {
         ValueMap paramValues = param.getSqlParamValues(dialect);
         if (logger.isDebugEnabled()) {
             logger.debug("sql:" + sql);
-            logger.debug("params:" + paramValues);
+            if(MapUtils.isNotEmpty(paramValues)){
+                logger.debug("params:" + paramValues);
+            }
         }
 
         return this.getSimpleJdbcTemplate().queryForInt(sql, paramValues);
@@ -94,7 +107,9 @@ public class Dao extends SimpleJdbcDaoSupport {
 
         if (logger.isDebugEnabled()) {
             logger.debug("sql:" + parsedSql);
-            logger.debug("params:" + paramValues);
+            if(MapUtils.isNotEmpty(paramValues)){
+                logger.debug("params:" + paramValues);
+            }
         }
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -134,7 +149,9 @@ public class Dao extends SimpleJdbcDaoSupport {
         ValueMap paramValues = param.getSqlParamValues(dialect);
         if (logger.isDebugEnabled()) {
             logger.debug("sql:" + sql);
-            logger.debug("params:" + paramValues);
+            if(MapUtils.isNotEmpty(paramValues)){
+                logger.debug("params:" + paramValues);
+            }
         }
         return this.getSimpleJdbcTemplate().update(sql, paramValues);
     }
@@ -145,7 +162,9 @@ public class Dao extends SimpleJdbcDaoSupport {
         ValueMap paramValues = param.getSqlParamValues(dialect);
         if (logger.isDebugEnabled()) {
             logger.debug("sql:" + sql);
-            logger.debug("params:" + paramValues);
+            if(MapUtils.isNotEmpty(paramValues)){
+                logger.debug("params:" + paramValues);
+            }
         }
 
         return this.getSimpleJdbcTemplate().update(sql, paramValues);

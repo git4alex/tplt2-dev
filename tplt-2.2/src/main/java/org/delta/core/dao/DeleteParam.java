@@ -35,7 +35,9 @@ public class DeleteParam extends SqlParam {
 			if(StringUtils.hasText(filterStr)){
 				sb.append(" WHERE ").append(filterStr);
 			}
-		}
+		}else{
+            //TODO:add warning
+        }
 
 		return sb.toString();
 	}

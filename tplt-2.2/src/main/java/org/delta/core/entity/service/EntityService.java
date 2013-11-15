@@ -41,6 +41,7 @@ import java.util.*;
 @Service
 public class EntityService {//TODO:增加数据库方言支持
     private static Logger logger = Logger.getLogger(EntityService.class);
+
     public static final String FIELD_CODE_KEY = "field";
     public static final String OPERATOR_KEY = "operator";
     public static final String VALUE_KEY = "value";
@@ -61,7 +62,7 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public ValueMap getById(String entityCode, Serializable id) {
-        Assert.notNull(entityCode, "[entityCode] 不能为空");
+        Assert.hasLength(entityCode, "[entityCode] 不能为空");
         Assert.notNull(id, "[id] 不能为空");
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
@@ -70,7 +71,7 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public ValueMap get(String entityCode, Filter filter) {
-        Assert.notNull(entityCode, "[entityCode] 不能为空");
+        Assert.hasLength(entityCode, "[entityCode] 不能为空");
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
         String aclFilter = aclService.getAccessFilter(entityCode);
@@ -95,7 +96,7 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public ValueMap save(String entityCode, ValueMap value) {
-        Assert.isTrue(StringUtils.isNotBlank(entityCode), "保存实体时实体编码不能为空");
+        Assert.hasLength(entityCode, "实体编码不能为空");
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
         String pkVal = MapUtils.getString(value, metadata.getPkCode());
@@ -110,6 +111,8 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public List<ValueMap> create(String entityCode,List<HashMap> vs){
+        Assert.hasLength(entityCode, "实体编码不能为空");
+
         List<ValueMap> rs = new ArrayList<ValueMap>();
 
         for(HashMap v:vs){
@@ -121,7 +124,8 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public ValueMap create(String entityCode, ValueMap entityMap) {
-        Assert.isTrue(StringUtils.isNotBlank(entityCode), "创建实体时实体编码不能为空");
+        Assert.hasLength(entityCode, "实体编码不能为空");
+
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
         eventManager.fire(metadata.getCode(), EntityEvent.PRE_CREATE, entityMap);
         List<FieldMetadata> fieldList = metadata.getFields();
@@ -144,7 +148,7 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public ValueMap updateById(String entityCode, String id, ValueMap value) {
-        Assert.isTrue(StringUtils.isNotBlank(entityCode), "更新实体时实体编码不能为空");
+        Assert.hasLength(entityCode, "实体编码不能为空");
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
         String pkCode = metadata.getPkCode();
@@ -166,7 +170,7 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public int update(String entityCode, ValueMap value, Filter filter) throws BusinessException {
-        Assert.isTrue(StringUtils.isNotBlank(entityCode), "更新实体时未指定实体类型");
+        Assert.hasLength(entityCode, "实体编码不能为空");
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
 
@@ -198,7 +202,7 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public int deleteById(String entityCode, String id) {
-        Assert.isTrue(StringUtils.isNotBlank(entityCode), "删除实体时未指定实体类型");
+        Assert.hasLength(entityCode, "实体编码不能为空");
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
 
@@ -215,7 +219,7 @@ public class EntityService {//TODO:增加数据库方言支持
     }
 
     public int delete(String entityCode, Filter filter) {
-        Assert.isTrue(StringUtils.isNotBlank(entityCode), "删除实体时未指定实体类型");
+        Assert.hasLength(entityCode, "实体编码不能为空");
 
         EntityMetadata metadata = metadataProvider.getEntityMetadata(entityCode);
 

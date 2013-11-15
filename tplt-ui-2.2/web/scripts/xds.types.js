@@ -2420,7 +2420,7 @@ xds.types.PagingToolbar = Ext.extend(xds.types.Toolbar, {
     xtype: "paging",
     xcls: "Ext.PagingToolbar",
     naming: "MyPagingToolbar",
-    isContainer: true,
+    //isContainer: true,
     iconCls: "icon-paging-toolbar",
     dock: "bbar",
     initConfig: function (o) {
