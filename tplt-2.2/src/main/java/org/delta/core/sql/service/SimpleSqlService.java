@@ -77,7 +77,7 @@ public class SimpleSqlService {
     }
 
     private String getSql(String key, ValueMap data) throws BusinessException {
-        logger.debug("sql key is " + key);
+        logger.debug("org.delta.system.service.sql key is " + key);
         String markupSql = provider.getSql(key);
 
         Configuration cfg = new Configuration();

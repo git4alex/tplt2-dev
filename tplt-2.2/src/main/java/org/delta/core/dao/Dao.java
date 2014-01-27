@@ -58,7 +58,7 @@ public class Dao extends SimpleJdbcDaoSupport {
         ValueMap paramValues = param.getSqlParamValues(dialect);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("sql:" + sql);
+            logger.debug("org.delta.system.service.sql:" + sql);
             if(MapUtils.isNotEmpty(paramValues)){
                 logger.debug("params:" + paramValues);
             }
@@ -73,7 +73,7 @@ public class Dao extends SimpleJdbcDaoSupport {
         ValueMap paramValues = param.getSqlParamValues(dialect);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("sql:" + limitSql);
+            logger.debug("org.delta.system.service.sql:" + limitSql);
             if(MapUtils.isNotEmpty(paramValues)){
                 logger.debug("params:" + paramValues);
             }
@@ -87,7 +87,7 @@ public class Dao extends SimpleJdbcDaoSupport {
         String sql = param.getCountSql(dialect);
         ValueMap paramValues = param.getSqlParamValues(dialect);
         if (logger.isDebugEnabled()) {
-            logger.debug("sql:" + sql);
+            logger.debug("org.delta.system.service.sql:" + sql);
             if(MapUtils.isNotEmpty(paramValues)){
                 logger.debug("params:" + paramValues);
             }
@@ -106,7 +106,7 @@ public class Dao extends SimpleJdbcDaoSupport {
         final Object[] vs = NamedParameterUtils.buildValueArray(psSql, paramSource, null);
 
         if (logger.isDebugEnabled()) {
-            logger.debug("sql:" + parsedSql);
+            logger.debug("org.delta.system.service.sql:" + parsedSql);
             if(MapUtils.isNotEmpty(paramValues)){
                 logger.debug("params:" + paramValues);
             }
@@ -148,7 +148,7 @@ public class Dao extends SimpleJdbcDaoSupport {
         String sql=param.getSql(dialect);
         ValueMap paramValues = param.getSqlParamValues(dialect);
         if (logger.isDebugEnabled()) {
-            logger.debug("sql:" + sql);
+            logger.debug("org.delta.system.service.sql:" + sql);
             if(MapUtils.isNotEmpty(paramValues)){
                 logger.debug("params:" + paramValues);
             }
@@ -161,7 +161,7 @@ public class Dao extends SimpleJdbcDaoSupport {
 
         ValueMap paramValues = param.getSqlParamValues(dialect);
         if (logger.isDebugEnabled()) {
-            logger.debug("sql:" + sql);
+            logger.debug("org.delta.system.service.sql:" + sql);
             if(MapUtils.isNotEmpty(paramValues)){
                 logger.debug("params:" + paramValues);
             }

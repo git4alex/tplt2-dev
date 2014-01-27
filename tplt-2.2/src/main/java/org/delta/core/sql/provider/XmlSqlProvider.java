@@ -61,7 +61,7 @@ public class XmlSqlProvider {
 
     private void loadFile(File file) throws DocumentException, BusinessException {
         if (logger.isInfoEnabled()) {
-            logger.info("load sql...");
+            logger.info("load org.delta.system.service.sql...");
         }
         SAXReader reader = new SAXReader();
         Document doc = reader.read(file);
@@ -80,7 +80,7 @@ public class XmlSqlProvider {
             if (StringUtils.isBlank(name) ||
                     StringUtils.isBlank(title) ||
                     StringUtils.isBlank(text)) {
-                throw new BusinessException("resolver sql xml failed in " + file.getName());
+                throw new BusinessException("resolver org.delta.system.service.sql xml failed in " + file.getName());
             }
 
             String[] names = new String[]{name};
@@ -101,13 +101,13 @@ public class XmlSqlProvider {
                 map.put("title", StringUtils.trim(titles[j]));
                 sqlTitleList.add(map);
 //				if (logger.isDebugEnabled()) {
-//					logger.debug("\ntitle:" + StringUtils.trim(titles[j]) + "; sqlKey:" + key + "; sql: " + text);
+//					logger.debug("\ntitle:" + StringUtils.trim(titles[j]) + "; sqlKey:" + key + "; org.delta.system.service.sql: " + text);
 //				}
             }
         }
 
         if (logger.isInfoEnabled()) {
-            logger.info("load sql finished, total count is " + xmlSqlMap.size());
+            logger.info("load org.delta.system.service.sql finished, total count is " + xmlSqlMap.size());
         }
     }
 
@@ -136,7 +136,7 @@ public class XmlSqlProvider {
         load();
         String sql = xmlSqlMap.get(key);
         if (sql == null) {
-            throw new BusinessException("can't found sql by " + key);
+            throw new BusinessException("can't found org.delta.system.service.sql by " + key);
         }
         return sql;
     }

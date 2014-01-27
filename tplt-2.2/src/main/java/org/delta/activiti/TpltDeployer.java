@@ -4,7 +4,6 @@ import org.activiti.engine.impl.bpmn.deployer.BpmnDeployer;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-
 /**
  * User: Alex
  * Date: 13-5-11

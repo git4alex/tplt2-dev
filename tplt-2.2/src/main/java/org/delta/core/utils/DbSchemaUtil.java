@@ -49,11 +49,11 @@ public class DbSchemaUtil {
                 String scriptPath = getScriptPath(databaseType);
                 Assert.hasLength(scriptPath,"Get script path error for databaseType:"+databaseType);
 
-                String schemaScript = scriptPath+"schema.sql";
+                String schemaScript = scriptPath+"schema.org.delta.system.service.sql";
                 InputStream schemaIs = DbSchemaUtil.class.getClassLoader().getResourceAsStream(schemaScript);
                 populator.addScript(new InputStreamResource(schemaIs));
 
-                String initScript = scriptPath+"init.sql";
+                String initScript = scriptPath+"init.org.delta.system.service.sql";
                 InputStream initIs = DbSchemaUtil.class.getClassLoader().getResourceAsStream(initScript);
                 populator.addScript(new InputStreamResource(initIs));
 
