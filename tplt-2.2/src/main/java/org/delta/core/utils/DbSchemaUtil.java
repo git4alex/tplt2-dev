@@ -2,8 +2,12 @@ package org.delta.core.utils;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.springframework.util.Assert;
 
 import javax.sql.DataSource;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
@@ -40,6 +44,24 @@ public class DbSchemaUtil {
 
             if (!rs.next()) {
                 logger.info("Tplt tables not exists");
+                ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+
+                String scriptPath = getScriptPath(databaseType);
+                Assert.hasLength(scriptPath,"Get script path error for databaseType:"+databaseType);
+
+                String schemaScript = scriptPath+"schema.sql";
+                InputStream schemaIs = DbSchemaUtil.class.getClassLoader().getResourceAsStream(schemaScript);
+                populator.addScript(new InputStreamResource(schemaIs));
+
+                String initScript = scriptPath+"init.sql";
+                InputStream initIs = DbSchemaUtil.class.getClassLoader().getResourceAsStream(initScript);
+                populator.addScript(new InputStreamResource(initIs));
+
+                populator.setSqlScriptEncoding("UTF-8");
+                populator.setContinueOnError(true);
+                populator.setIgnoreFailedDrops(true);
+
+                populator.populate(connection);
             }else{
                 logger.info("Tplt tables already exists");
             }
@@ -62,11 +84,21 @@ public class DbSchemaUtil {
      * @param dbType 数据库类型
      * @return 默认schema
      */
-    public static String getDefaultSchema(String dbType){
+//    public static String getDefaultSchema(String dbType){
+//        if(StringUtils.equalsIgnoreCase(dbType,"H2")){
+//            return "PUBLIC";
+//        }else if(StringUtils.equalsIgnoreCase(dbType,"Microsoft SQL Server")){
+//            return "PUBLIC";
+//        }else{
+//            return "";
+//        }
+//    }
+
+    private static String getScriptPath(String dbType){
         if(StringUtils.equalsIgnoreCase(dbType,"H2")){
-            return "PUBLIC";
+            return "org.delta.core.db.h2.";
         }else if(StringUtils.equalsIgnoreCase(dbType,"Microsoft SQL Server")){
-            return "PUBLIC";
+            return "org.delta.core.db.mssql.";
         }else{
             return "";
         }

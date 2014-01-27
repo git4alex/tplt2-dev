@@ -1,5 +1,11 @@
 package org.delta.system.controller;
 
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.log4j.Logger;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.delta.core.entity.service.AclService;
 import org.delta.core.exception.BusinessException;
 import org.delta.core.metadata.service.MetadataProvider;
@@ -8,14 +14,14 @@ import org.delta.system.Result;
 import org.delta.system.service.AppConfigService;
 import org.delta.system.service.BizCodeService;
 import org.delta.system.service.PwdService;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.log4j.Logger;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping;
+import org.springframework.web.servlet.support.RequestContextUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -23,9 +29,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Method;
+import java.util.*;
 
 /**
  * date: 2010-7-27
@@ -46,6 +51,78 @@ public class SystemController {
     private AppConfigService appConfigService;
     @Resource
     private PwdService pwdService;
+    @Resource
+    private DefaultAnnotationHandlerMapping defaultAnnotationHandlerMapping;
+
+    @RequestMapping(value = "/urls")
+    @ResponseBody
+    public Result getUrls(HttpServletRequest request){
+        WebApplicationContext wc = RequestContextUtils.getWebApplicationContext(request);
+        Map<String,Object> beans = wc.getBeansWithAnnotation(Controller.class);
+        final List<Map<String,Object>> ret = new ArrayList<>();
+        for(String beanName:beans.keySet()){
+            RequestMapping mappingOnClass = wc.findAnnotationOnBean(beanName,RequestMapping.class);
+            if(mappingOnClass!=null){
+                List<Map<String,Object>> mappingsOnMethod = getRequestMappingsOnMethod(wc.getType(beanName));
+                if(mappingsOnMethod.size()>0){
+                    String[] values = mappingOnClass.value();
+                    for(String value:values){
+                        if(!value.startsWith("/")){
+                            value = "/"+value;
+                        }
+
+                        for(Map<String,Object> mappingOnMethod :mappingsOnMethod){
+                            mappingOnMethod.put("path",value+MapUtils.getString(mappingOnMethod,"path"));
+                            String[] headersOnClass = mappingOnClass.headers();
+                            String[] headersOnMethod = (String[]) MapUtils.getObject(mappingOnMethod,"headers");
+                            headersOnMethod = (String[]) ArrayUtils.addAll(headersOnMethod,headersOnClass);
+                            mappingOnMethod.put("headers",headersOnMethod);
+
+                            ret.add(mappingOnMethod);
+                        }
+                    }
+                }else{
+                    //只在class上有requestMapping
+                }
+            }
+        }
+
+//        Map<String,Object> handlerMap = defaultAnnotationHandlerMapping.getHandlerMap();
+//        Map<String,Object> ret = new HashMap<>();
+//        for(String url:handlerMap.keySet()){
+//            ret.put(url,handlerMap.get(url).toString());
+//        }
+        return Result.list(ret);
+    }
+
+    private List<Map<String,Object>> getRequestMappingsOnMethod(Class<?> handlerType){
+        final List<Map<String,Object>> ret = new ArrayList<>();
+        Set<Class<?>> handlerTypes = new LinkedHashSet<Class<?>>();
+        handlerTypes.add(handlerType);
+        handlerTypes.addAll(Arrays.asList(handlerType.getInterfaces()));
+        for (Class<?> currentHandlerType : handlerTypes) {
+            ReflectionUtils.doWithMethods(currentHandlerType, new ReflectionUtils.MethodCallback() {
+                public void doWith(Method method) {
+                    RequestMapping mapping = AnnotationUtils.findAnnotation(method, RequestMapping.class);
+                    if (mapping != null) {
+                        String[] mappedPatterns = mapping.value();
+                        if (mappedPatterns.length > 0) {
+                            for (String mappedPattern : mappedPatterns) {
+                                Map<String,Object> item = new HashMap<>();
+                                item.put("path",mappedPattern);
+                                item.put("method",mapping.method());
+                                item.put("params",mapping.params());
+                                item.put("headers",mapping.headers());
+                                ret.add(item);
+                            }
+                        }
+                    }
+                }
+            }, ReflectionUtils.USER_DECLARED_METHODS);
+        }
+
+        return ret;
+    }
 
     @RequestMapping(value = "/getAppConfig")
     @ResponseBody

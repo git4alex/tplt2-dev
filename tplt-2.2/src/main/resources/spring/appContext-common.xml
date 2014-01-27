@@ -26,6 +26,4 @@
 			</list>
 		</property>
 	</bean>
-
-	<bean id="dialect" class="org.delta.core.dao.dialect.SqlServer2005Dialect" />
 </beans>

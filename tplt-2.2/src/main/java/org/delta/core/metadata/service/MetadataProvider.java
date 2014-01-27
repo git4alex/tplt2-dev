@@ -45,7 +45,7 @@ public class MetadataProvider {
     @Resource
     private XmlMetadataProvider xmlMetadataProvider;
 
-    private Map<String, EntityMetadata> entitymetadataMap = new HashMap<String, EntityMetadata>();
+    private Map<String, EntityMetadata> entitymetadataMap = new HashMap<>();
 
     public void clearMetadataCache() {
         entitymetadataMap.clear();
@@ -98,8 +98,9 @@ public class MetadataProvider {
         try {
             Connection con = dao.getDataSource().getConnection();
             DatabaseMetaData dbMetadata = con.getMetaData();
-            String c = null, s = null;
+            String c, s = null;
             c = con.getCatalog();
+            //todo:getSchema异常
 //          s = con.getSchema();
             ResultSet tables = dbMetadata.getTables(c, s, code, new String[]{"TABLE"});
             if (tables.next()) {

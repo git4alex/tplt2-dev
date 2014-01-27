@@ -348,5 +348,4 @@ SELECT 'entity' AS TYPE,
        TABLE_NAME AS REMARK
 FROM MD_ENTITY;
 
-
 insert into SYS_USER (org_id,login_name,password,user_name,state,email) values(1,'admin','977a97ba700688034c2696e422be61ed','系统管理员',1,'admin@delta.org')

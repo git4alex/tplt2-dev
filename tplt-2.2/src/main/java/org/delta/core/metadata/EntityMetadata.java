@@ -2,7 +2,6 @@ package org.delta.core.metadata;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
 import org.delta.core.exception.BusinessException;
 import org.delta.core.metadata.MetadataConst.EntityMetadataField;
 import org.delta.core.utils.ValueMap;
@@ -11,13 +10,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EntityMetadata {
-    private Logger logger = Logger.getLogger(EntityMetadata.class);
+//    private Logger logger = Logger.getLogger(EntityMetadata.class);
 //    private String pkCode;
+
     private String name;
     private String code;
     private String tableName;
     private String deletedCode;
-    private List<FieldMetadata> fields = new ArrayList<FieldMetadata>();
+    private List<FieldMetadata> fields = new ArrayList<>();
 
     public EntityMetadata() {
 
@@ -32,6 +32,7 @@ public class EntityMetadata {
 
     public void addField(FieldMetadata field) throws BusinessException {
         if (field.isPrimaryKey()) {
+            //todo:主键可能有多个字段组成
             if(StringUtils.isNotBlank(getPkCode())){
                 throw new BusinessException("实体只能有一个主键");
             }
@@ -59,7 +60,7 @@ public class EntityMetadata {
     }
 
     public List<String> getColumnNames() {
-        List<String> fields = new ArrayList<String>();
+        List<String> fields = new ArrayList<>();
         for (FieldMetadata metadata : this.fields) {
             fields.add(metadata.getColumnName());
         }
@@ -68,7 +69,7 @@ public class EntityMetadata {
     }
 
     public List<String> getFieldCodes() {
-        List<String> codes = new ArrayList<String>();
+        List<String> codes = new ArrayList<>();
         for (FieldMetadata metadata : fields) {
             codes.add(metadata.getCode());
         }
