@@ -231,7 +231,7 @@ xds.types.BaseType = Ext.extend(Ext.util.Observable, {
         }
 
         if (this.bindable) {
-            if ((/store|jsonstore|xmlstore|directstore/).exec(cid)) {
+            if ((/store|jsonstore|arraystore|xmlstore|directstore/).exec(cid)) {
                 return true;
             }
         }
@@ -1106,6 +1106,7 @@ xds.types.Panel = Ext.extend(xds.PanelBase, {
         if (!o) {
             this.config.width = this.defaultWidth;
             this.config.height = this.defaultHeight;
+            this.config.title = this.naming;
         }else{
             this.config.border=false;
         }
@@ -4392,6 +4393,10 @@ xds.types.ArrayStore = Ext.extend(xds.StoreBase, {
         group: "EventHandler",
         ctype: 'fn',
         params: ['store', 'records', 'options']
+    },{
+        name:'data',
+        group:'Ext.data.Store',
+        ctype:'object'
     }]
 });
 //xds.Registry.register(xds.types.ArrayStore);
@@ -4471,8 +4476,7 @@ xds.types.Form = Ext.extend(xds.types.Panel, {
     naming: "MyForm",
     defaultConfig: {
         layout: "tableform",
-        padding:4,
-        labelSeparator:':'
+        padding:4
     },
     layoutConfig:{
         columns:1
@@ -4490,14 +4494,15 @@ xds.types.Form = Ext.extend(xds.types.Panel, {
         }
     },
     transformGroup: "container",
-    initConfig: function (o) {
-        if (!o) {
-            this.config.width = 400;
-            this.config.height = 250;
-        } else {
-            this.config.border = false;
-        }
-    },
+//    initConfig: function (o) {
+//        if (!o) {
+//            this.config.width = 400;
+//            this.config.height = 250;
+//            this.config.title = 'Form';
+//        } else {
+//            this.config.border = false;
+//        }
+//    },
     xdConfigs: [{
         name: "formId",
         group: "Ext.form.FormPanel",
@@ -4607,6 +4612,7 @@ xds.types.Form = Ext.extend(xds.types.Panel, {
 });
 //xds.Registry.register(xds.types.Form);
 xds.FormPanel = Ext.extend(Ext.form.FormPanel, {
+    labelWidth:52,
     createFbar: function (b) {
         var a = this.minButtonWidth;
         this.elements += ",footer";
@@ -4704,7 +4710,9 @@ xds.types.FieldSet = Ext.extend(xds.types.Panel, {
     }]
 });
 //xds.Registry.register(xds.types.FieldSet);
-xds.FieldSet = Ext.extend(Ext.form.FieldSet, {});
+xds.FieldSet = Ext.extend(Ext.form.FieldSet, {
+    labelWidth:52
+});
 Ext.reg("xdfieldset", xds.FieldSet);
 
 xds.types.FieldBase = Ext.extend(xds.types.BoxComponent, {
@@ -5812,17 +5820,12 @@ xds.types.TreePanel = Ext.extend(xds.types.Panel, {
     autoScrollable: false,
     validChildTypes: ["treeloader", "toolbar"],
     initConfig: function (o) {
+        xds.types.TreePanel.superclass.initConfig.call(this,o);
+
         this.config.autoLoad = false;
         this.config.pidCode = 'pid';
         this.config.indexCode = 'seq';
         this.config.pathCode = 'path';
-        if (!o) {
-            this.config.width = 400;
-            this.config.height = 250;
-            this.config.title = "Tree Panel";
-        }else{
-            this.config.border = false;
-        }
     },
     xdConfigs: [{
         name: "animate",

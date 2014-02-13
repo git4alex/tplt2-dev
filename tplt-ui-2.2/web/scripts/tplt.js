@@ -52,7 +52,7 @@ od.App = function (cfg) {
     od.appInstance = this;
 
     Ext.History.on('change', function (token) {
-        if (token != this.active.moduleId) {
+        if (token != this.active.id) {
             this.activeModule(token);
         }
     }, this);

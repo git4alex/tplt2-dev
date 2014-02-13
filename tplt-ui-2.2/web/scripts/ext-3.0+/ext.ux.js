@@ -463,6 +463,7 @@ Ext.grid.HybridSummary = Ext.ux.grid.HybridSummary;
 Ext.namespace("Ext.ux.layout");
 
 Ext.ux.layout.TableFormLayout = Ext.extend(Ext.layout.TableLayout, {
+    labelSeparator:':',
     monitorResize: true,
     labelAutoWidth: false,
     packFields: false,
