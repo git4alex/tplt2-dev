@@ -12,7 +12,7 @@ xds.types.BaseType = Ext.extend(Ext.util.Observable, {
         Ext.apply(this, cfg);
         this.userConfig = this.userConfig || {};
         this.name = this.name || this.defaultName;
-        this.id = this.id || this.nextId();
+        this.id = this.id || this.userConfig.id || this.nextId();
         this.priorSpecs = [];
     },
     getTopComponent: function () {
