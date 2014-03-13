@@ -2309,10 +2309,8 @@ xds.types.Toolbar = Ext.extend(xds.types.Container, {
         }
         return true;
     },
-    isResizable:function(p,g){
-        if(p == "Right"){
-            return true;
-        }
+    isResizable:function(p){
+        return p == "Right";
     }
 });
 //xds.Registry.register(xds.types.Toolbar);
@@ -2435,6 +2433,9 @@ xds.types.PagingToolbar = Ext.extend(xds.types.Toolbar, {
                 }
             }
         }
+    },
+    isValidChild:function(ct){
+        return ct && (ct.cid == 'grid' || ct.cid == 'dataview');
     },
     getDefaultInternals:function(){
         return xds.types.Toolbar.superclass.getDefaultInternals.call(this);
@@ -2788,7 +2789,7 @@ xds.types.GridPanel = Ext.extend(xds.types.Panel, {
         return !this.isFit() && !this.isAnchored();
     },
     isValidParent:function(c){
-        return !this.isRef && (c.cid == 'toolbar' || c.isColumn || c.isStore || c.cid == 'fn');
+        return !this.isRef && (c.cid == 'toolbar' || c.cid == 'pagingtoolbar' || c.isColumn || c.isStore || c.cid == 'fn');
     },
     xdConfigs: [{
         name: "autoExpandColumn",
@@ -3931,7 +3932,7 @@ xds.StoreBase = Ext.extend(xds.types.BaseType, {
     isStore: true,
     validChildTypes: ["datafield"],
     isValidChild:function(ct){
-        return !ct.isRef && ct.bindable;
+        return ct && !ct.isRef && ct.bindable;
     },
     isValidParent:function(c){
         return  !this.isRef && c.cid == 'datafield';
