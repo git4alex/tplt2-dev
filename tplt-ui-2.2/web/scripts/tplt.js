@@ -32,6 +32,7 @@ Ext.override(Ext.form.TriggerField, {
         this.fireEvent('triggerclick', this);
     }
 });
+Ext.useShims=false;
 
 Ext.ns('org.delta');
 var od = org.delta;

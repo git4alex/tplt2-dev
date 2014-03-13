@@ -22,7 +22,7 @@ public class SecurityMetadataSource implements	FilterInvocationSecurityMetadataS
 	private DataSource dataSource;
 	private String resourceQuery;
 	private AntUrlPathMatcher urlMatcher = new AntUrlPathMatcher();
-	private static Map<String, Collection<ConfigAttribute>> resourceMap = new LinkedHashMap<String, Collection<ConfigAttribute>>();
+	private static Map<String, Collection<ConfigAttribute>> resourceMap = new LinkedHashMap<>();
 
 	public SecurityMetadataSource(DataSource dataSource, String resourceQuery) {
 		this.dataSource = dataSource;
@@ -47,7 +47,7 @@ public class SecurityMetadataSource implements	FilterInvocationSecurityMetadataS
 			String[] urls = us.split(";");
 			String code=resource.getCode();
 
-			if(StringUtils.isNotBlank(code) && urls != null && !ArrayUtils.isEmpty(urls)){
+			if(StringUtils.isNotBlank(code) && !ArrayUtils.isEmpty(urls)){
 				for(String url:urls){
 					if(StringUtils.isBlank(url)){
 						continue;
@@ -59,7 +59,7 @@ public class SecurityMetadataSource implements	FilterInvocationSecurityMetadataS
 
 					Collection<ConfigAttribute> configAttrs = resourceMap.get(url);
 					if(configAttrs==null){
-						configAttrs=new ArrayList<ConfigAttribute>();
+						configAttrs=new ArrayList<>();
 						resourceMap.put(url, configAttrs);
 					}
 
@@ -78,7 +78,7 @@ public class SecurityMetadataSource implements	FilterInvocationSecurityMetadataS
 		String method=((FilterInvocation) object).getRequest().getMethod();
 
 		Iterator<String> ite = resourceMap.keySet().iterator();
-		Collection<ConfigAttribute> ret= new ArrayList<ConfigAttribute>();
+		Collection<ConfigAttribute> ret= new ArrayList<>();
 
 		while (ite.hasNext()) {
 			String resURL = ite.next();

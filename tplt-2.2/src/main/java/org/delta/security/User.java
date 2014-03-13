@@ -9,7 +9,6 @@ import java.util.Map;
 
 public class User implements IUser, Serializable {
     private static final long serialVersionUID = -2716769842682989621L;
-    private static User systemUser;
 
     private Map<String, Object> data;
 
@@ -89,19 +88,6 @@ public class User implements IUser, Serializable {
                 return true;
             }
         };
-    }
-
-    public static User getSystemUser() {
-        if (systemUser == null) {
-            systemUser = new User() {
-                private static final long serialVersionUID = 6698583853673297837L;
-
-                public boolean isSystem() {
-                    return true;
-                }
-            };
-        }
-        return systemUser;
     }
 
     @Override

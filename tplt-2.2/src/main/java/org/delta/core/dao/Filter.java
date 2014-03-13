@@ -161,17 +161,13 @@ public class Filter extends SqlParam {
                 for (Object v : vs) {
                     if (v instanceof SqlPlaceHolder) {
                         SqlPlaceHolder vsp = (SqlPlaceHolder) v;
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(vsp.getName()).append("_").append(i).append("_").append(j);
-                        ret.put(sb.toString(), vsp.getValue());
+                        ret.put(vsp.getName() + "_" + i + "_" + j, vsp.getValue());
                     }
                     j++;
                 }
             } else if (token.value instanceof SqlPlaceHolder) {
                 SqlPlaceHolder sp = (SqlPlaceHolder) token.value;
-                StringBuilder sb = new StringBuilder();
-                sb.append(sp.getName()).append("_").append(i);
-                ret.put(sb.toString(), sp.getValue());
+                ret.put(sp.getName() + "_" + i, sp.getValue());
             }
             i++;
         }

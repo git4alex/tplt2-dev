@@ -3,7 +3,6 @@ package org.delta.security;
 import org.apache.log4j.Logger;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -31,7 +30,7 @@ public class AccessDecisionManager implements org.springframework.security.acces
 		}
 
         for (ConfigAttribute ca : configAttributes) {
-            String needAuthority = ((SecurityConfig) ca).getAttribute();
+            String needAuthority = ca.getAttribute();
             for (GrantedAuthority ga : authentication.getAuthorities()) {
                 if (needAuthority.equals(ga.getAuthority())) {
                     return;
@@ -39,12 +38,9 @@ public class AccessDecisionManager implements org.springframework.security.acces
             }
         }
 
-		StringBuilder sb=new StringBuilder();
-		sb.append("Access is denied on:[").append(object.toString()).append("]\n");
-		sb.append("This Object need authority is：").append(configAttributes).append("\n");
-		sb.append("User authority is：").append(authentication.getAuthorities());
-
-		throw new AccessDeniedException(sb.toString());
+        throw new AccessDeniedException("Access is denied on:[" + object.toString() + "]\n"
+                + "This Object need authority is：" + configAttributes + "\n"
+                + "User authority is：" + authentication.getAuthorities());
 	}
 
 	public boolean supports(ConfigAttribute attribute) {

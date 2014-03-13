@@ -71,7 +71,7 @@ public class MetadataProvider {
             }
 
             if (metadata == null) {
-                metadata = genEntityMetadataFromDB(code);
+                metadata = genMetadataFromDb(code);
             }
 
             if (metadata == null) {
@@ -94,7 +94,7 @@ public class MetadataProvider {
      * @param code 实体编码
      * @return 实体元数据
      */
-    private EntityMetadata genEntityMetadataFromDB(String code) {
+    private EntityMetadata genMetadataFromDb(String code) {
         try {
             Connection con = dao.getDataSource().getConnection();
             DatabaseMetaData dbMetadata = con.getMetaData();
@@ -159,7 +159,7 @@ public class MetadataProvider {
                 }
             }
         } catch (Exception e) {
-
+            logger.debug(e);
         }
 
         return null;
