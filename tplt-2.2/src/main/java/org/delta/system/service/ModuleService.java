@@ -188,7 +188,12 @@ public class ModuleService {
                 for (Map refcom : refcns) {
                     String refMid = MapUtils.getString(refcom, "refMid");
                     String comId = MapUtils.getString(refcom, "comId");
-                    Map comCfg = this.getComponentXdsConfig(refMid, comId);
+                    Map comCfg = null;
+                    try{//读取引用组件
+                        comCfg = this.getComponentXdsConfig(refMid, comId);
+                    }catch (Exception e){
+                        logger.debug(e);
+                    }
                     if (comCfg != null) {
                         comCfg = (Map) comCfg.get("xdsConfig");
                         comCfg.put("isRef", true);
